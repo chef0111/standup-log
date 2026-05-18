@@ -26,7 +26,7 @@ If variables are missing, the app opens a **setup** screen with instructions ins
 1. Enable the **GitHub** provider under Authentication → Providers in the Supabase dashboard.
 2. Create a GitHub OAuth App; set the callback URL Supabase shows for your project.
 3. Under **Authentication → URL configuration**, add this app’s OAuth redirect to **Redirect URLs** (Expo `makeRedirectUri` — copy the exact string from the **Sign in** screen in dev, typically `standuplog://auth/callback` on device/simulator, or an Expo Go variant).
-4. Apply database migrations to your Supabase project (SQL editor paste, `supabase db push`, or your normal migration pipeline). The migration creates `public.profiles` and the signup trigger.
+4. Apply database migrations to your Supabase project in timestamp order under `supabase/migrations/` (SQL editor, `supabase db push`, or your normal pipeline). The Phase 2 migration adds `selected_repositories`, `is_pro`, and a check constraint enforcing **three repositories max** on the free tier.
 5. Deploy the Edge Function that deletes the auth user (required for **Delete account** in the app):
 
    ```bash

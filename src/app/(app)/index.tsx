@@ -2,14 +2,17 @@ import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { AppError, userFacingMessage } from '@/lib/errors';
 import { useAuth } from '@/providers/auth-provider';
+import { parseSelectedRepositories } from '@/types/repository';
 import { Image } from 'expo-image';
-import { Stack, useRouter } from 'expo-router';
+import { Redirect, Stack, useRouter } from 'expo-router';
 import * as React from 'react';
 import { ActivityIndicator, Alert, View } from 'react-native';
 
 type ProfileRow = {
   github_login: string | null;
   avatar_url: string | null;
+  onboarding_completed_at: string | null;
+  selected_repositories: unknown;
 };
 
 export default function AppHomeScreen() {
@@ -30,7 +33,7 @@ export default function AppHomeScreen() {
 
     void supabase
       .from('profiles')
-      .select('github_login, avatar_url')
+      .select('github_login, avatar_url, onboarding_completed_at, selected_repositories')
       .eq('id', session.user.id)
       .maybeSingle()
       .then(({ data, error }) => {
@@ -64,6 +67,8 @@ export default function AppHomeScreen() {
     (typeof session?.user.user_metadata?.avatar_url === 'string'
       ? session.user.user_metadata.avatar_url
       : null);
+
+  const selectedCount = profile ? parseSelectedRepositories(profile.selected_repositories).length : 0;
 
   const onSignOut = React.useCallback(async () => {
     if (!supabase) {
@@ -114,6 +119,36 @@ export default function AppHomeScreen() {
     );
   }, [router, supabase]);
 
+  if (loadingProfile) {
+    return (
+      <>
+        <Stack.Screen options={{ title: 'Home' }} />
+        <View className="flex-1 items-center justify-center bg-background">
+          <ActivityIndicator size="large" />
+        </View>
+      </>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <>
+        <Stack.Screen options={{ title: 'Home' }} />
+        <View className="flex-1 justify-center gap-3 bg-background p-6">
+          <Text className="text-center text-muted-foreground">
+            We could not load your profile. Apply the latest Supabase migrations (see `supabase/migrations`) and try
+            again.
+          </Text>
+          {status ? <Text className="text-center text-destructive">{status}</Text> : null}
+        </View>
+      </>
+    );
+  }
+
+  if (!profile.onboarding_completed_at) {
+    return <Redirect href="/(app)/onboarding" />;
+  }
+
   return (
     <>
       <Stack.Screen options={{ title: 'Home' }} />
@@ -131,17 +166,21 @@ export default function AppHomeScreen() {
           <Text variant="h3" className="text-center text-foreground">
             {displayName}
           </Text>
-          {loadingProfile ? <ActivityIndicator /> : null}
         </View>
 
         <Text className="text-center text-muted-foreground">
-          Repository selection and standup generation are added in the next implementation phase.
+          {selectedCount === 0
+            ? 'No repositories selected yet. Add some to pull commit activity in a later phase, or keep using manual notes only.'
+            : `Tracking ${selectedCount} selected ${selectedCount === 1 ? 'repository' : 'repositories'}.`}
         </Text>
 
         {status ? <Text className="text-center text-destructive">{status}</Text> : null}
 
         <View className="mt-auto gap-3">
-          <Button variant="secondary" disabled={busy} onPress={onSignOut}>
+          <Button variant="secondary" disabled={busy} onPress={() => router.push('/(app)/settings')}>
+            <Text>Manage repositories</Text>
+          </Button>
+          <Button variant="outline" disabled={busy} onPress={onSignOut}>
             <Text>Sign out</Text>
           </Button>
           <Button variant="destructive" disabled={busy} onPress={onDeleteAccount}>
