@@ -17,8 +17,8 @@ A developer-authored note that adds work context not obvious from commits.
 _Avoid_: Time entry, task, journal entry
 
 **Voice Note**:
-A spoken **Manual Note** that becomes useful to StandupLog after transcription.
-_Avoid_: Recording, audio log, meeting note
+A spoken **Manual Note** transcribed on the **device** using OS speech recognition before save; not sent to operator servers for transcription in the MVP path.
+_Avoid_: Recording, audio log, meeting note, cloud transcription
 
 **Unfinished Note**:
 A **Manual Note** marked or inferred by the developer as relevant to future work.
@@ -84,6 +84,8 @@ _Avoid_: Connected repo, tracked repo, watched repo
 - "Today" could imply predicted future work; resolved: Today is based on editable placeholder text and developer-owned **Unfinished Notes**, not AI prediction from commits.
 - "blocker" could be guessed from negative commit wording; resolved: blockers come only from developer-owned **Blocker Notes** or the editable default.
 - "voice note" could imply durable audio storage; resolved: **Voice Note** is an optional capture path whose transcript becomes the **Manual Note**.
+- "voice note" could imply cloud transcription cost; resolved: MVP **Voice Note** uses **device-local** speech-to-text only—no cloud STT API in the core flow.
 - "weekly summary" could imply time tracking or performance measurement; resolved: **Weekly Summary** groups generated **Standup Updates** by work type.
 - "streak" could mean app usage or draft generation; resolved: **Daily Streak** advances only when a **Standup Update** is copied or shared.
 - "GitHub data" could imply source code retention; resolved: StandupLog stores **Activity Metadata** and standups, not code diffs.
+- "Bring your own AI account" or per-user AI vendor login could add onboarding friction; resolved: users authenticate only to StandupLog; **AI Draft** assistance is operator-controlled inference—no separate end-user AI account step in the core flow.

@@ -154,14 +154,14 @@ Use this as a release-readiness index; gates should stay checked only after veri
 
 ---
 
-## Phase 6 — AI draft via Edge proxy (Puter.js path)
+## Phase 6 — AI draft via Edge proxy (Anthropic / operator key)
 
 **Outcome:** AI generates improved Yesterday wording + work-type classification; still respects **no hallucinated Today plans** and **no inferred blockers**.
 
 ### Checklist
 
 - [ ] Supabase Edge Function HTTP contract: input bundle (activity metadata + notes + user instructions), output structured sections + classifications.
-- [ ] Puter.js integration deferred consent: first generate triggers required auth/consent UX (per PRD).
+- [ ] Call **Anthropic Claude** from Edge Function using **operator** API key (secret); app sends user JWT/session only—**never** ship provider keys to the client. No per-user AI vendor login in the product flow.
 - [ ] Failure modes: timeout, 5xx, malformed output → fall back to Phase 5 manual path, never block copy.
 - [ ] Regenerate: re-call AI with same or edited inputs.
 - [ ] Prompt constraints as PRD policies (tone, no surveillance language, no diff content).
@@ -230,7 +230,7 @@ Use this as a release-readiness index; gates should stay checked only after veri
 
 ### Checklist
 
-- [ ] Voice note (≤30s): record → transcribe via Edge proxy → edit transcript → save as Manual Note; permission + retry + temp audio policy per PRD.
+- [ ] Voice note (≤30s): microphone permission → **on-device OS speech-to-text** → edit transcript → save as Manual Note; retry + text fallback per PRD; **no** Edge upload for audio/STT, **no** cloud STT API.
 - [ ] Editable **Work Type** on commits/signals affecting weekly summary.
 - [ ] Empty activity UX: no commits path + confirm copy for “no update” if product chooses that branch (PRD open question — pick in implementation plan).
 - [ ] Settings: default copy format (if not already in Phase 7).

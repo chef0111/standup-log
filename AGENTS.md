@@ -88,3 +88,7 @@ Canonical five-role labels (defaults). See `docs/agents/triage-labels.md`.
 ### Domain docs
 
 Single-context: root `CONTEXT.md` and `docs/adr/`. See `docs/agents/domain.md`.
+
+### Expo (official agent skills)
+
+Bundled under [`.agents/skills/expo/`](./.agents/skills/expo/SKILL.md) (from [expo/skills](https://github.com/expo/skills)). Open the **index** first, then the **leaf** `SKILL.md` it points to (Router, EAS, Tailwind/NativeWind, deployment, native UI, etc.).
