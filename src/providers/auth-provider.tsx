@@ -1,5 +1,7 @@
+import { createSessionFromUrl } from '@/lib/oauth';
 import { getSupabase, isSupabaseConfigured } from '@/utils/supabase';
 import type { Session, SupabaseClient } from '@supabase/supabase-js';
+import * as Linking from 'expo-linking';
 import * as SplashScreen from 'expo-splash-screen';
 import * as React from 'react';
 
@@ -48,6 +50,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true;
       subscription.unsubscribe();
+    };
+  }, [supabase]);
+
+  const processedOAuthUrls = React.useRef(new Set<string>());
+
+  React.useEffect(() => {
+    if (!supabase) {
+      return;
+    }
+
+    const handleUrl = async (url: string | null | undefined) => {
+      if (!url || !url.includes('auth/callback')) {
+        return;
+      }
+      if (processedOAuthUrls.current.has(url)) {
+        return;
+      }
+      processedOAuthUrls.current.add(url);
+      try {
+        await createSessionFromUrl(url);
+      } catch {
+        processedOAuthUrls.current.delete(url);
+      }
+    };
+
+    void Linking.getInitialURL().then(handleUrl);
+    const sub = Linking.addEventListener('url', (event) => {
+      void handleUrl(event.url);
+    });
+
+    return () => {
+      sub.remove();
     };
   }, [supabase]);
 
