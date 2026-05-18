@@ -1,98 +1,77 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Button } from '@/components/ui/button';
+import { Icon } from '@/components/ui/icon';
+import { Text } from '@/components/ui/text';
+import { Link, Stack } from 'expo-router';
+import { MoonStarIcon, StarIcon, SunIcon } from 'lucide-react-native';
+import { useColorScheme } from 'nativewind';
+import * as React from 'react';
+import { Image, type ImageStyle, View } from 'react-native';
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+const LOGO = {
+  light: require('@/assets/images/react-native-reusables-light.png'),
+  dark: require('@/assets/images/react-native-reusables-dark.png'),
+};
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
+const SCREEN_OPTIONS = {
+  title: 'React Native Reusables',
+  headerTransparent: true,
+  headerRight: () => <ThemeToggle />,
+};
+
+const IMAGE_STYLE: ImageStyle = {
+  height: 76,
+  width: 76,
+};
+
+export default function Screen() {
+  const { colorScheme } = useColorScheme();
+
   return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
+    <>
+      <Stack.Screen options={SCREEN_OPTIONS} />
+      <View className="flex-1 items-center justify-center gap-8 p-4">
+        <Image source={LOGO[colorScheme ?? 'light']} style={IMAGE_STYLE} resizeMode="contain" />
+        <View className="gap-2 p-4">
+          <Text className="ios:text-foreground font-mono text-sm text-muted-foreground">
+            1. Edit <Text variant="code">app/index.tsx</Text> to get started.
+          </Text>
+          <Text className="ios:text-foreground font-mono text-sm text-muted-foreground">
+            2. Save to see your changes instantly.
+          </Text>
+        </View>
+        <View className="flex-row gap-2">
+          <Link href="https://reactnativereusables.com" asChild>
+            <Button>
+              <Text>Browse the Docs</Text>
+            </Button>
+          </Link>
+          <Link href="https://github.com/founded-labs/react-native-reusables" asChild>
+            <Button variant="ghost">
+              <Text>Star the Repo</Text>
+              <Icon as={StarIcon} />
+            </Button>
+          </Link>
+        </View>
+      </View>
+    </>
   );
 }
 
-export default function HomeScreen() {
+const THEME_ICONS = {
+  light: SunIcon,
+  dark: MoonStarIcon,
+};
+
+function ThemeToggle() {
+  const { colorScheme, toggleColorScheme } = useColorScheme();
+
   return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
-
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
-
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
-
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
+    <Button
+      onPressIn={toggleColorScheme}
+      size="icon"
+      variant="ghost"
+      className="ios:size-9 rounded-full web:mx-4">
+      <Icon as={THEME_ICONS[colorScheme ?? 'light']} className="size-5" />
+    </Button>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
-  },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
-  },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
-  },
-  title: {
-    textAlign: 'center',
-  },
-  code: {
-    textTransform: 'uppercase',
-  },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
-  },
-});
