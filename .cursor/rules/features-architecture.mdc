@@ -45,6 +45,10 @@ Wire providers in `src/app/_layout.tsx` from `@/context/...`. Feature barrels ma
 | `auth`         | GitHub OAuth, provider token, auth UI (session via `@/context`) |
 | `repositories` | Repo list, picker, GitHub fetch, selection types                |
 | `profile`      | Supabase profile row                                            |
+| `workday`      | Workday boundaries, default target date, UTC bounds for sync    |
+| `activity`     | GitHub commit fetch, activity sync, commit list UI              |
+| `notes`        | Manual notes CRUD, carry-forward query, note editor             |
+| `standup`      | Standup composition, editor, plain copy, offline cache          |
 | `onboarding`   | First-time repo setup (route in app)                            |
 | `settings`     | Manage repos (route in app)                                     |
 | `home`         | Home screen exports                                             |

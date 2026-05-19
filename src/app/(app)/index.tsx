@@ -8,6 +8,7 @@ import { fetchUserProfile, type ProfileHomeRow } from '@/features/profile';
 import { parseSelectedRepositories } from '@/features/repositories';
 import { MarketingHeader, ScreenFooter } from '@/features/shell';
 import { useThemeColor } from '@/features/theme';
+import { defaultTargetWorkday } from '@/features/workday';
 import { Image } from 'expo-image';
 import { Redirect, Stack, useRouter } from 'expo-router';
 import { CircleCheck } from 'lucide-react-native';
@@ -196,14 +197,14 @@ export default function AppHomeScreen() {
             </Card>
           </View>
 
-          <Card className="gap-2 p-4">
+          <Card className="gap-3 p-4">
             <Text className="text-foreground text-sm font-medium">
               What&apos;s next
             </Text>
             <Text className="text-muted-foreground text-sm leading-relaxed">
               {selectedCount === 0
-                ? 'Select repositories to include commit activity in your standup updates, or continue with manual notes only.'
-                : 'Your repository selection is saved. Adjust it anytime before generating standup updates.'}
+                ? 'Generate a standup from manual notes, or select repositories in settings to include commit activity.'
+                : 'Generate your standup from yesterday’s commits and notes.'}
             </Text>
           </Card>
 
@@ -215,6 +216,16 @@ export default function AppHomeScreen() {
         </ScrollView>
 
         <ScreenFooter className="mx-auto w-full max-w-lg">
+          <Button
+            onPress={() =>
+              router.push({
+                pathname: '/standup',
+                params: { workday: defaultTargetWorkday() },
+              })
+            }
+          >
+            <Text>Generate standup</Text>
+          </Button>
           <Button
             disabled={busy}
             onPress={() => router.push('/(app)/settings')}
