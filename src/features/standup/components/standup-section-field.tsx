@@ -23,7 +23,7 @@ export function StandupSectionField({
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        className="min-h-[120px]"
+        className="min-h-30"
       />
     </View>
   );

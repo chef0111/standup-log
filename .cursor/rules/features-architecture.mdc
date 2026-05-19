@@ -34,6 +34,7 @@ Wire providers in `src/app/_layout.tsx` from `@/context/...`. Feature barrels ma
 - **Cross-feature imports** only via the other feature's `index.ts`, not deep paths.
 - **Barrel `index.ts`** re-exports use `./relative` paths — never `@/features/<same-feature>/...` (Metro cannot resolve self-aliases).
 - **Global providers** → `src/context/`, not `features/*/context/`.
+- **Feature-scoped providers** (screen orchestration) → `features/<name>/context/<name>/` — see `.cursor/rules/react-context-provider.mdc`.
 - **Shared design system**: `src/components/ui/`, `src/components/icons/`.
 - **Cross-cutting hooks** (use global context): `src/hooks/` — e.g. `use-github-access-token.ts`.
 - **Infrastructure**: `src/lib/errors.ts`, `src/lib/utils.ts`, `src/utils/supabase.ts`.

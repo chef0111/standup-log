@@ -112,7 +112,7 @@ function Calendar({
   );
 
   return (
-    <View className={cn('w-[280px] gap-4', className)}>
+    <View className={cn('w-70 gap-4', className)}>
       <View className="flex-row items-center justify-between px-1">
         <Button
           variant="outline"

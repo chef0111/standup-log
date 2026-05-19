@@ -1,0 +1,78 @@
+---
+description: Split React context providers into focused modules; use when screens or orchestration grow large
+globs: src/features/**/context/**/*,src/features/**/*.tsx,src/app/**/*.tsx,src/context/**/*
+alwaysApply: false
+---
+
+# React context provider structure
+
+When a screen or feature orchestrator grows large (~150+ lines), or is likely to (multiple data sources, shared UI state, prop drilling), extract a **feature-scoped provider** instead of keeping everything in the route file.
+
+## When to apply
+
+- Screen has **3+ hooks**, **multiple `useEffect`s**, or **prop drilling** through section components.
+- State is **scoped to one feature/screen** (not app-wide).
+- You expect the screen to keep growing (notes + activity + editor + offline cache, etc.).
+
+**App-wide** providers (auth, theme) stay in `src/context/` as single files. **Feature-scoped** providers live under `features/<name>/context/<name>/`.
+
+## Folder layout
+
+```
+features/<name>/context/<name>/
+  index.ts         # barrel — export * from siblings
+  context.ts       # ContextValue type + React.createContext
+  provider.tsx     # <Name>Provider component (state, effects, memoized value)
+  use-<name>.ts    # use<Name>() hook with guard
+```
+
+Reference: `src/features/standup/context/standup/`.
+
+## File responsibilities
+
+| File           | Exports                         | Contains                                       |
+| -------------- | ------------------------------- | ---------------------------------------------- |
+| `context.ts`   | `FooContextValue`, `FooContext` | Types and context object only — no hooks       |
+| `provider.tsx` | `FooProvider`                   | State, effects, callbacks, `useMemo` value     |
+| `use-foo.ts`   | `useFoo`                        | `useContext` + "must be within provider" guard |
+| `index.ts`     | re-exports                      | Public API for the context module              |
+
+## Route / screen pattern
+
+Keep `src/app/` routes thin — layout + provider wrapper only:
+
+```tsx
+export default function StandupScreen() {
+  return (
+    <>
+      <Stack.Screen options={{ title: 'Generate standup' }} />
+      <StandupProvider>
+        <StandupScreenContent />
+      </StandupProvider>
+    </>
+  );
+}
+```
+
+Split UI into **section components** under `features/<name>/components/` that call `useFoo()` — no prop drilling.
+
+## Rules
+
+- **No monolithic `foo-provider.tsx`** once the provider exceeds ~100 lines — split into the four-file layout above.
+- **`context.ts` stays pure** — no side effects, no provider logic.
+- **Memoize provider value** with `useMemo` to limit re-renders.
+- **Barrel exports** from `features/<name>/index.ts` for `FooProvider`, `useFoo`, and `FooContextValue`.
+- **Avoid self-barrel imports** inside the same feature — provider files import siblings via relative paths or direct `@/features/<name>/context/<name>/...` paths, not `@/features/<name>` (Metro circular dependency).
+
+## Example imports
+
+```tsx
+// Route or external consumer
+import { StandupProvider, useStandup } from '@/features/standup';
+
+// Inside provider module
+import { StandupContext } from './context';
+
+// Section component in same feature
+import { useStandup } from '../context/standup';
+```

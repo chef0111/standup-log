@@ -1,6 +1,5 @@
 import { Text } from '@/components/ui/text';
 import type { ActivityCommitRow } from '@/features/activity/types/activity-commit';
-import { FlashList } from '@shopify/flash-list';
 import * as React from 'react';
 import { View } from 'react-native';
 
@@ -59,11 +58,10 @@ export function ActivityList({ commits, emptyMessage }: ActivityListProps) {
   }
 
   return (
-    <FlashList
-      data={commits}
-      keyExtractor={(item) => item.sha}
-      renderItem={({ item }) => <ActivityListItem item={item} />}
-      scrollEnabled={false}
-    />
+    <View>
+      {commits.map((item) => (
+        <ActivityListItem key={item.sha} item={item} />
+      ))}
+    </View>
   );
 }

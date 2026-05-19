@@ -1,9 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { ButtonSpinner } from '@/components/ui/button-spinner';
 import { Text } from '@/components/ui/text';
-import type { ActivityCommitRow } from '@/features/activity/types/activity-commit';
 import { useAuth } from '@/features/auth';
-import type { ManualNoteRow } from '@/features/notes/types/manual-note';
 import { StandupSectionField } from '@/features/standup/components/standup-section-field';
 import {
   composeManualStandup,
@@ -12,25 +10,16 @@ import {
 } from '@/features/standup/lib/compose-standup';
 import { formatPlainStandup } from '@/features/standup/lib/format-plain';
 import { saveStandupUpdate } from '@/features/standup/lib/standup-api';
-import type { Workday } from '@/features/workday/types/workday';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import * as Clipboard from 'expo-clipboard';
 import * as React from 'react';
 import { Alert, View } from 'react-native';
-
-type StandupEditorProps = {
-  workday: Workday;
-  commits: ActivityCommitRow[];
-  notes: ManualNoteRow[];
-  carryForwardNotes: ManualNoteRow[];
-  initialSections?: StandupSections | null;
-  onSaved?: (sections: StandupSections) => void;
-};
+import { useStandup } from '../context/standup';
 
 async function persistStandup(
   supabase: SupabaseClient,
   userId: string,
-  workday: Workday,
+  workday: string,
   sections: StandupSections
 ): Promise<string | null> {
   const { error } = await saveStandupUpdate(
@@ -42,15 +31,16 @@ async function persistStandup(
   return error;
 }
 
-export function StandupEditor({
-  workday,
-  commits,
-  notes,
-  carryForwardNotes,
-  initialSections,
-  onSaved,
-}: StandupEditorProps) {
+export function StandupEditor() {
   const { supabase, session } = useAuth();
+  const {
+    workday,
+    commits,
+    notes,
+    carryForwardNotes,
+    savedSections: initialSections,
+    onStandupSaved: onSaved,
+  } = useStandup();
   const composed = React.useMemo(
     () =>
       composeManualStandup({

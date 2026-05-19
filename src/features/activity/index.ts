@@ -1,4 +1,5 @@
 export { ActivityList } from './components/activity-list';
+export { ActivityTerminal } from './components/activity-terminal';
 export { useActivitySync } from './hooks/use-activity-sync';
 export {
   dedupeCommitsBySha,
