@@ -1,6 +1,7 @@
 import { Text } from '@/components/ui/text';
-import { useAuth } from '@/context/auth-provider';
+import { useAuth } from '@/features/auth';
 import { Redirect } from 'expo-router';
+import * as React from 'react';
 import { ActivityIndicator, View } from 'react-native';
 
 export default function Index() {
@@ -8,9 +9,9 @@ export default function Index() {
 
   if (loading) {
     return (
-      <View className="flex-1 items-center justify-center bg-background">
+      <View className="bg-background flex-1 items-center justify-center">
         <ActivityIndicator size="large" />
-        <Text className="mt-4 text-muted-foreground">Loading…</Text>
+        <Text className="text-muted-foreground mt-4">Loading…</Text>
       </View>
     );
   }

@@ -1,6 +1,4 @@
-import { AuthStatusView } from '@/components/auth/auth-status';
-import { useAuth } from '@/context/auth-provider';
-import { createSessionFromUrl } from '@/lib/oauth';
+import { AuthStatusView, createSessionFromUrl, useAuth } from '@/features/auth';
 import * as Linking from 'expo-linking';
 import { Redirect, useRouter } from 'expo-router';
 import * as React from 'react';
@@ -25,8 +23,7 @@ export default function AuthCallbackScreen() {
 
     void (async () => {
       try {
-        const url =
-          getCallbackUrl() || (await Linking.getInitialURL()) || '';
+        const url = getCallbackUrl() || (await Linking.getInitialURL()) || '';
 
         if (!url.includes('auth/callback')) {
           if (!cancelled) {
@@ -63,7 +60,9 @@ export default function AuthCallbackScreen() {
   }, [router]);
 
   if (status === 'working' || authLoading) {
-    return <AuthStatusView variant="loading" loadingMessage="Completing sign-in…" />;
+    return (
+      <AuthStatusView variant="loading" loadingMessage="Completing sign-in…" />
+    );
   }
 
   if (status === 'success') {

@@ -1,5 +1,8 @@
-import { clearGitHubProviderToken, persistGitHubProviderToken } from '@/lib/github-token';
-import { createSessionFromUrl } from '@/lib/oauth';
+import {
+  clearGitHubProviderToken,
+  persistGitHubProviderToken,
+} from '@/features/auth/lib/github-token';
+import { createSessionFromUrl } from '@/features/auth/lib/oauth';
 import { getSupabase, isSupabaseConfigured } from '@/utils/supabase';
 import type { Session, SupabaseClient } from '@supabase/supabase-js';
 import * as Linking from 'expo-linking';
@@ -15,11 +18,16 @@ type AuthContextValue = {
   configured: boolean;
 };
 
-const AuthContext = React.createContext<AuthContextValue | undefined>(undefined);
+const AuthContext = React.createContext<AuthContextValue | undefined>(
+  undefined
+);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const configured = isSupabaseConfigured();
-  const supabase = React.useMemo(() => (configured ? getSupabase() : null), [configured]);
+  const supabase = React.useMemo(
+    () => (configured ? getSupabase() : null),
+    [configured]
+  );
 
   const [session, setSession] = React.useState<Session | null>(null);
   const [loading, setLoading] = React.useState(configured);

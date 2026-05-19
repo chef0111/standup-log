@@ -1,5 +1,5 @@
+import type { SelectedRepository } from '@/features/repositories/types/repository';
 import { AppError } from '@/lib/errors';
-import type { SelectedRepository } from '@/types/repository';
 
 export type GithubRepoRow = SelectedRepository & {
   ownerAvatarUrl: string | null;
@@ -12,7 +12,9 @@ type GithubRepoApi = {
   owner?: { avatar_url?: string | null };
 };
 
-export async function fetchUserRepos(accessToken: string): Promise<GithubRepoRow[]> {
+export async function fetchUserRepos(
+  accessToken: string
+): Promise<GithubRepoRow[]> {
   const all: GithubRepoRow[] = [];
 
   for (let page = 1; page <= 20; page += 1) {
@@ -20,7 +22,10 @@ export async function fetchUserRepos(accessToken: string): Promise<GithubRepoRow
     url.searchParams.set('per_page', '100');
     url.searchParams.set('page', String(page));
     url.searchParams.set('sort', 'updated');
-    url.searchParams.set('affiliation', 'owner,collaborator,organization_member');
+    url.searchParams.set(
+      'affiliation',
+      'owner,collaborator,organization_member'
+    );
 
     const res = await fetch(url.toString(), {
       headers: {
@@ -32,11 +37,17 @@ export async function fetchUserRepos(accessToken: string): Promise<GithubRepoRow
 
     const remaining = res.headers.get('x-ratelimit-remaining');
     if (remaining === '0') {
-      throw new AppError('github', 'GitHub rate limit reached. Try again in a few minutes.');
+      throw new AppError(
+        'github',
+        'GitHub rate limit reached. Try again in a few minutes.'
+      );
     }
 
     if (res.status === 401 || res.status === 403) {
-      throw new AppError('github', 'GitHub rejected this request. Reconnect your account and try again.');
+      throw new AppError(
+        'github',
+        'GitHub rejected this request. Reconnect your account and try again.'
+      );
     }
 
     if (!res.ok) {
@@ -56,7 +67,10 @@ export async function fetchUserRepos(accessToken: string): Promise<GithubRepoRow
         id: row.id,
         full_name: row.full_name,
         private: Boolean(row.private),
-        ownerAvatarUrl: typeof row.owner?.avatar_url === 'string' ? row.owner.avatar_url : null,
+        ownerAvatarUrl:
+          typeof row.owner?.avatar_url === 'string'
+            ? row.owner.avatar_url
+            : null,
       });
     }
 

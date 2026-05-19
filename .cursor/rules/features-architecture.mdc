@@ -1,0 +1,52 @@
+---
+description: Feature-based folder layout under src/features
+globs: src/features/**/*,src/app/**/*,src/context/**/*
+alwaysApply: false
+---
+
+# Feature modules (`src/features`)
+
+Vertical slices mirror `src/` layout per feature:
+
+```
+features/<name>/
+  components/   # UI for this feature
+  hooks/
+  lib/          # data + domain helpers
+  types/
+  index.ts      # public API — relative re-exports only (no @/features/self in barrels)
+```
+
+## Global context (`src/context/`)
+
+App-wide React providers live here, not under `features/`:
+
+| Module               | Exports                                 |
+| -------------------- | --------------------------------------- |
+| `auth-provider.tsx`  | `AuthProvider`, `useAuth`               |
+| `theme-provider.tsx` | `AppThemeProvider`, `useAppColorScheme` |
+
+Wire providers in `src/app/_layout.tsx` from `@/context/...`. Feature barrels may re-export hooks for convenience (`@/features/auth` still exposes `useAuth`).
+
+## Rules
+
+- **Routes stay thin** in `src/app/`; wire screens to `@/features/<name>`.
+- **Cross-feature imports** only via the other feature's `index.ts`, not deep paths.
+- **Barrel `index.ts`** re-exports use `./relative` paths — never `@/features/<same-feature>/...` (Metro cannot resolve self-aliases).
+- **Global providers** → `src/context/`, not `features/*/context/`.
+- **Shared design system**: `src/components/ui/`, `src/components/icons/`.
+- **Cross-cutting hooks** (use global context): `src/hooks/` — e.g. `use-github-access-token.ts`.
+- **Infrastructure**: `src/lib/errors.ts`, `src/lib/utils.ts`, `src/utils/supabase.ts`.
+
+## Current features
+
+| Feature        | Responsibility                                                  |
+| -------------- | --------------------------------------------------------------- |
+| `auth`         | GitHub OAuth, provider token, auth UI (session via `@/context`) |
+| `repositories` | Repo list, picker, GitHub fetch, selection types                |
+| `profile`      | Supabase profile row                                            |
+| `onboarding`   | First-time repo setup (route in app)                            |
+| `settings`     | Manage repos (route in app)                                     |
+| `home`         | Home screen exports                                             |
+| `theme`        | Toggle, CSS variable colors (scheme via `@/context`)            |
+| `shell`        | Headers, footers, marketing blocks                              |

@@ -1,4 +1,4 @@
-import { ThemeToggle } from '@/components/theme-toggle';
+import { ThemeToggle } from '@/features/theme/components/theme-toggle';
 import { View } from 'react-native';
 
 export function ScreenHeaderActions() {

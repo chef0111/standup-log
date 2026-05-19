@@ -1,15 +1,18 @@
-import { RepositoryPickerScreen } from '@/components/repository-picker-screen';
-import { useAuth } from '@/context/auth-provider';
-import { useGitHubAccessToken } from '@/hooks/use-github-access-token';
-import { AppError, userFacingMessage } from '@/lib/errors';
-import { fetchUserRepos, type GithubRepoRow } from '@/lib/github-repos';
-import { signInWithGitHub } from '@/lib/oauth';
-import { fetchUserProfile } from '@/lib/profile';
 import {
-    FREE_TIER_REPO_LIMIT,
-    parseSelectedRepositories,
-    type SelectedRepository,
-} from '@/types/repository';
+  signInWithGitHub,
+  useAuth,
+  useGitHubAccessToken,
+} from '@/features/auth';
+import { fetchUserProfile } from '@/features/profile';
+import {
+  fetchUserRepos,
+  FREE_TIER_REPO_LIMIT,
+  parseSelectedRepositories,
+  RepositoryPickerScreen,
+  type GithubRepoRow,
+  type SelectedRepository,
+} from '@/features/repositories';
+import { AppError, userFacingMessage } from '@/lib/errors';
 import { Stack, useRouter } from 'expo-router';
 import * as React from 'react';
 import { Alert } from 'react-native';
@@ -17,7 +20,11 @@ import { Alert } from 'react-native';
 export default function OnboardingRepositoriesScreen() {
   const router = useRouter();
   const { supabase, session } = useAuth();
-  const { token, loading: tokenLoading, refresh: refreshToken } = useGitHubAccessToken();
+  const {
+    token,
+    loading: tokenLoading,
+    refresh: refreshToken,
+  } = useGitHubAccessToken();
 
   const [repos, setRepos] = React.useState<GithubRepoRow[]>([]);
   const [loadingRepos, setLoadingRepos] = React.useState(true);
@@ -82,7 +89,8 @@ export default function OnboardingRepositoriesScreen() {
       })
       .catch((e: unknown) => {
         if (!cancelled) {
-          const msg = e instanceof AppError ? e.message : userFacingMessage('github');
+          const msg =
+            e instanceof AppError ? e.message : userFacingMessage('github');
           setLoadError(msg);
         }
       })
@@ -105,7 +113,10 @@ export default function OnboardingRepositoriesScreen() {
     return repos.filter((r) => r.full_name.toLowerCase().includes(q));
   }, [query, repos]);
 
-  const selectedIds = React.useMemo(() => new Set(selected.map((s) => s.id)), [selected]);
+  const selectedIds = React.useMemo(
+    () => new Set(selected.map((s) => s.id)),
+    [selected]
+  );
 
   const onToggle = React.useCallback(
     (repo: GithubRepoRow) => {
@@ -123,7 +134,10 @@ export default function OnboardingRepositoriesScreen() {
           );
           return prev;
         }
-        return [...prev, { id: repo.id, full_name: repo.full_name, private: repo.private }];
+        return [
+          ...prev,
+          { id: repo.id, full_name: repo.full_name, private: repo.private },
+        ];
       });
     },
     [isPro]
@@ -162,14 +176,17 @@ export default function OnboardingRepositoriesScreen() {
       refreshToken();
       setReloadKey((k) => k + 1);
     } catch (e) {
-      const text = e instanceof AppError ? e.message : userFacingMessage('auth');
+      const text =
+        e instanceof AppError ? e.message : userFacingMessage('auth');
       Alert.alert('GitHub sign-in', text);
     }
   }, [refreshToken]);
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Select repositories', headerShown: true }} />
+      <Stack.Screen
+        options={{ title: 'Select repositories', headerShown: true }}
+      />
       <RepositoryPickerScreen
         title="Choose repositories"
         description={

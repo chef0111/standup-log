@@ -1,5 +1,5 @@
 import { useAuth } from '@/context/auth-provider';
-import { resolveGitHubAccessToken } from '@/lib/github-token';
+import { resolveGitHubAccessToken } from '@/features/auth/lib/github-token';
 import * as React from 'react';
 
 export function useGitHubAccessToken(): {

@@ -8,15 +8,23 @@ type ScreenFooterProps = ViewProps & {
 };
 
 /** Bottom action area with safe-area padding and consistent spacing. */
-export function ScreenFooter({ children, className, ...props }: ScreenFooterProps) {
+export function ScreenFooter({
+  children,
+  className,
+  ...props
+}: ScreenFooterProps) {
   const insets = useSafeAreaInsets();
   const bottomPad = Math.max(insets.bottom, 20);
 
   return (
     <View
-      className={cn('gap-3 border-t border-border bg-background px-5 pt-4', className)}
+      className={cn(
+        'border-border bg-background/95 gap-3 border-t px-5 pt-4',
+        className
+      )}
       style={{ paddingBottom: bottomPad }}
-      {...props}>
+      {...props}
+    >
       {children}
     </View>
   );

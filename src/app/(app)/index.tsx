@@ -1,22 +1,22 @@
-import { GithubIcon } from '@/components/icons/github-icon';
-import { ScreenFooter } from '@/components/screen-footer';
+import { GithubIcon, RepositoryIcon } from '@/components/icons';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
-import { useAuth } from '@/context/auth-provider';
-import { fetchUserProfile, type ProfileHomeRow } from '@/lib/profile';
-import { parseSelectedRepositories } from '@/types/repository';
+import { useAuth } from '@/features/auth';
+import { fetchUserProfile, type ProfileHomeRow } from '@/features/profile';
+import { parseSelectedRepositories } from '@/features/repositories';
+import { MarketingHeader, ScreenFooter } from '@/features/shell';
+import { useThemeColor } from '@/features/theme';
 import { Image } from 'expo-image';
 import { Redirect, Stack, useRouter } from 'expo-router';
 import { CircleCheck, Settings } from 'lucide-react-native';
-import { useUnstableNativeVariable } from 'nativewind';
 import * as React from 'react';
 import { ActivityIndicator, ScrollView, View } from 'react-native';
-import { Octicon } from 'rn-iconify/icons/Octicon';
 
 export default function AppHomeScreen() {
   const router = useRouter();
-  const foreground = useUnstableNativeVariable();
+  const foreground = useThemeColor('--color-foreground');
   const { supabase, session } = useAuth();
   const [profile, setProfile] = React.useState<ProfileHomeRow | null>(null);
   const [loadingProfile, setLoadingProfile] = React.useState(true);
@@ -98,15 +98,19 @@ export default function AppHomeScreen() {
     return (
       <>
         <Stack.Screen options={{ title: 'Home' }} />
-        <View className="bg-background flex-1 justify-center gap-3 p-6">
-          <Text className="text-muted-foreground text-center">
-            We could not load your profile. Confirm both migrations in
-            `supabase/migrations` are applied to this project, then sign out and
-            sign in again.
-          </Text>
-          {status ? (
-            <Text className="text-destructive text-center">{status}</Text>
-          ) : null}
+        <View className="bg-background flex-1 justify-center gap-4 p-6">
+          <Card className="gap-3 p-6">
+            <Text className="text-muted-foreground text-center text-sm leading-relaxed">
+              We could not load your profile. Confirm both migrations in
+              `supabase/migrations` are applied to this project, then sign out
+              and sign in again.
+            </Text>
+            {status ? (
+              <Text className="text-destructive text-center text-sm">
+                {status}
+              </Text>
+            ) : null}
+          </Card>
         </View>
       </>
     );
@@ -122,29 +126,29 @@ export default function AppHomeScreen() {
       <View className="bg-background flex-1">
         <ScrollView
           className="flex-1"
-          contentContainerClassName="flex-grow gap-5 px-5 pb-4 pt-2"
+          contentContainerClassName="mx-auto w-full max-w-lg flex-grow gap-6 px-5 pb-4 pt-2"
           showsVerticalScrollIndicator={false}
         >
-          <View className="gap-1">
-            <Text className="text-muted-foreground text-sm font-medium">
-              Welcome back
-            </Text>
-            <Text variant="h2" className="text-foreground border-0 pb-0">
-              StandupLog
-            </Text>
-          </View>
+          <MarketingHeader
+            eyebrow="Welcome back"
+            title="StandupLog"
+            description="Your workspace for daily standup updates."
+          />
 
-          <View className="border-border bg-card overflow-hidden rounded-2xl border shadow-sm shadow-black/5">
-            <View className="items-center gap-4 px-6 py-8">
-              <View className="border-primary/20 rounded-full border-2 p-1">
+          <Card>
+            <CardContent className="items-center gap-4 pt-6">
+              <View className="border-border rounded-full border p-0.5">
                 {avatarUrl ? (
                   <Image
                     source={{ uri: avatarUrl }}
-                    style={{ width: 80, height: 80, borderRadius: 40 }}
+                    style={{ width: 72, height: 72, borderRadius: 36 }}
                   />
                 ) : (
-                  <View className="bg-muted size-20 items-center justify-center rounded-full">
-                    <Text variant="h3" className="text-muted-foreground">
+                  <View className="bg-muted size-18 items-center justify-center rounded-full">
+                    <Text
+                      variant="h3"
+                      className="text-muted-foreground border-0 pb-0"
+                    >
                       {(displayName[0] ?? '?').toUpperCase()}
                     </Text>
                   </View>
@@ -157,45 +161,43 @@ export default function AppHomeScreen() {
                 >
                   {displayName}
                 </Text>
-                <View className="bg-muted/60 flex-row items-center gap-1.5 rounded-full px-3 py-1">
-                  <GithubIcon size={14} color={foreground ?? undefined} />
+                <View className="border-border bg-muted/50 flex-row items-center gap-1.5 rounded-full border px-3 py-1">
+                  <GithubIcon size={14} color={foreground} />
                   <Text className="text-muted-foreground text-xs">
                     Connected via GitHub
                   </Text>
                 </View>
               </View>
-            </View>
-          </View>
+            </CardContent>
+          </Card>
 
           <View className="flex-row gap-3">
-            <View className="border-border bg-muted/20 flex-1 gap-2 rounded-xl border p-4">
+            <Card className="flex-1 p-4">
               <View className="flex-row items-center gap-2">
-                <Octicon
-                  name="repo-16"
-                  size={28}
-                  color={foreground ?? undefined}
-                />
-                <Text className="text-foreground text-3xl font-bold">
+                <View className="bg-muted/80 size-8 items-center justify-center rounded-md">
+                  <RepositoryIcon size={16} color={foreground} />
+                </View>
+                <Text className="text-foreground text-2xl font-semibold tracking-tight">
                   {selectedCount}
                 </Text>
               </View>
-              <Text className="text-muted-foreground text-sm">
+              <Text className="text-muted-foreground mt-2 text-sm">
                 {selectedCount === 1 ? 'Repository' : 'Repositories'}
               </Text>
-            </View>
-            <View className="border-border bg-muted/20 flex-1 gap-2 rounded-xl border p-4">
-              <Icon as={CircleCheck} size={28} className="text-primary" />
+            </Card>
+            <Card className="flex-1 gap-2 p-4">
+              <Icon as={CircleCheck} size={22} className="text-foreground" />
               <Text className="text-foreground text-sm font-medium">
                 Sources ready
               </Text>
               <Text className="text-muted-foreground text-xs">
                 Configured for standups
               </Text>
-            </View>
+            </Card>
           </View>
 
-          <View className="border-border bg-card/60 gap-2 rounded-xl border p-4">
-            <Text className="text-foreground font-medium">
+          <Card className="gap-2 p-4">
+            <Text className="text-foreground text-sm font-medium">
               What&apos;s next
             </Text>
             <Text className="text-muted-foreground text-sm leading-relaxed">
@@ -203,7 +205,7 @@ export default function AppHomeScreen() {
                 ? 'Select repositories to include commit activity in your standup updates, or continue with manual notes only.'
                 : 'Your repository selection is saved. Adjust it anytime before generating standup updates.'}
             </Text>
-          </View>
+          </Card>
 
           {status ? (
             <Text className="text-destructive text-center text-sm">
@@ -212,7 +214,7 @@ export default function AppHomeScreen() {
           ) : null}
         </ScrollView>
 
-        <ScreenFooter>
+        <ScreenFooter className="mx-auto w-full max-w-lg">
           <Button
             disabled={busy}
             onPress={() => router.push('/(app)/settings')}

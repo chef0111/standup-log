@@ -1,14 +1,19 @@
+import { persistGitHubProviderToken } from '@/features/auth/lib/github-token';
 import { AppError, categorizeError, userFacingMessage } from '@/lib/errors';
-import { persistGitHubProviderToken } from '@/lib/github-token';
 import { requireSupabase } from '@/utils/supabase';
 import { makeRedirectUri } from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
 
 void WebBrowser.maybeCompleteAuthSession();
 
-function getOAuthReturnParams(input: string): { errorCode: string | null; params: Record<string, string> } {
+function getOAuthReturnParams(input: string): {
+  errorCode: string | null;
+  params: Record<string, string>;
+} {
   const url = new URL(input, 'https://phony.example');
-  const params: Record<string, string> = Object.fromEntries(url.searchParams as Iterable<[string, string]>);
+  const params: Record<string, string> = Object.fromEntries(
+    url.searchParams as Iterable<[string, string]>
+  );
   if (url.hash) {
     new URLSearchParams(url.hash.replace(/^#/, '')).forEach((value, key) => {
       params[key] = value;
@@ -34,7 +39,8 @@ export async function createSessionFromUrl(url: string): Promise<void> {
 
   const authCode = parsed.searchParams.get('code');
   if (authCode) {
-    const { data, error } = await supabase.auth.exchangeCodeForSession(authCode);
+    const { data, error } =
+      await supabase.auth.exchangeCodeForSession(authCode);
     if (error) {
       throw new AppError('auth', error.message);
     }
@@ -48,15 +54,19 @@ export async function createSessionFromUrl(url: string): Promise<void> {
     throw new AppError('auth', String(errorCode));
   }
 
-  const access_token = typeof params.access_token === 'string' ? params.access_token : undefined;
-  const refresh_token = typeof params.refresh_token === 'string' ? params.refresh_token : undefined;
+  const access_token =
+    typeof params.access_token === 'string' ? params.access_token : undefined;
+  const refresh_token =
+    typeof params.refresh_token === 'string' ? params.refresh_token : undefined;
 
   if (!access_token) {
     return;
   }
 
   await persistGitHubProviderToken(
-    typeof params.provider_token === 'string' ? params.provider_token : undefined
+    typeof params.provider_token === 'string'
+      ? params.provider_token
+      : undefined
   );
 
   const { error } = await supabase.auth.setSession({
@@ -104,6 +114,9 @@ export async function signInWithGitHub(): Promise<void> {
     await createSessionFromUrl(result.url);
   } catch (e) {
     const cat = categorizeError(e);
-    throw new AppError(cat, e instanceof Error ? e.message : userFacingMessage(cat));
+    throw new AppError(
+      cat,
+      e instanceof Error ? e.message : userFacingMessage(cat)
+    );
   }
 }

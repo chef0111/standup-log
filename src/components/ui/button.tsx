@@ -15,7 +15,9 @@ const buttonVariants = cva(
       variant: {
         default: cn(
           'bg-primary active:bg-primary/90 shadow-sm shadow-black/5',
-          Platform.select({ web: 'hover:bg-primary/90' })
+          Platform.select({
+            web: 'hover:bg-primary/90 transition-colors',
+          })
         ),
         destructive: cn(
           'bg-destructive active:bg-destructive/90 dark:bg-destructive/60 shadow-sm shadow-black/5',
@@ -24,9 +26,9 @@ const buttonVariants = cva(
           })
         ),
         outline: cn(
-          'border-border bg-background active:bg-accent dark:bg-input/30 dark:border-input dark:active:bg-input/50 border shadow-sm shadow-black/5',
+          'border-border bg-background active:bg-accent dark:bg-background dark:active:bg-muted border shadow-sm shadow-black/5',
           Platform.select({
-            web: 'hover:bg-accent dark:hover:bg-input/50',
+            web: 'hover:bg-muted dark:hover:bg-muted transition-colors',
           })
         ),
         secondary: cn(
@@ -40,9 +42,18 @@ const buttonVariants = cva(
         link: '',
       },
       size: {
-        default: cn('h-10 px-4 py-2 sm:h-9', Platform.select({ web: 'has-[>svg]:px-3' })),
-        sm: cn('h-9 gap-1.5 rounded-md px-3 sm:h-8', Platform.select({ web: 'has-[>svg]:px-2.5' })),
-        lg: cn('h-11 rounded-md px-6 sm:h-10', Platform.select({ web: 'has-[>svg]:px-4' })),
+        default: cn(
+          'h-10 px-4 py-2 sm:h-9',
+          Platform.select({ web: 'has-[>svg]:px-3' })
+        ),
+        sm: cn(
+          'h-9 gap-1.5 rounded-md px-3 sm:h-8',
+          Platform.select({ web: 'has-[>svg]:px-2.5' })
+        ),
+        lg: cn(
+          'h-11 rounded-md px-6 sm:h-10',
+          Platform.select({ web: 'has-[>svg]:px-4' })
+        ),
         icon: 'h-10 w-10 sm:h-9 sm:w-9',
       },
     },
@@ -71,7 +82,9 @@ const buttonTextVariants = cva(
         ghost: 'group-active:text-accent-foreground',
         link: cn(
           'text-primary group-active:underline',
-          Platform.select({ web: 'underline-offset-4 hover:underline group-hover:underline' })
+          Platform.select({
+            web: 'underline-offset-4 hover:underline group-hover:underline',
+          })
         ),
       },
       size: {
@@ -88,13 +101,19 @@ const buttonTextVariants = cva(
   }
 );
 
-type ButtonProps = React.ComponentProps<typeof Pressable> & React.RefAttributes<typeof Pressable> & VariantProps<typeof buttonVariants>;
+type ButtonProps = React.ComponentProps<typeof Pressable> &
+  React.RefAttributes<typeof Pressable> &
+  VariantProps<typeof buttonVariants>;
 
 function Button({ className, variant, size, ...props }: ButtonProps) {
   return (
     <TextClassContext.Provider value={buttonTextVariants({ variant, size })}>
       <Pressable
-        className={cn(props.disabled && 'opacity-50', buttonVariants({ variant, size }), className)}
+        className={cn(
+          props.disabled && 'opacity-50',
+          buttonVariants({ variant, size }),
+          className
+        )}
         role="button"
         {...props}
       />
