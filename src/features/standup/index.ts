@@ -36,3 +36,4 @@ export {
   mergeStandupSections,
   saveStandupUpdate,
 } from './lib/standup-api';
+export { recordStandupCopy } from './lib/record-standup-copy';
