@@ -21,11 +21,11 @@ Use this as a release-readiness index; gates should stay checked only after veri
 - **Phase 0** — Project spine & contracts (all gates) - [DONE]
 - **Phase 1** — Identity, session, account lifecycle (all gates) - [DONE]
 - **Phase 2** — GitHub access: repo discovery & explicit selection (all gates) - [DONE]
-- **Phase 3** — Activity ingestion (commits + PR metadata) (all gates)
-- **Phase 4** — Manual notes (text-first) (all gates)
-- **Phase 5** — Standup record + draft editor, manual path (all gates)
-- **Phase 6** — AI draft via Edge proxy (all gates)
-- **Phase 7** — Copy formats, clipboard, streak on copy (all gates)
+- **Phase 3** — Activity ingestion (commits + PR metadata) (all gates) - [DONE]
+- **Phase 4** — Manual notes (text-first) (all gates) - [DONE]
+- **Phase 5** — Standup record + draft editor, manual path (all gates) - [DONE]
+- **Phase 6** — AI draft via Edge proxy (all gates) - [DONE]
+- **Phase 7** — Copy formats, clipboard, streak on copy (all gates) - [DONE]
 - **Phase 8** — Entitlements: free vs Pro (all gates)
 - **Phase 9** — Engagement: weekly summary + reminders (all gates)
 - **Phase 10** — Should-have sweep (all gates)
@@ -35,11 +35,13 @@ Use this as a release-readiness index; gates should stay checked only after veri
 
 ## Structuring options (pick implicit default below)
 
+
 | Approach                         | Idea                                                                                              | Upside                                                | Downside                                        |
 | -------------------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------------------------------- | ----------------------------------------------- |
 | **A. Layer cake**                | Infra → DB → all APIs → all UI                                                                    | Clear ownership by layer                              | Long time before usable “generate standup” demo |
 | **B. Pure vertical slices**      | Each slice is end-to-end feature                                                                  | Fast user-visible value                               | Repeated schema/API churn early                 |
 | **C. Risk-first spine** (chosen) | Thin E2E path first (auth → repos → fake/static draft → copy), then real GitHub + AI + engagement | Validates hardest unknowns early; demo stays runnable | Requires discipline to avoid “throwaway” UI     |
+
 
 **Chosen:** **C — risk-first spine**, with **B-style vertical completion** inside the core “generate → edit → copy” slice once schema stabilizes after Phase 4.
 
@@ -100,7 +102,7 @@ Use this as a release-readiness index; gates should stay checked only after veri
 
 ---
 
-## Phase 3 — Activity ingestion (commits + PR metadata)
+## Phase 3 — Activity ingestion (commits + PR metadata) - [DONE]
 
 **Outcome:** For a chosen **Workday** (user-local calendar day), app pulls **Activity Metadata** into storage: commits authored by user in selected repos + PR metadata where possible; **no diffs**.
 
@@ -120,7 +122,7 @@ Use this as a release-readiness index; gates should stay checked only after veri
 
 ---
 
-## Phase 4 — Manual notes (text-first)
+## Phase 4 — Manual notes (text-first) - [DONE]
 
 **Outcome:** User can CRUD text notes per Workday with **Blocker** and **Carry forward** toggles; notes feed standup composition rules.
 
@@ -137,7 +139,7 @@ Use this as a release-readiness index; gates should stay checked only after veri
 
 ---
 
-## Phase 5 — Standup record + draft editor (manual path first)
+## Phase 5 — Standup record + draft editor (manual path first) - [DONE]
 
 **Outcome:** User can produce a **Standup Update** for a Workday with Yesterday / Today / Blockers sections **without AI** (template + inserted notes + optional commit bullets), edit in sheet/dialog, save `edited_draft`.
 

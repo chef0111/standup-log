@@ -12,7 +12,7 @@ import { defaultTargetWorkday } from '@/features/workday';
 import { useFocusEffect } from '@react-navigation/native';
 import { Image } from 'expo-image';
 import { Redirect, Stack, useRouter } from 'expo-router';
-import { CircleCheck } from 'lucide-react-native';
+import { Flame } from 'lucide-react-native';
 import * as React from 'react';
 import { ActivityIndicator, ScrollView, View } from 'react-native';
 
@@ -191,12 +191,12 @@ export default function AppHomeScreen() {
               </Text>
             </Card>
             <Card className="flex-1 gap-2 p-4">
-              <Icon as={CircleCheck} size={22} className="text-foreground" />
+              <Icon as={Flame} size={22} className="text-foreground" />
               <Text className="text-foreground text-sm font-medium">
-                Sources ready
+                Daily streak
               </Text>
               <Text className="text-muted-foreground text-xs">
-                Configured for standups
+                {profile.current_streak} current · best {profile.longest_streak}
               </Text>
             </Card>
           </View>
@@ -235,7 +235,7 @@ export default function AppHomeScreen() {
             onPress={() => router.push('/(app)/settings')}
           >
             <RepositoryIcon size={16} className="text-primary-foreground" />
-            <Text>Manage repositories</Text>
+            <Text>Settings</Text>
           </Button>
           <Button variant="outline" disabled={busy} onPress={onSignOut}>
             <Text>Sign out</Text>
