@@ -4,7 +4,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 export async function updateCommitWorkTypes(
   supabase: SupabaseClient,
   userId: string,
-  classifications: Array<{ sha: string; work_type: CommitWorkType | string }>
+  classifications: { sha: string; work_type: CommitWorkType | string }[]
 ): Promise<{ error: string | null }> {
   for (const { sha, work_type } of classifications) {
     const { error } = await supabase

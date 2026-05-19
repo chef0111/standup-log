@@ -2,19 +2,27 @@ import { useActivitySync } from '@/features/activity';
 import { useAuth } from '@/features/auth';
 import { useManualNotes, type ManualNoteRow } from '@/features/notes';
 import { fetchUserProfile } from '@/features/profile';
-import type { StandupSections } from '@/features/standup/lib/compose-standup';
+import { buildGenerateDraftRequest } from '@/features/standup/lib/build-generate-draft-request';
+import {
+  composeManualStandup,
+  type StandupSections,
+} from '@/features/standup/lib/compose-standup';
+import { generateAiDraft } from '@/features/standup/lib/generate-ai-draft';
+import { mergeAiDraft } from '@/features/standup/lib/merge-ai-draft';
 import {
   isLikelyOffline,
   readWorkdaySnapshot,
   writeWorkdaySnapshot,
 } from '@/features/standup/lib/offline-cache';
 import { fetchStandupUpdate } from '@/features/standup/lib/standup-api';
+import { updateCommitWorkTypes } from '@/features/standup/lib/update-commit-work-types';
 import {
   clampWorkdayToBounds,
   defaultTargetWorkday,
   getWorkdayPickerBounds,
 } from '@/features/workday';
 import type { Workday } from '@/features/workday/types/workday';
+import { userFacingMessage } from '@/lib/errors';
 import { useFocusEffect } from '@react-navigation/native';
 import * as React from 'react';
 import { StandupContext, type StandupContextValue } from './context';
@@ -32,8 +40,13 @@ export function StandupProvider({ children }: { children: React.ReactNode }) {
   const [noteError, setNoteError] = React.useState<string | null>(null);
   const [savedSections, setSavedSections] =
     React.useState<StandupSections | null>(null);
+  const [draftSections, setDraftSections] =
+    React.useState<StandupSections | null>(null);
+  const [aiLoading, setAiLoading] = React.useState(false);
+  const [aiError, setAiError] = React.useState<string | null>(null);
   const [loadingStandup, setLoadingStandup] = React.useState(true);
   const [offlineBanner, setOfflineBanner] = React.useState<string | null>(null);
+  const autoAiWorkdayRef = React.useRef<string | null>(null);
 
   const pickerBounds = React.useMemo(
     () => getWorkdayPickerBounds({ isPro }),
@@ -44,6 +57,9 @@ export function StandupProvider({ children }: { children: React.ReactNode }) {
     React.useCallback(() => {
       setWorkday(defaultTargetWorkday());
       setSavedSections(null);
+      setDraftSections(null);
+      setAiError(null);
+      autoAiWorkdayRef.current = null;
       setOfflineBanner(null);
       setWorkdayPickerKey((key) => key + 1);
 
@@ -132,6 +148,89 @@ export function StandupProvider({ children }: { children: React.ReactNode }) {
     };
   }, [supabase, workday]);
 
+  const composeInput = React.useMemo(
+    () => ({ commits, notes, carryForwardNotes }),
+    [commits, notes, carryForwardNotes]
+  );
+
+  const runAiDraft = React.useCallback(
+    async (showErrorOnFailure: boolean) => {
+      if (!supabase || !session) {
+        return;
+      }
+
+      const manual = composeManualStandup(composeInput);
+      setAiLoading(true);
+      setAiError(null);
+
+      if (isLikelyOffline()) {
+        setDraftSections(manual);
+        setAiLoading(false);
+        if (showErrorOnFailure) {
+          setAiError(userFacingMessage('network'));
+        }
+        return;
+      }
+
+      const { draft, fallback } = await generateAiDraft(
+        supabase,
+        buildGenerateDraftRequest(workday, commits, notes)
+      );
+
+      if (draft && !fallback) {
+        setDraftSections(
+          mergeAiDraft({ aiYesterday: draft.yesterday, manual })
+        );
+        if (draft.classifications.length > 0) {
+          await updateCommitWorkTypes(
+            supabase,
+            session.user.id,
+            draft.classifications
+          );
+        }
+      } else {
+        setDraftSections(manual);
+        if (showErrorOnFailure) {
+          setAiError(userFacingMessage('ai'));
+        }
+      }
+
+      setAiLoading(false);
+    },
+    [commits, composeInput, notes, session, supabase, workday]
+  );
+
+  React.useEffect(() => {
+    if (savedSections) {
+      autoAiWorkdayRef.current = null;
+      return;
+    }
+
+    if (loadingActivity || loadingNotes || loadingStandup) {
+      return;
+    }
+
+    if (isLikelyOffline()) {
+      setDraftSections(composeManualStandup(composeInput));
+      return;
+    }
+
+    if (autoAiWorkdayRef.current === workday) {
+      return;
+    }
+
+    autoAiWorkdayRef.current = workday;
+    void runAiDraft(false);
+  }, [
+    composeInput,
+    loadingActivity,
+    loadingNotes,
+    loadingStandup,
+    runAiDraft,
+    savedSections,
+    workday,
+  ]);
+
   React.useEffect(() => {
     if (loadingActivity || loadingNotes || loadingStandup) {
       return;
@@ -141,7 +240,7 @@ export function StandupProvider({ children }: { children: React.ReactNode }) {
       commits,
       notes,
       carryForwardNotes,
-      sections: savedSections,
+      sections: savedSections ?? draftSections,
       cachedAt: new Date().toISOString(),
     });
   }, [
@@ -150,6 +249,7 @@ export function StandupProvider({ children }: { children: React.ReactNode }) {
     notes,
     carryForwardNotes,
     savedSections,
+    draftSections,
     loadingActivity,
     loadingNotes,
     loadingStandup,
@@ -158,6 +258,9 @@ export function StandupProvider({ children }: { children: React.ReactNode }) {
   const onWorkdayChange = React.useCallback((next: Workday) => {
     setWorkday(next);
     setSavedSections(null);
+    setDraftSections(null);
+    setAiError(null);
+    autoAiWorkdayRef.current = null;
     setOfflineBanner(null);
   }, []);
 
@@ -200,6 +303,12 @@ export function StandupProvider({ children }: { children: React.ReactNode }) {
     setOfflineBanner(null);
   }, []);
 
+  const regenerateDraft = React.useCallback(async () => {
+    autoAiWorkdayRef.current = null;
+    await runAiDraft(true);
+    autoAiWorkdayRef.current = workday;
+  }, [runAiDraft, workday]);
+
   const refreshActivity = React.useCallback(() => {
     void refresh();
   }, [refresh]);
@@ -235,6 +344,10 @@ export function StandupProvider({ children }: { children: React.ReactNode }) {
       noteError,
       handleSaveNote,
       savedSections,
+      draftSections,
+      aiLoading,
+      aiError,
+      regenerateDraft,
       onStandupSaved,
       loadingStandup,
       loading,
@@ -266,6 +379,10 @@ export function StandupProvider({ children }: { children: React.ReactNode }) {
       noteError,
       handleSaveNote,
       savedSections,
+      draftSections,
+      aiLoading,
+      aiError,
+      regenerateDraft,
       onStandupSaved,
       loadingStandup,
       loading,

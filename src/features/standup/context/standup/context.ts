@@ -39,6 +39,10 @@ export type StandupContextValue = {
     is_carry_forward: boolean;
   }) => Promise<void>;
   savedSections: StandupSections | null;
+  draftSections: StandupSections | null;
+  aiLoading: boolean;
+  aiError: string | null;
+  regenerateDraft: () => Promise<void>;
   onStandupSaved: (sections: StandupSections) => void;
   loadingStandup: boolean;
   loading: boolean;

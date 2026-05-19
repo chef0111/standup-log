@@ -39,6 +39,10 @@ export function StandupEditor() {
     notes,
     carryForwardNotes,
     savedSections: initialSections,
+    draftSections,
+    aiLoading,
+    aiError,
+    regenerateDraft,
     onStandupSaved: onSaved,
   } = useStandup();
   const composed = React.useMemo(
@@ -51,20 +55,18 @@ export function StandupEditor() {
     [commits, notes, carryForwardNotes]
   );
 
+  const baselineSections = initialSections ?? draftSections ?? composed;
+
   const [sections, setSections] = React.useState<StandupSections>(
-    initialSections ?? composed
+    baselineSections
   );
   const [saving, setSaving] = React.useState(false);
   const [copying, setCopying] = React.useState(false);
   const [status, setStatus] = React.useState<string | null>(null);
 
   React.useEffect(() => {
-    if (initialSections) {
-      setSections(initialSections);
-      return;
-    }
-    setSections(composed);
-  }, [composed, initialSections]);
+    setSections(baselineSections);
+  }, [baselineSections]);
 
   const updateSection = (key: keyof StandupSections, value: string) => {
     setSections((prev) => ({ ...prev, [key]: value }));
@@ -159,9 +161,16 @@ export function StandupEditor() {
         </Button>
       </View>
 
-      <Button variant="secondary" disabled>
-        <Text>Regenerate (AI coming soon)</Text>
+      <Button variant="secondary" disabled={aiLoading} onPress={() => void regenerateDraft()}>
+        {aiLoading ? <ButtonSpinner /> : null}
+        <Text>Regenerate</Text>
       </Button>
+
+      {aiError ? (
+        <Text className="text-muted-foreground text-center text-sm">
+          {aiError}
+        </Text>
+      ) : null}
 
       {status ? (
         <Text className="text-muted-foreground text-center text-sm">
