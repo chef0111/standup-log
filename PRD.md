@@ -105,7 +105,7 @@ StandupLog is not:
 - Yesterday is generated from activity metadata and manual notes.
 - Today is not predicted from commits. It uses an editable placeholder and carry-forward notes.
 - Blockers are not inferred from commits. They come from blocker-marked notes, or default to editable "No blockers."
-- First AI usage triggers Puter auth/consent if required.
+- Draft generation uses **operator-hosted** inference (Anthropic Claude via a secured server proxy). Users do **not** sign into a separate AI vendor account as part of the product flow.
 - If AI is unavailable, the app should offer a manual draft path rather than block copying.
 
 ### Notes
@@ -114,8 +114,9 @@ StandupLog is not:
 - Voice notes are a should-have beta feature, not an MVP launch blocker.
 - Manual notes support two toggles: Blocker and Carry forward.
 - Voice notes are limited to 30 seconds.
-- If transcription fails, temporary audio is preserved long enough to retry or let the user type the note.
-- Successfully transcribed audio is deleted unless a future explicit retention setting is introduced.
+- Transcription uses **on-device OS speech-to-text only** (no cloud speech API; aligns with zero STT budget).
+- If recognition fails, app offers retry (same on-device path) or text note fallback.
+- Any **optional** local audio buffer used for the capture UI is deleted after successful save or cancel; operator servers **never** receive voice audio for transcription.
 
 ### Engagement
 
@@ -128,6 +129,7 @@ StandupLog is not:
 - Free tier includes 3 selected repositories, 30-day history, and all copy formats.
 - Pro includes unlimited selected repositories, full history, and full Weekly Summary.
 - Team tier is post-MVP and tied to team workspace, team lead view, and Slack bot.
+- **Operator AI cost:** standup **draft** inference (Anthropic) is paid by the product operator (API keys server-side only). **Voice** uses device-local STT—no operator spend on transcription. Pricing tiers should cover expected **draft** model usage or enforce limits (see Open Questions).
 
 ## 8. MVP Scope
 
@@ -151,8 +153,8 @@ StandupLog is not:
 
 ### Should Have
 
-- 30-second voice notes with transcription.
-- Retry path for failed transcription.
+- 30-second voice notes with **on-device OS** transcription.
+- Retry path for failed **on-device** recognition (or text fallback).
 - Editable commit work-type classification.
 - Full Weekly Summary for Pro.
 - Settings for default copy format.
@@ -235,18 +237,18 @@ Acceptance criteria:
 
 1. User taps Voice Note.
 2. App requests microphone permission if needed.
-3. User records up to 30 seconds.
-4. App transcribes the note.
+3. User speaks for up to 30 seconds (capture stops at limit).
+4. App transcribes using **on-device OS speech-to-text** (no cloud STT; no audio upload for transcription).
 5. User reviews transcript and saves as Manual Note.
 
 Acceptance criteria:
 
-- Recording stops automatically at 30 seconds.
+- Capture stops automatically at 30 seconds.
 - User can cancel before saving.
 - User can edit transcript before saving.
 - If permission is denied, app explains how to enable microphone access and offers text note fallback.
-- If transcription fails, app offers retry or text entry.
-- Temporary audio is deleted after successful transcription.
+- If on-device recognition fails or is unavailable, app offers retry or text entry.
+- No voice audio is sent to operator backends for transcription; only confirmed **Manual Note** text is stored like other notes.
 
 ### Review and Copy
 
@@ -327,9 +329,9 @@ Acceptance criteria:
 ### Voice Notes
 
 - Record up to 30 seconds.
-- Transcribe through Puter.js / Whisper-compatible endpoint via Supabase Edge Function proxy.
+- Transcribe with **on-device OS speech-to-text** only (iOS / Android system recognizer or equivalent Expo-supported path). **No** cloud speech API and **no** Supabase Edge path for audio or transcription.
 - Allow transcript review and edit before save.
-- Delete temporary audio after successful transcription.
+- Delete any optional local capture buffer after save or cancel; do not retain raw audio server-side for MVP voice flow.
 - Provide retry and text fallback on failure.
 
 ### Clipboard and Formats
@@ -388,7 +390,7 @@ Expected behavior:
 
 ### AI
 
-- Puter auth/consent is unavailable.
+- Upstream model provider is unavailable or returns an error.
 - AI proxy fails.
 - AI output is empty, malformed, too long, or missing sections.
 - AI classifies work incorrectly.
@@ -418,17 +420,16 @@ Expected behavior:
 ### Voice
 
 - Microphone permission denied.
-- Recording interrupted by OS.
-- Transcription fails.
-- Audio upload fails.
+- Capture interrupted by OS.
+- On-device speech recognition fails or is unavailable (offline, unsupported locale, OS error).
 - User speaks longer than 30 seconds.
 
 Expected behavior:
 
 - Offer text note fallback.
 - Stop at 30 seconds.
-- Preserve temporary audio for retry when possible.
-- Delete temporary audio after successful transcription.
+- Retry on-device recognition when reasonable; never require cloud STT to unblock.
+- Clear optional local capture buffer after save or cancel; no voice payload to operator servers for transcription.
 
 ### Clipboard
 
@@ -458,7 +459,7 @@ Expected behavior:
 
 - Source code diffs.
 - Repository source snapshots.
-- Long-lived raw voice audio after successful transcription.
+- Long-lived raw voice audio on operator servers (MVP voice path does not upload audio for transcription).
 - Manager-facing productivity scores.
 
 ### User Controls
@@ -563,8 +564,8 @@ Goals:
 - Empty Workday behavior: should a no-commit, no-note day allow copying "No update / no blockers" after confirmation, or should the app ask guided questions first?
 - GitHub permission model: should implementation use OAuth repo scopes, GitHub App installation, or a hybrid path to achieve selected-repository read-only access?
 - Workday default: should "morning" mean before noon local time, or should it be tied to reminder time?
-- Pro packaging: should voice notes remain free if they drive retention, or become Pro later if transcription costs or user-pays consent creates friction?
-- AI consent UX: what exact Puter consent surface appears in mobile Expo flow, and can it be deferred without confusing users?
+- Pro packaging: should voice notes remain free if they drive retention, or become Pro later for other reasons (device STT has no operator transcription cost)?
+- Abuse and cost caps: per-user or per-day generation limits, model choice, and alerting when Anthropic usage spikes?
 - Data deletion SLA: how quickly must account deletion remove retained metadata and generated standups?
 - Weekly Summary preview: what is the exact free preview limit after 3 copied standups?
 - PR metadata: which GitHub PR fields are safe and useful enough to include by default?
@@ -591,8 +592,10 @@ Jira, Linear, Notion, and Slack write integrations should only ship after clipbo
 
 - Build mobile app with Expo React Native and Expo Router.
 - Use Supabase for backend, database, auth/session support, storage, and Edge Functions.
-- Route AI summarization and voice transcription through Supabase Edge Functions as a proxy to Puter.js.
-- Keep mobile client thin; avoid direct AI provider integration from the app.
+- Route **AI summarization (standup draft)** through **Supabase Edge Functions** as a **secured HTTP proxy**: the mobile app never holds Anthropic API keys.
+- **Voice notes:** **on-device OS speech-to-text only**—no Edge Function for transcription, no cloud STT API, no voice audio sent to operator servers for STT (budget: $0 STT).
+- Use **Anthropic Claude** (operator API key in Edge Function secrets) for standup draft generation. **Vercel AI SDK** is optional and fits a **Node** server (e.g. Next.js on Vercel); it is **not required** for this stack—Deno Edge Functions can call Anthropic’s Messages API directly (or via a small Node service if the team prefers AI SDK ergonomics there).
+- Keep mobile client thin; **never** embed operator AI API keys in the app. On-device OS STT uses platform speech APIs only—no paid cloud STT in MVP.
 - Use GitHub REST API v3 for repository, commit, and PR metadata.
 - Use Zustand for lightweight client state.
 - Use Expo Notifications for local reminder behavior.
