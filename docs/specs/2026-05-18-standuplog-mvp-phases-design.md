@@ -35,13 +35,11 @@ Use this as a release-readiness index; gates should stay checked only after veri
 
 ## Structuring options (pick implicit default below)
 
-
 | Approach                         | Idea                                                                                              | Upside                                                | Downside                                        |
 | -------------------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------------------------------- | ----------------------------------------------- |
 | **A. Layer cake**                | Infra → DB → all APIs → all UI                                                                    | Clear ownership by layer                              | Long time before usable “generate standup” demo |
 | **B. Pure vertical slices**      | Each slice is end-to-end feature                                                                  | Fast user-visible value                               | Repeated schema/API churn early                 |
 | **C. Risk-first spine** (chosen) | Thin E2E path first (auth → repos → fake/static draft → copy), then real GitHub + AI + engagement | Validates hardest unknowns early; demo stays runnable | Requires discipline to avoid “throwaway” UI     |
-
 
 **Chosen:** **C — risk-first spine**, with **B-style vertical completion** inside the core “generate → edit → copy” slice once schema stabilizes after Phase 4.
 
@@ -104,11 +102,12 @@ Use this as a release-readiness index; gates should stay checked only after veri
 
 ## Phase 3 — Activity ingestion (commits + PR metadata)
 
-**Outcome:** For a chosen **Workday** (user-local calendar day, manual override), app pulls **Activity Metadata** into storage: commits authored by user in selected repos + PR metadata where possible; **no diffs**.
+**Outcome:** For a chosen **Workday** (user-local calendar day), app pulls **Activity Metadata** into storage: commits authored by user in selected repos + PR metadata where possible; **no diffs**.
 
 ### Checklist
 
 - GitHub REST integration for commits scoped to selected repos + date window.
+- **Workday selection:** native calendar/date picker on Generate screen; default previous local day on each open; today + past only; free-tier minimum date enforced in picker (30 days).
 - Author matching strategy (GitHub user id vs email edge cases) documented in implementation plan, not here — product requirement: “my commits” only.
 - PR metadata enrichment where feasible (title, number, url, state; merge info if available).
 - Dedup commits across refs where possible.
@@ -145,6 +144,7 @@ Use this as a release-readiness index; gates should stay checked only after veri
 ### Checklist
 
 - Data model for standup per user per Workday (draft vs final semantics per PRD: AI draft vs edited).
+- **Workday picker** on Generate screen (native date picker; defaults to yesterday each open).
 - Today: editable placeholder + carry-forward notes assembled deterministically.
 - Blockers: blocker notes OR editable “No blockers” default — never inferred from commits.
 - Yesterday: deterministic summary from stored Activity Metadata (can be simple bullet aggregation initially).

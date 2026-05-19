@@ -10,53 +10,37 @@ import {
   useManualNotes,
   type ManualNoteRow,
 } from '@/features/notes';
+import { fetchUserProfile } from '@/features/profile';
 import { ScreenFooter } from '@/features/shell';
 import {
-  StandupEditor,
   fetchStandupUpdate,
   isLikelyOffline,
   readWorkdaySnapshot,
+  StandupEditor,
   writeWorkdaySnapshot,
   type StandupSections,
 } from '@/features/standup';
 import {
+  clampWorkdayToBounds,
   defaultTargetWorkday,
-  formatWorkdayLocal,
-  parseWorkdayParam,
+  FREE_TIER_WORKDAY_HISTORY_DAYS,
+  getWorkdayPickerBounds,
+  WorkdayDatePicker,
 } from '@/features/workday';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { Calendar, Plus, RefreshCw } from 'lucide-react-native';
+import { useSafeRouterBack } from '@/hooks/use-safe-router-back';
+import { useFocusEffect } from '@react-navigation/native';
+import { Stack, useRouter } from 'expo-router';
+import { Plus, RefreshCw } from 'lucide-react-native';
 import * as React from 'react';
-import {
-  ActivityIndicator,
-  Platform,
-  Pressable,
-  ScrollView,
-  View,
-} from 'react-native';
-
-function workdayToDate(workday: string): Date {
-  const [y, m, d] = workday.split('-').map(Number);
-  return new Date(y, m - 1, d, 12, 0, 0);
-}
-
-function dateToWorkday(date: Date): string {
-  return formatWorkdayLocal(date);
-}
+import { ActivityIndicator, ScrollView, View } from 'react-native';
 
 export default function StandupScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ workday?: string }>();
-  const { supabase } = useAuth();
-
-  const initialWorkday =
-    parseWorkdayParam(
-      typeof params.workday === 'string' ? params.workday : undefined
-    ) ?? defaultTargetWorkday();
-
-  const [workday, setWorkday] = React.useState(initialWorkday);
-  const [showDatePicker, setShowDatePicker] = React.useState(false);
+  const goBack = useSafeRouterBack('/(app)');
+  const { supabase, session } = useAuth();
+  const [isPro, setIsPro] = React.useState(false);
+  const [workday, setWorkday] = React.useState(defaultTargetWorkday());
+  const [workdayPickerKey, setWorkdayPickerKey] = React.useState(0);
   const [editorOpen, setEditorOpen] = React.useState(false);
   const [editingNote, setEditingNote] = React.useState<ManualNoteRow | null>(
     null
@@ -67,6 +51,34 @@ export default function StandupScreen() {
     React.useState<StandupSections | null>(null);
   const [loadingStandup, setLoadingStandup] = React.useState(true);
   const [offlineBanner, setOfflineBanner] = React.useState<string | null>(null);
+
+  const pickerBounds = React.useMemo(
+    () => getWorkdayPickerBounds({ isPro }),
+    [isPro]
+  );
+
+  useFocusEffect(
+    React.useCallback(() => {
+      setWorkday(defaultTargetWorkday());
+      setSavedSections(null);
+      setOfflineBanner(null);
+      setWorkdayPickerKey((key) => key + 1);
+
+      if (!supabase || !session) {
+        return;
+      }
+
+      void fetchUserProfile(supabase, session).then(({ profile }) => {
+        if (profile) {
+          setIsPro(Boolean(profile.is_pro));
+        }
+      });
+    }, [session, supabase])
+  );
+
+  React.useEffect(() => {
+    setWorkday((current) => clampWorkdayToBounds(current, pickerBounds));
+  }, [pickerBounds]);
 
   const {
     commits,
@@ -160,16 +172,11 @@ export default function StandupScreen() {
     loadingStandup,
   ]);
 
-  const onDateChange = (_event: unknown, date?: Date) => {
-    if (Platform.OS === 'android') {
-      setShowDatePicker(false);
-    }
-    if (date) {
-      setWorkday(dateToWorkday(date));
-      setSavedSections(null);
-      setOfflineBanner(null);
-    }
-  };
+  const onWorkdayChange = React.useCallback((next: string) => {
+    setWorkday(next);
+    setSavedSections(null);
+    setOfflineBanner(null);
+  }, []);
 
   const handleSaveNote = async (input: {
     body: string;
@@ -201,26 +208,21 @@ export default function StandupScreen() {
           contentContainerClassName="mx-auto w-full max-w-lg gap-4 px-5 pb-4 pt-2"
           keyboardShouldPersistTaps="handled"
         >
-          <View className="gap-2">
+          <View className="relative gap-2">
             <Text className="text-muted-foreground text-xs uppercase tracking-wide">
               Workday
             </Text>
-            <Pressable
-              className="border-border flex-row items-center gap-2 rounded-md border px-3 py-2"
-              onPress={() => setShowDatePicker(true)}
-            >
-              <Calendar size={18} />
-              <Text className="text-foreground text-sm font-medium">
-                {workday}
+            <WorkdayDatePicker
+              key={workdayPickerKey}
+              workday={workday}
+              bounds={pickerBounds}
+              onWorkdayChange={onWorkdayChange}
+            />
+            {!isPro ? (
+              <Text className="text-muted-foreground text-xs leading-relaxed">
+                Free accounts: last {FREE_TIER_WORKDAY_HISTORY_DAYS} days.
+                Upgrade to Pro for full history.
               </Text>
-            </Pressable>
-            {showDatePicker ? (
-              <DateTimePicker
-                value={workdayToDate(workday)}
-                mode="date"
-                display={Platform.OS === 'ios' ? 'inline' : 'default'}
-                onChange={onDateChange}
-              />
             ) : null}
           </View>
 
@@ -338,7 +340,7 @@ export default function StandupScreen() {
         </ScrollView>
 
         <ScreenFooter className="mx-auto w-full max-w-lg">
-          <Button variant="outline" onPress={() => router.back()}>
+          <Button variant="outline" onPress={goBack}>
             <Text>Back</Text>
           </Button>
         </ScreenFooter>

@@ -1,9 +1,14 @@
 import type {
   Workday,
+  WorkdayPickerBounds,
   WorkdayUtcBounds,
 } from '@/features/workday/types/workday';
 
 const WORKDAY_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+export const FREE_TIER_WORKDAY_HISTORY_DAYS = 30;
+
+export type { WorkdayPickerBounds };
 
 export function formatWorkdayLocal(date: Date, timeZone?: string): Workday {
   const tz = timeZone ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -97,4 +102,43 @@ export function parseWorkdayParam(param: string | undefined): Workday | null {
 
 export function isValidWorkday(value: string): value is Workday {
   return parseWorkdayParam(value) !== null;
+}
+
+/** Local noon date for a Workday (stable for date pickers). */
+export function workdayToLocalDate(workday: Workday): Date {
+  const [y, m, d] = workday.split('-').map(Number);
+  return new Date(y, m - 1, d, 12, 0, 0);
+}
+
+export function getWorkdayPickerBounds(input: {
+  isPro: boolean;
+  now?: Date;
+  timeZone?: string;
+}): WorkdayPickerBounds {
+  const tz = input.timeZone ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const now = input.now ?? new Date();
+  const maximumWorkday = formatWorkdayLocal(now, tz);
+  const minimumWorkday = input.isPro
+    ? addCalendarDays(maximumWorkday, -3650)
+    : addCalendarDays(maximumWorkday, -FREE_TIER_WORKDAY_HISTORY_DAYS);
+
+  return {
+    minimumWorkday,
+    maximumWorkday,
+    minimumDate: workdayToLocalDate(minimumWorkday),
+    maximumDate: workdayToLocalDate(maximumWorkday),
+  };
+}
+
+export function clampWorkdayToBounds(
+  workday: Workday,
+  bounds: Pick<WorkdayPickerBounds, 'minimumWorkday' | 'maximumWorkday'>
+): Workday {
+  if (workday < bounds.minimumWorkday) {
+    return bounds.minimumWorkday;
+  }
+  if (workday > bounds.maximumWorkday) {
+    return bounds.maximumWorkday;
+  }
+  return workday;
 }

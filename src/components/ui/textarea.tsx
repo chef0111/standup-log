@@ -18,7 +18,7 @@ const Textarea = React.forwardRef<TextInput, TextareaProps>(
         textAlignVertical={textAlignVertical}
         placeholderTextColor="var(--color-muted-foreground)"
         className={cn(
-          'border-input bg-background text-foreground min-h-[88px] w-full rounded-md border px-3 py-2 text-sm',
+          'border-input bg-background/50 text-foreground min-h-22 w-full rounded-md border px-3 py-2 text-sm',
           Platform.select({
             web: 'focus-visible:border-ring focus-visible:ring-ring/50 outline-none focus-visible:ring-[3px]',
           }),

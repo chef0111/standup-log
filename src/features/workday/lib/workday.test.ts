@@ -1,7 +1,9 @@
 import {
   addCalendarDays,
+  clampWorkdayToBounds,
   defaultTargetWorkday,
   formatWorkdayLocal,
+  getWorkdayPickerBounds,
   parseWorkdayParam,
   workdayUtcBounds,
   zonedStartOfDay,
@@ -52,5 +54,48 @@ describe('workdayUtcBounds', () => {
 describe('addCalendarDays', () => {
   it('adds days across month boundary', () => {
     expect(addCalendarDays('2026-05-31', 1)).toBe('2026-06-01');
+  });
+});
+
+describe('getWorkdayPickerBounds', () => {
+  const now = new Date('2026-05-19T12:00:00Z');
+
+  it('caps free tier to 30 days before today', () => {
+    const bounds = getWorkdayPickerBounds({
+      isPro: false,
+      now,
+      timeZone: 'UTC',
+    });
+    expect(bounds.maximumWorkday).toBe('2026-05-19');
+    expect(bounds.minimumWorkday).toBe('2026-04-19');
+  });
+
+  it('allows a wide past range for Pro', () => {
+    const bounds = getWorkdayPickerBounds({
+      isPro: true,
+      now,
+      timeZone: 'UTC',
+    });
+    expect(bounds.minimumWorkday < '2020-01-01').toBe(true);
+  });
+});
+
+describe('clampWorkdayToBounds', () => {
+  const bounds = getWorkdayPickerBounds({
+    isPro: false,
+    now: new Date('2026-05-19T12:00:00Z'),
+    timeZone: 'UTC',
+  });
+
+  it('clamps dates before minimum', () => {
+    expect(clampWorkdayToBounds('2026-01-01', bounds)).toBe(
+      bounds.minimumWorkday
+    );
+  });
+
+  it('clamps future dates', () => {
+    expect(clampWorkdayToBounds('2026-12-31', bounds)).toBe(
+      bounds.maximumWorkday
+    );
   });
 });

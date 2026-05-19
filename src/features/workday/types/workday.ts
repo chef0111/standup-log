@@ -5,3 +5,10 @@ export type WorkdayUtcBounds = {
   since: string;
   until: string;
 };
+
+export type WorkdayPickerBounds = {
+  minimumWorkday: Workday;
+  maximumWorkday: Workday;
+  minimumDate: Date;
+  maximumDate: Date;
+};

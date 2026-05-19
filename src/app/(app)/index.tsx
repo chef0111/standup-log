@@ -9,6 +9,7 @@ import { parseSelectedRepositories } from '@/features/repositories';
 import { MarketingHeader, ScreenFooter } from '@/features/shell';
 import { useThemeColor } from '@/features/theme';
 import { defaultTargetWorkday } from '@/features/workday';
+import { useFocusEffect } from '@react-navigation/native';
 import { Image } from 'expo-image';
 import { Redirect, Stack, useRouter } from 'expo-router';
 import { CircleCheck } from 'lucide-react-native';
@@ -23,33 +24,36 @@ export default function AppHomeScreen() {
   const [loadingProfile, setLoadingProfile] = React.useState(true);
   const [busy, setBusy] = React.useState(false);
   const [status, setStatus] = React.useState<string | null>(null);
+  const initialLoad = React.useRef(true);
 
-  React.useEffect(() => {
+  const loadProfile = React.useCallback(async () => {
     if (!supabase || !session) {
       setLoadingProfile(false);
       return;
     }
 
-    let cancelled = false;
+    if (initialLoad.current) {
+      setLoadingProfile(true);
+    }
 
-    void fetchUserProfile(supabase, session).then(({ profile: row, error }) => {
-      if (cancelled) {
-        return;
-      }
-      if (error) {
-        setStatus(error);
-        setProfile(null);
-      } else {
-        setProfile(row);
-        setStatus(null);
-      }
-      setLoadingProfile(false);
-    });
+    const { profile: row, error } = await fetchUserProfile(supabase, session);
 
-    return () => {
-      cancelled = true;
-    };
+    if (error) {
+      setStatus(error);
+      setProfile(null);
+    } else {
+      setProfile(row);
+      setStatus(null);
+    }
+    setLoadingProfile(false);
+    initialLoad.current = false;
   }, [session, supabase]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      void loadProfile();
+    }, [loadProfile])
+  );
 
   const displayName =
     profile?.github_login ??
