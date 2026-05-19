@@ -15,12 +15,14 @@ export type StandupUpdateRow = {
   yesterday_text: string;
   today_text: string;
   blockers_text: string;
+  copied_at: string | null;
+  format_used: string | null;
   created_at: string;
   updated_at: string;
 };
 
 export const STANDUP_UPDATE_COLUMNS =
-  'id, user_id, workday, yesterday_text, today_text, blockers_text, created_at, updated_at' as const;
+  'id, user_id, workday, yesterday_text, today_text, blockers_text, copied_at, format_used, created_at, updated_at' as const;
 
 export const DEFAULT_TODAY_PLACEHOLDER = "What I'm working on today…";
 export const DEFAULT_BLOCKERS = 'No blockers';

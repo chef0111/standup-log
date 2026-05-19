@@ -18,6 +18,13 @@ export {
 } from './lib/compose-standup';
 export { formatPlainStandup } from './lib/format-plain';
 export {
+  COPY_FORMAT_LABELS,
+  COPY_FORMATS,
+  formatStandup,
+  isCopyFormat,
+  type CopyFormat,
+} from './lib/format-standup';
+export {
   isLikelyOffline,
   readWorkdaySnapshot,
   writeWorkdaySnapshot,
