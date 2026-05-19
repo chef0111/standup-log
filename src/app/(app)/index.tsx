@@ -10,7 +10,7 @@ import { MarketingHeader, ScreenFooter } from '@/features/shell';
 import { useThemeColor } from '@/features/theme';
 import { Image } from 'expo-image';
 import { Redirect, Stack, useRouter } from 'expo-router';
-import { CircleCheck, Settings } from 'lucide-react-native';
+import { CircleCheck } from 'lucide-react-native';
 import * as React from 'react';
 import { ActivityIndicator, ScrollView, View } from 'react-native';
 
@@ -219,7 +219,7 @@ export default function AppHomeScreen() {
             disabled={busy}
             onPress={() => router.push('/(app)/settings')}
           >
-            <Icon as={Settings} size={18} className="text-primary-foreground" />
+            <RepositoryIcon size={16} className="text-primary-foreground" />
             <Text>Manage repositories</Text>
           </Button>
           <Button variant="outline" disabled={busy} onPress={onSignOut}>

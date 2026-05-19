@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { ButtonSpinner } from '@/components/ui/button-spinner';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { RepositoryList } from '@/features/repositories/components/repository-list';
@@ -8,7 +9,8 @@ import {
   type SelectedRepository,
 } from '@/features/repositories/types/repository';
 import { ScreenFooter } from '@/features/shell/components/screen-footer';
-import { Search } from 'lucide-react-native';
+import { useThemeColor } from '@/features/theme';
+import { SaveIcon, Search } from 'lucide-react-native';
 import * as React from 'react';
 import { ActivityIndicator, Platform, TextInput, View } from 'react-native';
 
@@ -61,6 +63,7 @@ export function RepositoryPickerScreen({
 }: RepositoryPickerScreenProps) {
   const limit = isPro ? null : FREE_TIER_REPO_LIMIT;
   const selectedCount = selected.length;
+  const primaryForeground = useThemeColor('--color-primary-foreground');
 
   return (
     <View className="bg-background flex-1">
@@ -116,16 +119,16 @@ export function RepositoryPickerScreen({
             </Text>
             <Text className="text-muted-foreground text-sm">{loadError}</Text>
             <View className="flex-row flex-wrap gap-2">
-              {onRetryLoad ? (
+              {onRetryLoad && (
                 <Button size="sm" variant="secondary" onPress={onRetryLoad}>
                   <Text>Try again</Text>
                 </Button>
-              ) : null}
-              {onReconnectGitHub ? (
+              )}
+              {onReconnectGitHub && (
                 <Button size="sm" variant="outline" onPress={onReconnectGitHub}>
                   <Text>Reconnect GitHub</Text>
                 </Button>
-              ) : null}
+              )}
             </View>
           </View>
         ) : (
@@ -145,30 +148,29 @@ export function RepositoryPickerScreen({
       </View>
 
       <ScreenFooter>
-        {saveError ? (
+        {saveError && (
           <Text className="text-destructive text-center text-sm">
             {saveError}
           </Text>
-        ) : null}
+        )}
         <Button disabled={saving} onPress={onPrimary}>
           {saving ? (
-            <ActivityIndicator
-              size="small"
-              color={Platform.OS === 'ios' ? undefined : '#fafafa'}
-            />
-          ) : null}
+            <ButtonSpinner size={16} color={primaryForeground} />
+          ) : (
+            <Icon as={SaveIcon} size={16} color={primaryForeground} />
+          )}
           <Text>{saving ? 'Saving…' : primaryLabel}</Text>
         </Button>
-        {secondaryLabel && onSecondary ? (
+        {secondaryLabel && onSecondary && (
           <Button variant="secondary" disabled={saving} onPress={onSecondary}>
             <Text>{secondaryLabel}</Text>
           </Button>
-        ) : null}
-        {outlineLabel && onOutline ? (
+        )}
+        {outlineLabel && onOutline && (
           <Button variant="outline" disabled={saving} onPress={onOutline}>
             <Text>{outlineLabel}</Text>
           </Button>
-        ) : null}
+        )}
       </ScreenFooter>
     </View>
   );

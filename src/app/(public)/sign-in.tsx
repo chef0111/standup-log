@@ -1,9 +1,10 @@
 import { GithubIcon } from '@/components/icons';
 import { Button } from '@/components/ui/button';
+import { ButtonSpinner } from '@/components/ui/button-spinner';
 import { Text } from '@/components/ui/text';
 import {
   AuthStatusView,
-  OAuthDevHint,
+  SignInLanding,
   signInWithGitHub,
   useAuth,
 } from '@/features/auth';
@@ -11,22 +12,18 @@ import { useThemeColor } from '@/features/theme';
 import { AppError, userFacingMessage } from '@/lib/errors';
 import { getSupabase } from '@/utils/supabase';
 import { Redirect, Stack, useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import * as React from 'react';
-import { ActivityIndicator, Platform, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View } from 'react-native';
 
 type SignInPhase = 'idle' | 'loading' | 'success';
 
-const spinnerColor = Platform.select({
-  ios: undefined,
-  android: '#fafafa',
-  default: '#fafafa',
-});
+const BUTTON_ICON_SLOT = 20;
 
 export default function SignInScreen() {
   const router = useRouter();
   const { configured, session } = useAuth();
-  const primaryForeground = useThemeColor('--color-primary-foreground');
+  const foreground = useThemeColor('--color-foreground');
   const [phase, setPhase] = React.useState<SignInPhase>('idle');
   const [message, setMessage] = React.useState<string | null>(null);
 
@@ -76,75 +73,43 @@ export default function SignInScreen() {
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
-      <SafeAreaView className="bg-background flex-1">
-        <View className="flex-1 px-6">
-          <View className="mx-auto w-full max-w-sm flex-1 justify-center pb-16">
-            <View className="gap-10">
-              <View className="gap-4">
-                <View className="border-border bg-muted/30 size-12 items-center justify-center rounded-lg border">
-                  <Text className="text-foreground text-lg font-bold">S</Text>
-                </View>
-                <View className="gap-2">
-                  <Text className="text-foreground text-4xl font-semibold tracking-tight">
-                    StandupLog
-                  </Text>
-                  <Text className="text-muted-foreground text-base leading-relaxed">
-                    Turn yesterday&apos;s commits and notes into a clear standup
-                    update — in minutes, not hours.
-                  </Text>
-                </View>
-              </View>
-
-              <View className="border-border gap-5 rounded-lg border p-6">
-                <View className="gap-1">
-                  <Text className="text-foreground text-sm font-medium">
-                    Sign in to continue
-                  </Text>
-                  <Text className="text-muted-foreground text-sm">
-                    Use your GitHub account. We only read activity from repos
-                    you choose.
-                  </Text>
-                </View>
-
-                <Button
-                  disabled={busy || !configured}
-                  onPress={onGitHub}
-                  className="h-11 w-full"
-                  size="lg"
-                >
-                  {busy ? (
-                    <ActivityIndicator size="small" color={spinnerColor} />
-                  ) : (
-                    <GithubIcon size={18} color={primaryForeground} />
-                  )}
-                  <Text>
-                    {busy ? 'Opening GitHub…' : 'Continue with GitHub'}
-                  </Text>
-                </Button>
-
-                {message ? (
-                  <Text className="text-destructive text-center text-sm">
-                    {message}
-                  </Text>
-                ) : null}
-
-                {!configured ? (
-                  <Text className="text-muted-foreground text-center text-sm">
-                    Add Supabase env vars to `.env.local`, then restart Expo.
-                  </Text>
-                ) : null}
-              </View>
-
-              {configured ? <OAuthDevHint /> : null}
-
-              <Text className="text-muted-foreground text-center text-xs leading-relaxed">
-                By continuing, you agree to connect GitHub for repository access
-                used to build your standup updates.
-              </Text>
-            </View>
+      <StatusBar style="light" />
+      <SignInLanding>
+        <Button
+          disabled={busy || !configured}
+          onPress={onGitHub}
+          className="bg-background h-14 w-full rounded-full"
+          size="lg"
+        >
+          <View
+            className="items-center justify-center"
+            style={{ width: BUTTON_ICON_SLOT, height: BUTTON_ICON_SLOT }}
+          >
+            {busy ? (
+              <ButtonSpinner color={foreground} size={BUTTON_ICON_SLOT} />
+            ) : (
+              <GithubIcon size={BUTTON_ICON_SLOT} color={foreground} />
+            )}
           </View>
-        </View>
-      </SafeAreaView>
+          <Text className="text-foreground text-base font-semibold">
+            {busy ? 'Opening GitHub…' : 'Continue with GitHub'}
+          </Text>
+        </Button>
+
+        {message ? (
+          <Text
+            selectable
+            className="text-destructive text-center text-sm leading-relaxed"
+          >
+            {message}
+          </Text>
+        ) : null}
+
+        <Text className="text-center text-xs leading-relaxed text-zinc-500">
+          By continuing, you agree to connect GitHub for repository access used
+          to build your standup updates.
+        </Text>
+      </SignInLanding>
     </>
   );
 }
