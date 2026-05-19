@@ -87,9 +87,13 @@ StandupLog is not:
 
 ### Workday Boundary
 
-- A Workday is the user's local calendar day.
-- When opened in the morning, the default generation target is the previous Workday.
-- User can manually change the date before generating or reviewing a standup update.
+- A **Workday** is the user's local calendar day.
+- When the user opens **Generate standup**, the default target is the **previous local calendar day** (yesterday), regardless of time of day.
+- The user can override the target **Workday** with a **calendar date picker** (native platform control) before generating, reviewing, or copying a **Standup Update**.
+- **Selectable range:** today and past calendar days only — not future dates.
+- **On reopen:** each visit to **Generate standup** resets the default to yesterday; a calendar override applies only for that session unless the user changes it again.
+- **Tier history cap (free):** the calendar picker must not allow selecting a **Workday** older than the free-tier history window (30 days). Pro users may select any past day within stored history. Dates outside the entitlement show an upgrade path rather than a silent empty sync.
+- Activity fetch, **Manual Notes**, and saved **Standup Updates** are all scoped to the selected **Workday**.
 
 ### GitHub Input
 
@@ -147,6 +151,7 @@ StandupLog is not:
 - Manual text notes.
 - Manual note toggles: Blocker and Carry forward.
 - User-set morning reminder.
+- **Workday calendar picker** on Generate standup (native date picker; default yesterday).
 - Daily Streak based on copied/shared standups.
 - Basic weekly summary preview.
 - Delete-account / delete-data path.
@@ -201,14 +206,19 @@ Acceptance criteria:
 ### Generate Standup Update
 
 1. User opens the Generate screen.
-2. App defaults to previous Workday in the morning.
-3. App fetches activity metadata from selected repositories.
-4. App combines commit metadata, PR metadata, and manual notes.
-5. AI generates an editable draft.
-6. User reviews sections: Yesterday, Today, Blockers.
+2. App defaults the **Workday** to the previous local calendar day (yesterday).
+3. User may change the **Workday** via the calendar date picker (today or any allowed past day).
+4. App fetches activity metadata from selected repositories for the chosen **Workday**.
+5. App combines commit metadata, PR metadata, and manual notes for that **Workday**.
+6. AI generates an editable draft.
+7. User reviews sections: Yesterday, Today, Blockers.
 
 Acceptance criteria:
 
+- **Workday** control shows the selected date and opens a native calendar/date picker on tap.
+- Default **Workday** on each open is yesterday; user override persists only for the current session on that screen.
+- Calendar does not offer future dates.
+- Free tier: calendar minimum date is 30 days ago; attempting to select an older date is blocked with upgrade messaging.
 - Draft clearly separates Yesterday, Today, and Blockers.
 - Yesterday includes a concise natural-language summary of actual activity.
 - Today uses editable placeholder text and carry-forward notes, not inferred plans.
@@ -300,6 +310,15 @@ Acceptance criteria:
 - Let user modify selected repositories later.
 - Clearly indicate tier limit and upgrade path.
 
+### Workday Selection
+
+- Show the active **Workday** on the Generate screen.
+- Open a native platform calendar/date picker when the user changes the **Workday**.
+- Default to the previous local calendar day on each open of Generate standup.
+- Allow today and past dates only.
+- Enforce free-tier minimum selectable date (30-day history window) in the picker; Pro has no artificial minimum beyond stored data.
+- Changing **Workday** reloads activity, notes, and any saved standup draft for that day.
+
 ### GitHub Activity Fetching
 
 - Fetch commits authored by the authenticated GitHub identity for selected repositories.
@@ -380,13 +399,15 @@ Acceptance criteria:
 - Same commit appears in multiple branches.
 - User works across midnight.
 - User has commits in different time zones.
+- User selects a **Workday** outside free-tier history.
 
 Expected behavior:
 
 - Show actionable, non-technical error messages.
 - Preserve manual drafting path.
 - Let user reconnect GitHub or update selected repositories.
-- Use user-local Workday boundary unless user manually changes date.
+- Use user-local **Workday** boundary; user overrides via calendar picker.
+- Block out-of-entitlement dates in the picker (free tier) with upgrade copy rather than failing mid-sync.
 
 ### AI
 
@@ -563,7 +584,6 @@ Goals:
 
 - Empty Workday behavior: should a no-commit, no-note day allow copying "No update / no blockers" after confirmation, or should the app ask guided questions first?
 - GitHub permission model: should implementation use OAuth repo scopes, GitHub App installation, or a hybrid path to achieve selected-repository read-only access?
-- Workday default: should "morning" mean before noon local time, or should it be tied to reminder time?
 - Pro packaging: should voice notes remain free if they drive retention, or become Pro later for other reasons (device STT has no operator transcription cost)?
 - Abuse and cost caps: per-user or per-day generation limits, model choice, and alerting when Anthropic usage spikes?
 - Data deletion SLA: how quickly must account deletion remove retained metadata and generated standups?
@@ -606,4 +626,3 @@ Jira, Linear, Notion, and Slack write integrations should only ship after clipbo
 - Model notes with explicit Blocker and Carry forward flags.
 - Model streaks from copied/shared standup updates, not generated drafts.
 - Keep team workspace, team lead view, and Slack bot outside MVP.
-

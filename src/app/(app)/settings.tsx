@@ -1,16 +1,19 @@
-import { RepositoryPickerScreen } from '@/components/repository-picker-screen';
-import { useAuth } from '@/context/auth-provider';
-import { useGitHubAccessToken } from '@/hooks/use-github-access-token';
+import {
+  signInWithGitHub,
+  useAuth,
+  useGitHubAccessToken,
+} from '@/features/auth';
+import { fetchUserProfile } from '@/features/profile';
+import {
+  fetchUserRepos,
+  FREE_TIER_REPO_LIMIT,
+  parseSelectedRepositories,
+  RepositoryPickerScreen,
+  type GithubRepoRow,
+  type SelectedRepository,
+} from '@/features/repositories';
 import { useSafeRouterBack } from '@/hooks/use-safe-router-back';
 import { AppError, userFacingMessage } from '@/lib/errors';
-import { fetchUserRepos, type GithubRepoRow } from '@/lib/github-repos';
-import { signInWithGitHub } from '@/lib/oauth';
-import { fetchUserProfile } from '@/lib/profile';
-import {
-    FREE_TIER_REPO_LIMIT,
-    parseSelectedRepositories,
-    type SelectedRepository,
-} from '@/types/repository';
 import { Stack } from 'expo-router';
 import * as React from 'react';
 import { Alert } from 'react-native';
@@ -18,7 +21,11 @@ import { Alert } from 'react-native';
 export default function SettingsRepositoriesScreen() {
   const goBack = useSafeRouterBack('/(app)');
   const { supabase, session } = useAuth();
-  const { token, loading: tokenLoading, refresh: refreshToken } = useGitHubAccessToken();
+  const {
+    token,
+    loading: tokenLoading,
+    refresh: refreshToken,
+  } = useGitHubAccessToken();
 
   const [repos, setRepos] = React.useState<GithubRepoRow[]>([]);
   const [loadingRepos, setLoadingRepos] = React.useState(true);
@@ -83,7 +90,8 @@ export default function SettingsRepositoriesScreen() {
       })
       .catch((e: unknown) => {
         if (!cancelled) {
-          const msg = e instanceof AppError ? e.message : userFacingMessage('github');
+          const msg =
+            e instanceof AppError ? e.message : userFacingMessage('github');
           setLoadError(msg);
         }
       })
@@ -106,7 +114,10 @@ export default function SettingsRepositoriesScreen() {
     return repos.filter((r) => r.full_name.toLowerCase().includes(q));
   }, [query, repos]);
 
-  const selectedIds = React.useMemo(() => new Set(selected.map((s) => s.id)), [selected]);
+  const selectedIds = React.useMemo(
+    () => new Set(selected.map((s) => s.id)),
+    [selected]
+  );
 
   const onToggle = React.useCallback(
     (repo: GithubRepoRow) => {
@@ -124,7 +135,10 @@ export default function SettingsRepositoriesScreen() {
           );
           return prev;
         }
-        return [...prev, { id: repo.id, full_name: repo.full_name, private: repo.private }];
+        return [
+          ...prev,
+          { id: repo.id, full_name: repo.full_name, private: repo.private },
+        ];
       });
     },
     [isPro]
@@ -157,7 +171,8 @@ export default function SettingsRepositoriesScreen() {
       refreshToken();
       setReloadKey((k) => k + 1);
     } catch (e) {
-      const text = e instanceof AppError ? e.message : userFacingMessage('auth');
+      const text =
+        e instanceof AppError ? e.message : userFacingMessage('auth');
       Alert.alert('GitHub sign-in', text);
     }
   }, [refreshToken]);

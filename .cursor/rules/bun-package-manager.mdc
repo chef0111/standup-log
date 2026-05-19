@@ -1,0 +1,26 @@
+---
+description: Use Bun as the primary package manager for installs, scripts, and dependency changes
+alwaysApply: true
+---
+
+# Package manager: Bun
+
+Treat **Bun** as this repo’s main package manager. Prefer Bun in agent shell commands, docs, and CI snippets unless the user explicitly asks for another tool or you are debugging a manager-specific issue.
+
+## Commands
+
+| Task                       | Use                                                       |
+| -------------------------- | --------------------------------------------------------- |
+| Install deps               | `bun install`                                             |
+| Add / remove / update      | `bun add …`, `bun remove …`, `bun update …`               |
+| Run `package.json` scripts | `bun run <script>` (e.g. `bun run lint`, `bun run start`) |
+| One-off binaries           | `bunx <pkg>` instead of `npx`                             |
+
+## Do not
+
+- Default to `npm`, `pnpm`, or `yarn` for routine installs or script runs in this project.
+- Add alternate lockfiles (`package-lock.json`, `pnpm-lock.yaml`, `yarn.lock`) unless the user requires them.
+
+## Lockfile
+
+Keep the Bun lockfile (`bun.lock` / `bun.lockb`, whichever the project uses) in sync with dependency changes and commit it with those changes when applicable.

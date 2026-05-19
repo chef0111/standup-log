@@ -1,6 +1,7 @@
-import { ScreenHeaderActions } from '@/components/screen-header-actions';
-import { useAuth } from '@/context/auth-provider';
+import { useAuth } from '@/features/auth';
+import { ScreenHeaderActions } from '@/features/shell';
 import { Redirect, Stack } from 'expo-router';
+import * as React from 'react';
 import { ActivityIndicator, View } from 'react-native';
 
 export default function AppGroupLayout() {
@@ -12,7 +13,7 @@ export default function AppGroupLayout() {
 
   if (loading) {
     return (
-      <View className="flex-1 items-center justify-center bg-background">
+      <View className="bg-background flex-1 items-center justify-center">
         <ActivityIndicator size="large" />
       </View>
     );
@@ -27,6 +28,11 @@ export default function AppGroupLayout() {
       screenOptions={{
         headerShown: true,
         headerBackTitle: 'Back',
+        headerShadowVisible: false,
+        headerStyle: { backgroundColor: 'transparent' },
+        headerTintColor: undefined,
+        headerTitleStyle: { fontWeight: '600' },
+        contentStyle: { backgroundColor: 'transparent' },
         headerRight: () => <ScreenHeaderActions />,
       }}
     />

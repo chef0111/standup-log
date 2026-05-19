@@ -1,5 +1,6 @@
+import { ClientIconifyIcon } from '@/components/icons/client-iconify-icon';
+import { loadMdiIconSet } from '@/components/icons/iconify-loaders';
 import * as React from 'react';
-import { Mdi } from 'rn-iconify/icons/Mdi';
 
 type GithubIconProps = {
   size?: number;
@@ -7,5 +8,12 @@ type GithubIconProps = {
 };
 
 export function GithubIcon({ size = 24, color }: GithubIconProps) {
-  return <Mdi name="github" size={size} color={color} />;
+  return (
+    <ClientIconifyIcon
+      loadIcon={loadMdiIconSet}
+      name="github"
+      size={size}
+      color={color}
+    />
+  );
 }

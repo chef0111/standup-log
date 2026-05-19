@@ -9,7 +9,7 @@ A concise daily status message organized around what was done, what comes next, 
 _Avoid_: Report, timesheet, task log
 
 **Workday**:
-A user-local calendar day used as the default boundary for collecting activity into a **Standup Update**.
+A user-local calendar day used as the boundary for collecting activity into a **Standup Update**. On **Generate standup**, the default target is the previous local calendar day; the developer may choose another allowed day (today or a past day) from a calendar date picker.
 _Avoid_: Shift, rolling window, repo day
 
 **Manual Note**:
@@ -70,11 +70,12 @@ _Avoid_: Connected repo, tracked repo, watched repo
 - A **Standup Update** is generated from one or more **Activity Signals** and approved by the developer.
 - **Activity Metadata** may be retained to regenerate and audit **AI Drafts**, but code diffs are not retained.
 - A developer may choose one or more **Selected Repositories** as sources of **Activity Signals**.
+- Opening **Generate standup** defaults to yesterday's **Workday**; the developer may override via calendar for that session.
 
 ## Example dialogue
 
 > **Dev:** "If I open StandupLog in the morning, which commits become yesterday's update?"
-> **Domain expert:** "Use the developer's local **Workday** as the boundary, then let them change the date manually."
+> **Domain expert:** "The app defaults to the previous local **Workday**. Use the calendar picker if you need a different day — today or an earlier day within your history."
 
 ## Flagged ambiguities
 
@@ -89,3 +90,5 @@ _Avoid_: Connected repo, tracked repo, watched repo
 - "streak" could mean app usage or draft generation; resolved: **Daily Streak** advances only when a **Standup Update** is copied or shared.
 - "GitHub data" could imply source code retention; resolved: StandupLog stores **Activity Metadata** and standups, not code diffs.
 - "Bring your own AI account" or per-user AI vendor login could add onboarding friction; resolved: users authenticate only to StandupLog; **AI Draft** assistance is operator-controlled inference—no separate end-user AI account step in the core flow.
+- "workday default" could mean time-of-day rules or remembering last pick; resolved: always default to previous local calendar day on open; calendar override is session-scoped on Generate standup.
+- "calendar" could imply future planning or custom month UI; resolved: native date picker only; selectable days are today and past; free tier caps how far back the calendar goes.

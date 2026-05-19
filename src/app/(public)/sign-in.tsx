@@ -1,35 +1,31 @@
-import { AuthStatusView } from '@/components/auth/auth-status';
-import { GithubIcon } from '@/components/icons/github-icon';
-import { ThemeToggle } from '@/components/theme-toggle';
+import { GithubIcon } from '@/components/icons';
 import { Button } from '@/components/ui/button';
+import { ButtonSpinner } from '@/components/ui/button-spinner';
 import { Text } from '@/components/ui/text';
-import { useAuth } from '@/context/auth-provider';
+import {
+  AuthStatusView,
+  SignInLanding,
+  signInWithGitHub,
+  useAuth,
+} from '@/features/auth';
+import { useThemeColor } from '@/features/theme';
 import { AppError, userFacingMessage } from '@/lib/errors';
-import { getOAuthRedirectUri, signInWithGitHub } from '@/lib/oauth';
 import { getSupabase } from '@/utils/supabase';
 import { Redirect, Stack, useRouter } from 'expo-router';
-import { useUnstableNativeVariable } from 'nativewind';
+import { StatusBar } from 'expo-status-bar';
 import * as React from 'react';
-import { ActivityIndicator, Platform, ScrollView, View } from 'react-native';
+import { View } from 'react-native';
 
 type SignInPhase = 'idle' | 'loading' | 'success';
 
-const spinnerColor = Platform.select({
-  ios: undefined,
-  android: '#fafafa',
-  default: '#fafafa',
-});
+const BUTTON_ICON_SLOT = 20;
 
 export default function SignInScreen() {
   const router = useRouter();
   const { configured, session } = useAuth();
-  const primaryForeground = useUnstableNativeVariable('--color-primary-foreground');
+  const foreground = useThemeColor('--color-foreground');
   const [phase, setPhase] = React.useState<SignInPhase>('idle');
   const [message, setMessage] = React.useState<string | null>(null);
-
-  if (session) {
-    return <Redirect href="/" />;
-  }
 
   const onGitHub = React.useCallback(async () => {
     setMessage(null);
@@ -37,25 +33,32 @@ export default function SignInScreen() {
     try {
       await signInWithGitHub();
       const supabase = getSupabase();
-      const { data } = supabase ? await supabase.auth.getSession() : { data: { session: null } };
+      const { data } = supabase
+        ? await supabase.auth.getSession()
+        : { data: { session: null } };
       if (!data.session) {
         setPhase('idle');
         return;
       }
       setPhase('success');
-      await new Promise((resolve) => setTimeout(resolve, 1200));
+      await new Promise((resolve) => setTimeout(resolve, 800));
       router.replace('/');
     } catch (e) {
       setPhase('idle');
-      const text = e instanceof AppError ? e.message : userFacingMessage('auth');
+      const text =
+        e instanceof AppError ? e.message : userFacingMessage('auth');
       setMessage(text);
     }
   }, [router]);
 
+  if (session && phase === 'idle') {
+    return <Redirect href="/" />;
+  }
+
   if (phase === 'success') {
     return (
       <>
-        <Stack.Screen options={{ title: 'Sign in' }} />
+        <Stack.Screen options={{ headerShown: false }} />
         <AuthStatusView
           variant="success"
           successTitle="Signed in successfully"
@@ -69,42 +72,44 @@ export default function SignInScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Sign in' }} />
-      <ScrollView
-        className="flex-1 bg-background"
-        contentContainerClassName="flex-grow justify-center gap-6 p-6"
-        keyboardShouldPersistTaps="handled">
-        <View className="flex-row justify-end">
-          <ThemeToggle />
-        </View>
-        <View className="gap-2">
-          <Text variant="h2" className="text-foreground">
-            StandupLog
-          </Text>
-          <Text className="text-lg text-muted-foreground">
-            Turn yesterday&apos;s commits and notes into a standup update.
-          </Text>
-        </View>
-        {configured ? (
-          <View className="gap-2 rounded-lg border border-border bg-muted/20 p-4">
-            <Text className="text-xs text-muted-foreground">
-              OAuth redirect (add in Supabase Auth → URL configuration)
-            </Text>
-            <Text variant="code" className="text-xs text-muted-foreground">
-              {getOAuthRedirectUri()}
-            </Text>
+      <Stack.Screen options={{ headerShown: false }} />
+      <StatusBar style="light" />
+      <SignInLanding>
+        <Button
+          disabled={busy || !configured}
+          onPress={onGitHub}
+          className="bg-background h-14 w-full rounded-full"
+          size="lg"
+        >
+          <View
+            className="items-center justify-center"
+            style={{ width: BUTTON_ICON_SLOT, height: BUTTON_ICON_SLOT }}
+          >
+            {busy ? (
+              <ButtonSpinner color={foreground} size={BUTTON_ICON_SLOT} />
+            ) : (
+              <GithubIcon size={BUTTON_ICON_SLOT} color={foreground} />
+            )}
           </View>
-        ) : null}
-        <Button disabled={busy || !configured} onPress={onGitHub}>
-          {busy ? (
-            <ActivityIndicator size="small" color={spinnerColor} />
-          ) : (
-            <GithubIcon size={18} color={primaryForeground ?? undefined} />
-          )}
-          <Text>{busy ? 'Opening GitHub…' : 'Continue with GitHub'}</Text>
+          <Text className="text-foreground text-base font-semibold">
+            {busy ? 'Opening GitHub…' : 'Continue with GitHub'}
+          </Text>
         </Button>
-        {message ? <Text className="text-destructive">{message}</Text> : null}
-      </ScrollView>
+
+        {message ? (
+          <Text
+            selectable
+            className="text-destructive text-center text-sm leading-relaxed"
+          >
+            {message}
+          </Text>
+        ) : null}
+
+        <Text className="text-center text-xs leading-relaxed text-zinc-500">
+          By continuing, you agree to connect GitHub for repository access used
+          to build your standup updates.
+        </Text>
+      </SignInLanding>
     </>
   );
 }
