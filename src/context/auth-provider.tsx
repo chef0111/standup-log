@@ -1,3 +1,4 @@
+import { clearGitHubProviderToken, persistGitHubProviderToken } from '@/lib/github-token';
 import { createSessionFromUrl } from '@/lib/oauth';
 import { getSupabase, isSupabaseConfigured } from '@/utils/supabase';
 import type { Session, SupabaseClient } from '@supabase/supabase-js';
@@ -45,6 +46,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, next) => {
       setSession(next);
+      if (next?.provider_token) {
+        void persistGitHubProviderToken(next.provider_token);
+      }
+      if (_event === 'SIGNED_OUT') {
+        void clearGitHubProviderToken();
+      }
     });
 
     return () => {

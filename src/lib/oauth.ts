@@ -1,10 +1,23 @@
 import { AppError, categorizeError, userFacingMessage } from '@/lib/errors';
+import { persistGitHubProviderToken } from '@/lib/github-token';
 import { requireSupabase } from '@/utils/supabase';
 import { makeRedirectUri } from 'expo-auth-session';
-import * as QueryParams from 'expo-auth-session/build/QueryParams';
 import * as WebBrowser from 'expo-web-browser';
 
 void WebBrowser.maybeCompleteAuthSession();
+
+function getOAuthReturnParams(input: string): { errorCode: string | null; params: Record<string, string> } {
+  const url = new URL(input, 'https://phony.example');
+  const params: Record<string, string> = Object.fromEntries(url.searchParams as Iterable<[string, string]>);
+  if (url.hash) {
+    new URLSearchParams(url.hash.replace(/^#/, '')).forEach((value, key) => {
+      params[key] = value;
+    });
+  }
+  const errorCode =
+    params.error ?? params.error_description ?? params.errorCode ?? null;
+  return { errorCode, params };
+}
 
 const redirectTo = makeRedirectUri({
   scheme: 'standuplog',
@@ -17,7 +30,19 @@ export function getOAuthRedirectUri(): string {
 
 export async function createSessionFromUrl(url: string): Promise<void> {
   const supabase = requireSupabase();
-  const { params, errorCode } = QueryParams.getQueryParams(url);
+  const parsed = new URL(url, 'https://phony.example');
+
+  const authCode = parsed.searchParams.get('code');
+  if (authCode) {
+    const { data, error } = await supabase.auth.exchangeCodeForSession(authCode);
+    if (error) {
+      throw new AppError('auth', error.message);
+    }
+    await persistGitHubProviderToken(data.session?.provider_token);
+    return;
+  }
+
+  const { params, errorCode } = getOAuthReturnParams(url);
 
   if (errorCode) {
     throw new AppError('auth', String(errorCode));
@@ -29,6 +54,10 @@ export async function createSessionFromUrl(url: string): Promise<void> {
   if (!access_token) {
     return;
   }
+
+  await persistGitHubProviderToken(
+    typeof params.provider_token === 'string' ? params.provider_token : undefined
+  );
 
   const { error } = await supabase.auth.setSession({
     access_token,

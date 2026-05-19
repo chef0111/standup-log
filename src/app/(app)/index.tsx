@@ -1,24 +1,24 @@
+import { GithubIcon } from '@/components/icons/github-icon';
+import { ScreenFooter } from '@/components/screen-footer';
 import { Button } from '@/components/ui/button';
+import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
-import { AppError, userFacingMessage } from '@/lib/errors';
-import { useAuth } from '@/providers/auth-provider';
+import { useAuth } from '@/context/auth-provider';
+import { fetchUserProfile, type ProfileHomeRow } from '@/lib/profile';
 import { parseSelectedRepositories } from '@/types/repository';
 import { Image } from 'expo-image';
 import { Redirect, Stack, useRouter } from 'expo-router';
+import { CircleCheck, Settings } from 'lucide-react-native';
+import { useUnstableNativeVariable } from 'nativewind';
 import * as React from 'react';
-import { ActivityIndicator, Alert, View } from 'react-native';
-
-type ProfileRow = {
-  github_login: string | null;
-  avatar_url: string | null;
-  onboarding_completed_at: string | null;
-  selected_repositories: unknown;
-};
+import { ActivityIndicator, ScrollView, View } from 'react-native';
+import { Octicon } from 'rn-iconify/icons/Octicon';
 
 export default function AppHomeScreen() {
   const router = useRouter();
+  const foreground = useUnstableNativeVariable();
   const { supabase, session } = useAuth();
-  const [profile, setProfile] = React.useState<ProfileRow | null>(null);
+  const [profile, setProfile] = React.useState<ProfileHomeRow | null>(null);
   const [loadingProfile, setLoadingProfile] = React.useState(true);
   const [busy, setBusy] = React.useState(false);
   const [status, setStatus] = React.useState<string | null>(null);
@@ -31,23 +31,19 @@ export default function AppHomeScreen() {
 
     let cancelled = false;
 
-    void supabase
-      .from('profiles')
-      .select('github_login, avatar_url, onboarding_completed_at, selected_repositories')
-      .eq('id', session.user.id)
-      .maybeSingle()
-      .then(({ data, error }) => {
-        if (cancelled) {
-          return;
-        }
-        if (error) {
-          setStatus(error.message);
-          setProfile(null);
-        } else {
-          setProfile(data);
-        }
-        setLoadingProfile(false);
-      });
+    void fetchUserProfile(supabase, session).then(({ profile: row, error }) => {
+      if (cancelled) {
+        return;
+      }
+      if (error) {
+        setStatus(error);
+        setProfile(null);
+      } else {
+        setProfile(row);
+        setStatus(null);
+      }
+      setLoadingProfile(false);
+    });
 
     return () => {
       cancelled = true;
@@ -68,7 +64,9 @@ export default function AppHomeScreen() {
       ? session.user.user_metadata.avatar_url
       : null);
 
-  const selectedCount = profile ? parseSelectedRepositories(profile.selected_repositories).length : 0;
+  const selectedCount = profile
+    ? parseSelectedRepositories(profile.selected_repositories).length
+    : 0;
 
   const onSignOut = React.useCallback(async () => {
     if (!supabase) {
@@ -85,45 +83,11 @@ export default function AppHomeScreen() {
     router.replace('/(public)/sign-in');
   }, [router, supabase]);
 
-  const onDeleteAccount = React.useCallback(() => {
-    if (!supabase) {
-      return;
-    }
-    Alert.alert(
-      'Delete account',
-      'This removes your StandupLog data from our servers and signs you out.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            setBusy(true);
-            setStatus(null);
-            try {
-              const { error } = await supabase.functions.invoke('delete-account', { method: 'POST' });
-              if (error) {
-                throw new AppError('auth', error.message);
-              }
-              await supabase.auth.signOut();
-              router.replace('/(public)/sign-in');
-            } catch (e) {
-              const text = e instanceof AppError ? e.message : userFacingMessage('auth');
-              setStatus(text);
-            } finally {
-              setBusy(false);
-            }
-          },
-        },
-      ]
-    );
-  }, [router, supabase]);
-
   if (loadingProfile) {
     return (
       <>
         <Stack.Screen options={{ title: 'Home' }} />
-        <View className="flex-1 items-center justify-center bg-background">
+        <View className="bg-background flex-1 items-center justify-center">
           <ActivityIndicator size="large" />
         </View>
       </>
@@ -134,12 +98,15 @@ export default function AppHomeScreen() {
     return (
       <>
         <Stack.Screen options={{ title: 'Home' }} />
-        <View className="flex-1 justify-center gap-3 bg-background p-6">
-          <Text className="text-center text-muted-foreground">
-            We could not load your profile. Apply the latest Supabase migrations (see `supabase/migrations`) and try
-            again.
+        <View className="bg-background flex-1 justify-center gap-3 p-6">
+          <Text className="text-muted-foreground text-center">
+            We could not load your profile. Confirm both migrations in
+            `supabase/migrations` are applied to this project, then sign out and
+            sign in again.
           </Text>
-          {status ? <Text className="text-center text-destructive">{status}</Text> : null}
+          {status ? (
+            <Text className="text-destructive text-center">{status}</Text>
+          ) : null}
         </View>
       </>
     );
@@ -152,41 +119,111 @@ export default function AppHomeScreen() {
   return (
     <>
       <Stack.Screen options={{ title: 'Home' }} />
-      <View className="flex-1 gap-6 bg-background p-6">
-        <View className="items-center gap-3">
-          {avatarUrl ? (
-            <Image source={{ uri: avatarUrl }} style={{ width: 96, height: 96, borderRadius: 48 }} />
-          ) : (
-            <View className="size-24 items-center justify-center rounded-full bg-muted">
-              <Text variant="h3" className="text-muted-foreground">
-                {(displayName[0] ?? '?').toUpperCase()}
+      <View className="bg-background flex-1">
+        <ScrollView
+          className="flex-1"
+          contentContainerClassName="flex-grow gap-5 px-5 pb-4 pt-2"
+          showsVerticalScrollIndicator={false}
+        >
+          <View className="gap-1">
+            <Text className="text-muted-foreground text-sm font-medium">
+              Welcome back
+            </Text>
+            <Text variant="h2" className="text-foreground border-0 pb-0">
+              StandupLog
+            </Text>
+          </View>
+
+          <View className="border-border bg-card overflow-hidden rounded-2xl border shadow-sm shadow-black/5">
+            <View className="items-center gap-4 px-6 py-8">
+              <View className="border-primary/20 rounded-full border-2 p-1">
+                {avatarUrl ? (
+                  <Image
+                    source={{ uri: avatarUrl }}
+                    style={{ width: 80, height: 80, borderRadius: 40 }}
+                  />
+                ) : (
+                  <View className="bg-muted size-20 items-center justify-center rounded-full">
+                    <Text variant="h3" className="text-muted-foreground">
+                      {(displayName[0] ?? '?').toUpperCase()}
+                    </Text>
+                  </View>
+                )}
+              </View>
+              <View className="items-center gap-2">
+                <Text
+                  variant="h3"
+                  className="text-foreground border-0 pb-0 text-center"
+                >
+                  {displayName}
+                </Text>
+                <View className="bg-muted/60 flex-row items-center gap-1.5 rounded-full px-3 py-1">
+                  <GithubIcon size={14} color={foreground ?? undefined} />
+                  <Text className="text-muted-foreground text-xs">
+                    Connected via GitHub
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+
+          <View className="flex-row gap-3">
+            <View className="border-border bg-muted/20 flex-1 gap-2 rounded-xl border p-4">
+              <View className="flex-row items-center gap-2">
+                <Octicon
+                  name="repo-16"
+                  size={28}
+                  color={foreground ?? undefined}
+                />
+                <Text className="text-foreground text-3xl font-bold">
+                  {selectedCount}
+                </Text>
+              </View>
+              <Text className="text-muted-foreground text-sm">
+                {selectedCount === 1 ? 'Repository' : 'Repositories'}
               </Text>
             </View>
-          )}
-          <Text variant="h3" className="text-center text-foreground">
-            {displayName}
-          </Text>
-        </View>
+            <View className="border-border bg-muted/20 flex-1 gap-2 rounded-xl border p-4">
+              <Icon as={CircleCheck} size={28} className="text-primary" />
+              <Text className="text-foreground text-sm font-medium">
+                Sources ready
+              </Text>
+              <Text className="text-muted-foreground text-xs">
+                Configured for standups
+              </Text>
+            </View>
+          </View>
 
-        <Text className="text-center text-muted-foreground">
-          {selectedCount === 0
-            ? 'No repositories selected yet. Add some to pull commit activity in a later phase, or keep using manual notes only.'
-            : `Tracking ${selectedCount} selected ${selectedCount === 1 ? 'repository' : 'repositories'}.`}
-        </Text>
+          <View className="border-border bg-card/60 gap-2 rounded-xl border p-4">
+            <Text className="text-foreground font-medium">
+              What&apos;s next
+            </Text>
+            <Text className="text-muted-foreground text-sm leading-relaxed">
+              {selectedCount === 0
+                ? 'Select repositories to include commit activity in your standup updates, or continue with manual notes only.'
+                : 'Your repository selection is saved. Adjust it anytime before generating standup updates.'}
+            </Text>
+          </View>
 
-        {status ? <Text className="text-center text-destructive">{status}</Text> : null}
+          {status ? (
+            <Text className="text-destructive text-center text-sm">
+              {status}
+            </Text>
+          ) : null}
+        </ScrollView>
 
-        <View className="mt-auto gap-3">
-          <Button variant="secondary" disabled={busy} onPress={() => router.push('/(app)/settings')}>
+        <ScreenFooter>
+          <Button
+            disabled={busy}
+            onPress={() => router.push('/(app)/settings')}
+          >
+            <Icon as={Settings} size={18} className="text-primary-foreground" />
             <Text>Manage repositories</Text>
           </Button>
           <Button variant="outline" disabled={busy} onPress={onSignOut}>
             <Text>Sign out</Text>
           </Button>
-          <Button variant="destructive" disabled={busy} onPress={onDeleteAccount}>
-            <Text>Delete account</Text>
-          </Button>
-        </View>
+        </ScreenFooter>
       </View>
     </>
   );

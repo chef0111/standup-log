@@ -1,26 +1,28 @@
-import { Button } from '@/components/ui/button';
-import { RepositoryList } from '@/components/repository-list';
-import { Text } from '@/components/ui/text';
+import { RepositoryPickerScreen } from '@/components/repository-picker-screen';
+import { useAuth } from '@/context/auth-provider';
+import { useGitHubAccessToken } from '@/hooks/use-github-access-token';
 import { AppError, userFacingMessage } from '@/lib/errors';
 import { fetchUserRepos, type GithubRepoRow } from '@/lib/github-repos';
-import { useAuth } from '@/providers/auth-provider';
+import { signInWithGitHub } from '@/lib/oauth';
+import { fetchUserProfile } from '@/lib/profile';
 import {
-  FREE_TIER_REPO_LIMIT,
-  type SelectedRepository,
-  parseSelectedRepositories,
+    FREE_TIER_REPO_LIMIT,
+    parseSelectedRepositories,
+    type SelectedRepository,
 } from '@/types/repository';
 import { Stack, useRouter } from 'expo-router';
 import * as React from 'react';
-import { ActivityIndicator, Alert, TextInput, View } from 'react-native';
+import { Alert } from 'react-native';
 
 export default function OnboardingRepositoriesScreen() {
   const router = useRouter();
   const { supabase, session } = useAuth();
-  const token = session?.provider_token ?? null;
+  const { token, loading: tokenLoading, refresh: refreshToken } = useGitHubAccessToken();
 
   const [repos, setRepos] = React.useState<GithubRepoRow[]>([]);
   const [loadingRepos, setLoadingRepos] = React.useState(true);
   const [loadError, setLoadError] = React.useState<string | null>(null);
+  const [reloadKey, setReloadKey] = React.useState(0);
 
   const [isPro, setIsPro] = React.useState(false);
 
@@ -36,24 +38,19 @@ export default function OnboardingRepositoriesScreen() {
 
     let cancelled = false;
 
-    void supabase
-      .from('profiles')
-      .select('is_pro, selected_repositories')
-      .eq('id', session.user.id)
-      .maybeSingle()
-      .then(({ data, error }) => {
-        if (cancelled) {
-          return;
-        }
-        if (error) {
-          setLoadError(error.message);
-          return;
-        }
-        if (data) {
-          setIsPro(Boolean(data.is_pro));
-          setSelected(parseSelectedRepositories(data.selected_repositories));
-        }
-      });
+    void fetchUserProfile(supabase, session).then(({ profile, error }) => {
+      if (cancelled) {
+        return;
+      }
+      if (error) {
+        setLoadError(error);
+        return;
+      }
+      if (profile) {
+        setIsPro(Boolean(profile.is_pro));
+        setSelected(parseSelectedRepositories(profile.selected_repositories));
+      }
+    });
 
     return () => {
       cancelled = true;
@@ -61,9 +58,15 @@ export default function OnboardingRepositoriesScreen() {
   }, [session, supabase]);
 
   React.useEffect(() => {
+    if (tokenLoading) {
+      return;
+    }
+
     if (!token) {
       setLoadingRepos(false);
-      setLoadError('GitHub access token missing. Sign out and sign in again to grant repository access.');
+      setLoadError(
+        'GitHub access is not available for this session. Reconnect GitHub to grant repository access (required on web after sign-in).'
+      );
       return;
     }
 
@@ -92,7 +95,7 @@ export default function OnboardingRepositoriesScreen() {
     return () => {
       cancelled = true;
     };
-  }, [token]);
+  }, [token, tokenLoading, reloadKey]);
 
   const filtered = React.useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -153,51 +156,45 @@ export default function OnboardingRepositoriesScreen() {
     [router, session, supabase]
   );
 
+  const onReconnectGitHub = React.useCallback(async () => {
+    try {
+      await signInWithGitHub();
+      refreshToken();
+      setReloadKey((k) => k + 1);
+    } catch (e) {
+      const text = e instanceof AppError ? e.message : userFacingMessage('auth');
+      Alert.alert('GitHub sign-in', text);
+    }
+  }, [refreshToken]);
+
   return (
     <>
-      <Stack.Screen options={{ title: 'Select repositories' }} />
-      <View className="flex-1 gap-3 bg-background p-4">
-        <Text className="text-muted-foreground">
-          Choose up to {isPro ? 'unlimited' : FREE_TIER_REPO_LIMIT} repositories to include as activity sources. You can
-          change this later in settings.
-        </Text>
-
-        <TextInput
-          value={query}
-          onChangeText={setQuery}
-          placeholder="Search repositories"
-          placeholderTextColor="#888"
-          className="rounded-md border border-input bg-background px-3 py-2 text-foreground"
-          autoCapitalize="none"
-          autoCorrect={false}
-        />
-
-        {loadingRepos ? (
-          <ActivityIndicator className="mt-6" />
-        ) : loadError ? (
-          <Text className="text-destructive">{loadError}</Text>
-        ) : (
-          <View className="min-h-[200px] flex-1">
-            <RepositoryList
-              data={filtered}
-              selectedIds={selectedIds}
-              onToggle={onToggle}
-              emptyLabel={query.trim() ? 'No repositories match your search.' : 'No repositories found for this account.'}
-            />
-          </View>
-        )}
-
-        {saveError ? <Text className="text-destructive">{saveError}</Text> : null}
-
-        <View className="gap-2">
-          <Button disabled={saving} onPress={() => void finishOnboarding(selected)}>
-            <Text>{saving ? 'Saving…' : 'Continue'}</Text>
-          </Button>
-          <Button variant="ghost" disabled={saving} onPress={() => void finishOnboarding([])}>
-            <Text>Skip for now</Text>
-          </Button>
-        </View>
-      </View>
+      <Stack.Screen options={{ title: 'Select repositories', headerShown: true }} />
+      <RepositoryPickerScreen
+        title="Choose repositories"
+        description={
+          isPro
+            ? 'Pick which repositories StandupLog can use as activity sources. You can change this anytime in settings.'
+            : `Free accounts can track up to ${FREE_TIER_REPO_LIMIT} repositories. Pro unlocks unlimited selection (coming soon).`
+        }
+        isPro={isPro}
+        query={query}
+        onQueryChange={setQuery}
+        filtered={filtered}
+        selected={selected}
+        selectedIds={selectedIds}
+        onToggle={onToggle}
+        loadingRepos={tokenLoading || loadingRepos}
+        loadError={loadError}
+        onRetryLoad={() => setReloadKey((k) => k + 1)}
+        onReconnectGitHub={() => void onReconnectGitHub()}
+        saveError={saveError}
+        saving={saving}
+        primaryLabel="Continue"
+        onPrimary={() => void finishOnboarding(selected)}
+        secondaryLabel="Skip for now"
+        onSecondary={() => void finishOnboarding([])}
+      />
     </>
   );
 }

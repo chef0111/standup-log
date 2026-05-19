@@ -1,5 +1,5 @@
 import { Text } from '@/components/ui/text';
-import { useAuth } from '@/providers/auth-provider';
+import { useAuth } from '@/context/auth-provider';
 import { Redirect } from 'expo-router';
 import { ActivityIndicator, View } from 'react-native';
 

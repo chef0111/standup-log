@@ -1,4 +1,5 @@
-import { useAuth } from '@/providers/auth-provider';
+import { ScreenHeaderActions } from '@/components/screen-header-actions';
+import { useAuth } from '@/context/auth-provider';
 import { Redirect, Stack } from 'expo-router';
 import { ActivityIndicator, View } from 'react-native';
 
@@ -26,6 +27,7 @@ export default function AppGroupLayout() {
       screenOptions={{
         headerShown: true,
         headerBackTitle: 'Back',
+        headerRight: () => <ScreenHeaderActions />,
       }}
     />
   );

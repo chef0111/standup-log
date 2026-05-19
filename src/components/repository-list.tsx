@@ -15,10 +15,15 @@ const RepositoryRow = React.memo(function RepositoryRow({ item, selected, onTogg
   return (
     <Pressable
       onPress={onToggle}
-      className="flex-row items-center gap-3 border-b border-border px-4 py-3 active:bg-accent/40">
+      className={`flex-row items-center gap-3 border-b border-border px-4 py-3 active:bg-accent/40 ${
+        selected ? 'bg-primary/5' : ''
+      }`}>
       <View
-        className={`size-5 rounded border ${selected ? 'border-primary bg-primary' : 'border-muted-foreground'}`}
-      />
+        className={`size-5 items-center justify-center rounded-md border ${
+          selected ? 'border-primary bg-primary' : 'border-muted-foreground bg-background'
+        }`}>
+        {selected ? <Text className="text-[10px] font-bold text-primary-foreground">✓</Text> : null}
+      </View>
       {item.ownerAvatarUrl ? (
         <Image
           source={{ uri: item.ownerAvatarUrl }}

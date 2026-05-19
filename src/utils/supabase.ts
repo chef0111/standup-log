@@ -1,8 +1,39 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { getSupabaseAnonKey, getSupabaseUrl, isSupabaseConfigured } from '@/lib/supabase-config';
+import type { SupportedStorage } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { Platform } from 'react-native';
 
 let browserClient: SupabaseClient | null = null;
+
+const noopStorage: SupportedStorage = {
+  getItem: async () => null,
+  setItem: async () => {},
+  removeItem: async () => {},
+};
+
+function createAuthStorage(): SupportedStorage {
+  if (typeof window === 'undefined') {
+    return noopStorage;
+  }
+
+  if (Platform.OS === 'web') {
+    return {
+      getItem: (key) => Promise.resolve(window.localStorage.getItem(key)),
+      setItem: (key, value) => {
+        window.localStorage.setItem(key, value);
+        return Promise.resolve();
+      },
+      removeItem: (key) => {
+        window.localStorage.removeItem(key);
+        return Promise.resolve();
+      },
+    };
+  }
+
+  // Native only — avoid loading AsyncStorage during web SSR.
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  return require('@react-native-async-storage/async-storage').default;
+}
 
 /**
  * Returns a singleton Supabase client, or null when env is not configured (cold start must not throw).
@@ -18,10 +49,11 @@ export function getSupabase(): SupabaseClient | null {
   const key = getSupabaseAnonKey()!;
   browserClient = createClient(url, key, {
     auth: {
-      storage: AsyncStorage,
+      storage: createAuthStorage(),
       autoRefreshToken: true,
       persistSession: true,
-      detectSessionInUrl: false,
+      detectSessionInUrl: Platform.OS === 'web',
+      flowType: 'pkce',
     },
   });
   return browserClient;
