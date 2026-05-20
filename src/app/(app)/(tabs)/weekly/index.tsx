@@ -1,10 +1,14 @@
 import { Text } from '@/components/ui/text';
+import { UpgradeSheet } from '@/features/entitlements';
 import { ScreenHeaderActions } from '@/features/shell';
+import { WeeklySummaryView } from '@/features/standup/components/weekly-summary-view';
 import { Stack } from 'expo-router';
 import * as React from 'react';
 import { ScrollView, View } from 'react-native';
 
-export default function WeeklyPlaceholderScreen() {
+export default function WeeklyScreen() {
+  const [upgradeOpen, setUpgradeOpen] = React.useState(false);
+
   return (
     <>
       <Stack.Screen
@@ -14,8 +18,8 @@ export default function WeeklyPlaceholderScreen() {
         }}
       />
       <ScrollView
-        className="flex-1"
-        contentContainerClassName="mx-auto w-full max-w-lg flex-grow gap-4 px-5 pb-4 pt-2"
+        className="bg-background flex-1"
+        contentContainerClassName="mx-auto w-full max-w-lg flex-grow gap-4 px-5 pb-8 pt-2"
         contentInsetAdjustmentBehavior="automatic"
       >
         <View className="gap-2">
@@ -23,10 +27,18 @@ export default function WeeklyPlaceholderScreen() {
             Weekly Summary
           </Text>
           <Text selectable className="text-muted-foreground text-sm leading-relaxed">
-            Your week-at-a-glance breakdown by Work Type will appear here.
+            Activity grouped by Work Type for the current week.
           </Text>
         </View>
+
+        <WeeklySummaryView onUpgrade={() => setUpgradeOpen(true)} />
       </ScrollView>
+
+      <UpgradeSheet
+        open={upgradeOpen}
+        onOpenChange={setUpgradeOpen}
+        reason="weekly"
+      />
     </>
   );
 }
