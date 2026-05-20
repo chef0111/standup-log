@@ -5,7 +5,7 @@ StandupLog helps developers turn their work activity and notes into a ready-to-s
 ## Language
 
 **Standup Update**:
-A concise daily status message organized around what was done, what comes next, and blockers.
+A concise daily status message for one **Workday**, stored as a single markdown document (what was done, what you are focusing on, blockers, and optional metrics). The developer edits and copies it when ready to share.
 _Avoid_: Report, timesheet, task log
 
 **Workday**:
@@ -37,11 +37,15 @@ A developer-editable category applied to an **Activity Signal** to explain the k
 _Avoid_: Label, tag, productivity bucket
 
 **Daily Streak**:
-A count of consecutive **Workdays** where the developer copied or shared a **Standup Update**.
+A count of consecutive **Workdays** where the developer copied or shared a **Standup Update** (via **Copy summary** or **Copy full**).
 _Avoid_: Login streak, note streak, generation streak
 
+**Standup Summary**:
+The opening section of a **Standup Update**—one or two short paste-ready sentences for chat (roughly 40–60 words), stating the main theme or outcome for that **Workday** and blockers only when relevant. Detailed commit and note evidence lives in the sections below, not repeated line-for-line in the summary.
+_Avoid_: Weekly roll-up, executive report, AI title only
+
 **AI Draft**:
-A suggested **Standup Update** generated from **Activity Signals** and **Manual Notes** before developer approval.
+A suggested markdown **Standup Update** for a chosen **Workday**, generated from that day's **Activity Signals** and **Manual Notes** when the developer taps Generate. It does not run automatically on open. Includes a **Standup Summary** plus the structured sections.
 _Avoid_: Final update, automated standup, posted status
 
 **Activity Signal**:
@@ -61,34 +65,39 @@ _Avoid_: Connected repo, tracked repo, watched repo
 - A **Workday** produces zero or one **Standup Updates** per developer.
 - A **Standup Update** may include zero or more **Manual Notes**.
 - A **Voice Note** is a capture method for a **Manual Note**, not a separate status artifact.
-- The Today section of a **Standup Update** may include **Unfinished Notes** carried forward by the developer.
-- The Blockers section of a **Standup Update** includes **Blocker Notes** or an editable "No blockers" default.
+- A **Standup Update** for a **Workday** describes work on that calendar day—not "yesterday" relative to when the developer opens the app later.
+- The focusing-on portion of a **Standup Update** may include **Unfinished Notes** carried forward by the developer.
+- The blockers portion includes **Blocker Notes** from that **Workday** or an editable empty default.
 - A **Weekly Summary** summarizes generated **Standup Updates**, not raw work time.
 - A **Weekly Summary** groups **Activity Signals** by **Work Type**.
 - A **Daily Streak** advances only when the developer copies or shares a **Standup Update**.
+- A **Standup Update** begins with a **Standup Summary**, then structured sections for work done, focus, blockers, and optional metrics.
+- **Standup Summary** prose is produced by **AI Draft** on Generate; without Generate it shows instructional placeholder copy the developer replaces by hand.
+- **Copy summary** is available only when **Standup Summary** contains real prose (after Generate or manual edit); **Copy full** copies the entire **Standup Update**.
+- **Regenerate** replaces the whole **Standup Update**, including **Standup Summary**, from that **Workday**'s current inputs.
 - An **AI Draft** becomes a **Standup Update** only after developer review.
 - A **Standup Update** is generated from one or more **Activity Signals** and approved by the developer.
 - **Activity Metadata** may be retained to regenerate and audit **AI Drafts**, but code diffs are not retained.
 - A developer may choose one or more **Selected Repositories** as sources of **Activity Signals**.
-- Opening **Generate standup** defaults to yesterday's **Workday**; the developer may override via calendar for that session.
+- Opening **Generate standup** defaults to the previous local **Workday**; the developer may pick another allowed day via the calendar and that selection persists while they stay on the screen.
 
 ## Example dialogue
 
-> **Dev:** "If I open StandupLog in the morning, which commits become yesterday's update?"
-> **Domain expert:** "The app defaults to the previous local **Workday**. Use the calendar picker if you need a different day — today or an earlier day within your history."
+> **Dev:** "If I pick May 19 on the calendar, whose commits go into that standup?"
+> **Domain expert:** "Only activity and notes for **Workday** May 19. The standup you see is _for_ that day. The app defaults to the previous local **Workday** when you first open Generate standup; change the picker to browse another day."
 
 ## Flagged ambiguities
 
 - "day" was used ambiguously between calendar day, rolling standup window, and repo timezone; resolved: **Workday** means user-local calendar day.
 - "commits" could imply authoritative proof of work; resolved: commits are **Activity Signals**, and the developer owns the final **Standup Update**.
 - "connected repo" could imply every accessible GitHub repository; resolved: **Selected Repository** means explicit developer selection with read-only access.
-- "Today" could imply predicted future work; resolved: Today is based on editable placeholder text and developer-owned **Unfinished Notes**, not AI prediction from commits.
-- "blocker" could be guessed from negative commit wording; resolved: blockers come only from developer-owned **Blocker Notes** or the editable default.
+- "Yesterday / Today / Blockers" as UI labels on a past **Workday** was confusing; resolved: one markdown **Standup Update** per **Workday** with template sections (what I did, focusing on, blockers).
+- "blocker" could be guessed from negative commit wording; resolved: blockers come only from developer-owned **Blocker Notes** on that **Workday** or the editable default.
 - "voice note" could imply durable audio storage; resolved: **Voice Note** is an optional capture path whose transcript becomes the **Manual Note**.
 - "voice note" could imply cloud transcription cost; resolved: MVP **Voice Note** uses **device-local** speech-to-text only—no cloud STT API in the core flow.
 - "weekly summary" could imply time tracking or performance measurement; resolved: **Weekly Summary** groups generated **Standup Updates** by work type.
 - "streak" could mean app usage or draft generation; resolved: **Daily Streak** advances only when a **Standup Update** is copied or shared.
 - "GitHub data" could imply source code retention; resolved: StandupLog stores **Activity Metadata** and standups, not code diffs.
 - "Bring your own AI account" or per-user AI vendor login could add onboarding friction; resolved: users authenticate only to StandupLog; **AI Draft** assistance is operator-controlled inference—no separate end-user AI account step in the core flow.
-- "workday default" could mean time-of-day rules or remembering last pick; resolved: always default to previous local calendar day on open; calendar override is session-scoped on Generate standup.
+- "workday default" could mean time-of-day rules or remembering last pick; resolved: default to previous local calendar day on first open; picker selection is kept while the Generate screen stays in focus.
 - "calendar" could imply future planning or custom month UI; resolved: native date picker only; selectable days are today and past; free tier caps how far back the calendar goes.

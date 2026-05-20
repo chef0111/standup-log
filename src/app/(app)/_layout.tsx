@@ -1,11 +1,13 @@
 import { useAuth } from '@/features/auth';
 import { ScreenHeaderActions } from '@/features/shell';
+import { useThemeColor } from '@/features/theme';
 import { Redirect, Stack } from 'expo-router';
 import * as React from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, Text, View } from 'react-native';
 
 export default function AppGroupLayout() {
   const { configured, session, loading } = useAuth();
+  const foreground = useThemeColor('--color-foreground');
 
   if (!configured) {
     return <Redirect href="/(public)/setup" />;
@@ -14,7 +16,8 @@ export default function AppGroupLayout() {
   if (loading) {
     return (
       <View className="bg-background flex-1 items-center justify-center">
-        <ActivityIndicator size="large" />
+        <ActivityIndicator size="large" color={foreground} />
+        <Text className="text-muted-foreground mt-4">Loading…</Text>
       </View>
     );
   }

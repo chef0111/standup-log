@@ -27,15 +27,21 @@ If variables are missing, the app opens a **setup** screen with instructions ins
 2. Create a GitHub OAuth App; set the callback URL Supabase shows for your project.
 3. Under **Authentication → URL configuration**, add this app’s OAuth redirect to **Redirect URLs** (Expo `makeRedirectUri` — copy the exact string from the **Sign in** screen in dev, typically `standuplog://auth/callback` on device/simulator, or an Expo Go variant).
 4. Apply database migrations to your Supabase project in timestamp order under `supabase/migrations/` (SQL editor, `supabase db push`, or your normal pipeline). The Phase 2 migration adds `selected_repositories`, `is_pro`, and a check constraint enforcing **three repositories max** on the free tier.
-5. Deploy the Edge Function that deletes the auth user (required for **Delete account** in the app):
+5. Deploy Edge Functions (required for **Delete account** and **AI standup draft**):
 
    ```bash
-   pnpm dlx supabase@latest functions deploy delete-account
+   bunx supabase@latest functions deploy delete-account
+   bunx supabase@latest functions deploy generate-standup-draft
    ```
 
-   The function uses `SUPABASE_SERVICE_ROLE_KEY` and `SUPABASE_URL` automatically in hosted Supabase.
+   - `delete-account` uses `SUPABASE_SERVICE_ROLE_KEY` and `SUPABASE_URL` automatically in hosted Supabase.
+   - `generate-standup-draft` requires the operator Anthropic key (never in the mobile app):
 
-Restart the dev server after changing `.env.local`.
+     ```bash
+     bunx supabase@latest secrets set ANTHROPIC_API_KEY=sk-ant-...
+     ```
+
+   Restart the dev server after changing `.env.local`.
 
 ## Scripts
 

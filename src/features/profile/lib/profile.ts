@@ -1,7 +1,9 @@
+import type { CopyFormat } from '@/features/standup/lib/format-standup';
+import type { Workday } from '@/features/workday/types/workday';
 import type { Session, SupabaseClient } from '@supabase/supabase-js';
 
 export const PROFILE_HOME_COLUMNS =
-  'github_login, avatar_url, github_user_id, onboarding_completed_at, selected_repositories, is_pro' as const;
+  'github_login, avatar_url, github_user_id, onboarding_completed_at, selected_repositories, is_pro, default_copy_format, current_streak, longest_streak, last_streak_workday' as const;
 
 export type ProfileHomeRow = {
   github_login: string | null;
@@ -10,6 +12,10 @@ export type ProfileHomeRow = {
   onboarding_completed_at: string | null;
   selected_repositories: unknown;
   is_pro: boolean;
+  default_copy_format: CopyFormat;
+  current_streak: number;
+  longest_streak: number;
+  last_streak_workday: Workday | null;
 };
 
 function githubLoginFromSession(session: Session): string | null {

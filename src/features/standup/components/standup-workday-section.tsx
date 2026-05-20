@@ -8,8 +8,7 @@ import { View } from 'react-native';
 import { useStandup } from '../context/standup';
 
 export function StandupWorkdaySection() {
-  const { workday, workdayPickerKey, pickerBounds, isPro, onWorkdayChange } =
-    useStandup();
+  const { workday, pickerBounds, isPro, onWorkdayChange } = useStandup();
 
   return (
     <View className="relative gap-2">
@@ -17,7 +16,7 @@ export function StandupWorkdaySection() {
         Workday
       </Text>
       <WorkdayDatePicker
-        key={workdayPickerKey}
+        key={workday}
         workday={workday}
         bounds={pickerBounds}
         onWorkdayChange={onWorkdayChange}

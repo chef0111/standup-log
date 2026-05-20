@@ -1,6 +1,7 @@
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { CircleCheck } from 'lucide-react-native';
+import * as React from 'react';
 import { ActivityIndicator, View } from 'react-native';
 
 type AuthStatusProps = {
@@ -19,7 +20,7 @@ export function AuthStatusView({
   if (variant === 'loading') {
     return (
       <View className="bg-background flex-1 items-center justify-center gap-4 p-6">
-        <ActivityIndicator size="large" />
+        <ActivityIndicator size="large" className="text-primary" />
         <Text className="text-muted-foreground text-center text-sm">
           {loadingMessage}
         </Text>
