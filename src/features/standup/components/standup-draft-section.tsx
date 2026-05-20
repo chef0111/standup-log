@@ -1,7 +1,7 @@
 import { Card } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
 import { StandupDraftPanel } from '@/features/standup/components/standup-draft-panel';
-import { useThemeColor } from '@/features/theme';
+import { useThemeColor } from '@/hooks/use-theme-color';
 import * as React from 'react';
 import { ActivityIndicator } from 'react-native';
 import { useStandup } from '../context/standup';

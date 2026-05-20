@@ -1,26 +1,47 @@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
-import { NotesList } from '@/features/notes';
-import { useThemeColor } from '@/features/theme';
-import { Plus } from 'lucide-react-native';
+import { NotesList } from '@/features/standup/components/notes/notes-list';
+import { VoiceNoteSheet } from '@/features/standup/components/voice/voice-note-sheet';
+import { useThemeColor } from '@/hooks/use-theme-color';
+import { Mic, Plus } from 'lucide-react-native';
 import * as React from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { useStandup } from '../context/standup';
 
 export function StandupNotesSection() {
-  const { loading, notesError, notes, openAddNote, openEditNote, removeNote } =
-    useStandup();
+  const {
+    loading,
+    notesError,
+    notes,
+    openAddNote,
+    openEditNote,
+    removeNote,
+    handleSaveNote,
+    noteSaving,
+    noteError,
+  } = useStandup();
+  const [voiceOpen, setVoiceOpen] = React.useState(false);
   const foreground = useThemeColor('--color-foreground');
 
   return (
     <Card className="gap-3 p-4">
       <View className="flex-row items-center justify-between">
         <Text className="text-foreground text-sm font-medium">Notes</Text>
-        <Button variant="outline" size="sm" onPress={openAddNote}>
-          <Plus size={14} />
-          <Text>Add note</Text>
-        </Button>
+        <View className="flex-row gap-2">
+          <Button variant="outline" size="sm" onPress={openAddNote}>
+            <Plus size={14} />
+            <Text>Add note</Text>
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onPress={() => setVoiceOpen(true)}
+          >
+            <Mic size={14} />
+            <Text>Voice</Text>
+          </Button>
+        </View>
       </View>
       {loading ? (
         <ActivityIndicator color={foreground} />
@@ -38,6 +59,13 @@ export function StandupNotesSection() {
           />
         </>
       )}
+      <VoiceNoteSheet
+        open={voiceOpen}
+        onOpenChange={setVoiceOpen}
+        saving={noteSaving}
+        error={noteError}
+        onSave={handleSaveNote}
+      />
     </Card>
   );
 }

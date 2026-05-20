@@ -1,7 +1,10 @@
-import { useActivitySync } from '@/features/activity';
-import { useAuth } from '@/features/auth';
-import { useManualNotes, type ManualNoteRow } from '@/features/notes';
-import { fetchUserProfile } from '@/features/profile';
+import { useAuth } from '@/context/auth';
+import { fetchUserProfile } from '@/features/profile/lib/profile';
+import { useActivitySync } from '@/features/standup/hooks/use-activity-sync';
+import {
+  useManualNotes,
+  type ManualNoteRow,
+} from '@/features/standup/hooks/use-manual-notes';
 import { buildGenerateDraftRequest } from '@/features/standup/lib/build-generate-draft-request';
 import { composeManualMarkdown } from '@/features/standup/lib/compose-standup-markdown';
 import { generateAiDraft } from '@/features/standup/lib/generate-ai-draft';
@@ -16,8 +19,10 @@ import {
   clampWorkdayToBounds,
   defaultTargetWorkday,
   getWorkdayPickerBounds,
-} from '@/features/workday';
-import type { Workday } from '@/features/workday/types/workday';
+} from '@/features/standup/lib/workday/workday';
+import type { Workday } from '@/features/standup/types/workday';
+import { track } from '@/lib/analytics';
+import { markFirstEvent } from '@/lib/analytics-flags';
 import { userFacingMessage } from '@/lib/errors';
 import { useFocusEffect } from '@react-navigation/native';
 import * as React from 'react';
@@ -72,6 +77,7 @@ export function StandupProvider({ children }: { children: React.ReactNode }) {
     syncing,
     loading: loadingActivity,
     error: activityError,
+    rateLimitResetAt,
     token,
     tokenLoading,
     refresh,
@@ -196,8 +202,20 @@ export function StandupProvider({ children }: { children: React.ReactNode }) {
           result.draft.classifications
         );
       }
+      const firstDraft = await markFirstEvent(
+        session.user.id,
+        'first_draft_generated'
+      );
+      track('draft_generated', {
+        workday,
+        first_draft: firstDraft,
+      });
     } else {
       setDraftMarkdown(manualMarkdown);
+      track('draft_generation_failed', {
+        workday,
+        error_code: result.error ?? 'fallback',
+      });
       setAiError(
         result.error && result.error !== 'rate_limited'
           ? userFacingMessage('ai')
@@ -282,6 +300,10 @@ export function StandupProvider({ children }: { children: React.ReactNode }) {
       }
       setEditorOpen(false);
       setEditingNote(null);
+      track('manual_note_created', {
+        is_blocker: input.is_blocker,
+        is_carry_forward: input.is_carry_forward,
+      });
     },
     [addNote, editNote, editingNote]
   );
@@ -313,6 +335,7 @@ export function StandupProvider({ children }: { children: React.ReactNode }) {
       loadingActivity,
       syncing,
       activityError,
+      rateLimitResetAt,
       token,
       tokenLoading,
       refreshActivity,
@@ -350,6 +373,7 @@ export function StandupProvider({ children }: { children: React.ReactNode }) {
       loadingActivity,
       syncing,
       activityError,
+      rateLimitResetAt,
       token,
       tokenLoading,
       refreshActivity,

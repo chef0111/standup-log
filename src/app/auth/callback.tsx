@@ -1,4 +1,6 @@
-import { AuthStatusView, createSessionFromUrl, useAuth } from '@/features/auth';
+import { useAuth } from '@/context/auth';
+import { AuthStatusView } from '@/features/auth/components/auth-status';
+import { createSessionFromUrl } from '@/features/auth/lib/oauth';
 import * as Linking from 'expo-linking';
 import { Redirect, useRouter } from 'expo-router';
 import * as React from 'react';

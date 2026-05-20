@@ -5,7 +5,7 @@ import {
   getWorkdayHistoryBounds,
   isWorkdayWithinHistory,
 } from '@/features/entitlements/lib/entitlements';
-import { addCalendarDays } from '@/features/workday/lib/workday';
+import { addCalendarDays } from '@/features/standup/lib/workday/workday';
 import { describe, expect, it } from 'vitest';
 
 const NOW = new Date('2026-05-19T12:00:00Z');

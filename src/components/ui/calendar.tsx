@@ -12,9 +12,9 @@ import {
   workdayToCalendarMonth,
   type CalendarDayCell,
   type CalendarMonth,
-} from '@/features/workday/lib/calendar-grid';
-import { formatWorkdayLocal } from '@/features/workday/lib/workday';
-import type { Workday } from '@/features/workday/types/workday';
+} from '@/features/standup/lib/workday/calendar-grid';
+import { formatWorkdayLocal } from '@/features/standup/lib/workday/workday';
+import type { Workday } from '@/features/standup/types/workday';
 import { cn } from '@/lib/utils';
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import * as React from 'react';

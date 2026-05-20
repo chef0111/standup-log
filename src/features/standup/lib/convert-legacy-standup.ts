@@ -2,7 +2,7 @@ import {
   formatWorkdayHeading,
   STANDUP_SUMMARY_PLACEHOLDER,
 } from '@/features/standup/lib/compose-standup-markdown';
-import type { Workday } from '@/features/workday/types/workday';
+import type { Workday } from '@/features/standup/types/workday';
 
 export type LegacyStandupColumns = {
   workday: Workday;

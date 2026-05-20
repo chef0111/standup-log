@@ -1,13 +1,12 @@
-import { ScreenHeaderActions, useTabBarScrollPadding } from '@/features/shell';
-import {
-  StandupActivitySection,
-  StandupDraftSection,
-  StandupNoteEditor,
-  StandupNotesSection,
-  StandupOfflineBanner,
-  StandupProvider,
-  StandupWorkdaySection,
-} from '@/features/standup';
+import { ScreenHeaderActions } from '@/features/shell/components/screen-header-actions';
+import { useTabBarScrollPadding } from '@/features/shell/hooks/use-tab-bar-scroll-padding';
+import { StandupActivitySection } from '@/features/standup/components/standup-activity-section';
+import { StandupDraftSection } from '@/features/standup/components/standup-draft-section';
+import { StandupNoteEditor } from '@/features/standup/components/standup-note-editor';
+import { StandupNotesSection } from '@/features/standup/components/standup-notes-section';
+import { StandupOfflineBanner } from '@/features/standup/components/standup-offline-banner';
+import { StandupWorkdaySection } from '@/features/standup/components/standup-workday-section';
+import { StandupProvider } from '@/features/standup/context/standup';
 import { Stack } from 'expo-router';
 import * as React from 'react';
 import { ScrollView, View } from 'react-native';

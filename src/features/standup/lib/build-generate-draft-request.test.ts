@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { ActivityCommitRow } from '@/features/activity/types/activity-commit';
+import type { ActivityCommitRow } from '@/features/standup/types/activity-commit';
 import { buildGenerateDraftRequest } from '@/features/standup/lib/build-generate-draft-request';
 
 const commit: ActivityCommitRow = {

@@ -1,16 +1,21 @@
 import { Button } from '@/components/ui/button';
 import { ButtonSpinner } from '@/components/ui/button-spinner';
 import { Text } from '@/components/ui/text';
-import { useAuth } from '@/features/auth';
+import { useAuth } from '@/context/auth';
 import { AiGenerationQuota } from '@/features/standup/components/ai-generation-quota';
+import { CopyFormatPicker } from '@/features/standup/components/copy-format-picker';
 import { CopyToast } from '@/features/standup/components/copy-toast';
+import { EmptyWorkdayGuide } from '@/features/standup/components/empty-workday-guide';
 import { StandupMarkdownEditor } from '@/features/standup/components/standup-markdown-editor';
 import { useStandupCopy } from '@/features/standup/hooks/use-standup-copy';
+import { isWorkdayInputEmpty } from '@/features/standup/lib/build-no-update-standup';
 import {
   buildEmptyStandupTemplate,
   composeManualMarkdown,
+  isStandupMarkdownEmpty,
   isStandupSummaryReady,
 } from '@/features/standup/lib/compose-standup-markdown';
+import type { CopyFormat } from '@/features/standup/lib/format-standup';
 import { saveStandupUpdate } from '@/features/standup/lib/standup-api';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { useRouter } from 'expo-router';
@@ -49,7 +54,10 @@ export function StandupDraftPanel() {
     aiRateLimited,
     regenerateDraft,
     onStandupSaved: onSaved,
+    openAddNote,
   } = useStandup();
+
+  const [guideDismissed, setGuideDismissed] = React.useState(false);
 
   const composed = React.useMemo(
     () =>
@@ -65,6 +73,11 @@ export function StandupDraftPanel() {
   const baselineMarkdown =
     providerDraft ?? initialSaved ?? buildEmptyStandupTemplate(workday);
 
+  const showEmptyGuide =
+    !guideDismissed &&
+    isWorkdayInputEmpty(commits.length, notes.length) &&
+    isStandupMarkdownEmpty(baselineMarkdown);
+
   const [markdown, setMarkdown] = React.useState(baselineMarkdown);
   const [saving, setSaving] = React.useState(false);
   const [status, setStatus] = React.useState<string | null>(null);
@@ -74,14 +87,16 @@ export function StandupDraftPanel() {
     [markdown]
   );
 
-  const { copying, toastMessage, copySummary, copyFull } = useStandupCopy(
-    workday,
-    markdown
-  );
+  const [sessionCopyFormat, setSessionCopyFormat] =
+    React.useState<CopyFormat | null>(null);
+
+  const { copying, toastMessage, copySummary, copyFull, copyFormat } =
+    useStandupCopy(workday, markdown, { formatOverride: sessionCopyFormat });
 
   React.useEffect(() => {
     setMarkdown(baselineMarkdown);
-  }, [baselineMarkdown]);
+    setGuideDismissed(false);
+  }, [baselineMarkdown, workday]);
 
   const handleSave = async () => {
     if (!supabase || !session) {
@@ -119,6 +134,25 @@ export function StandupDraftPanel() {
         </Button>
       </View>
 
+      {showEmptyGuide ? (
+        <EmptyWorkdayGuide
+          workday={workday}
+          onHadWork={() => {
+            setGuideDismissed(true);
+            openAddNote();
+          }}
+          onAddBlockerNote={() => {
+            setGuideDismissed(true);
+            openAddNote();
+          }}
+          onApplyDraft={(next) => {
+            setMarkdown(next);
+            setGuideDismissed(true);
+          }}
+          onDismiss={() => setGuideDismissed(true)}
+        />
+      ) : null}
+
       <StandupMarkdownEditor
         mode="edit"
         value={markdown}
@@ -136,6 +170,15 @@ export function StandupDraftPanel() {
         )}
         <Text>Save</Text>
       </Button>
+
+      <View className="gap-2">
+        <Text className="text-muted-foreground text-xs">Copy format</Text>
+        <CopyFormatPicker
+          value={copyFormat}
+          onChange={setSessionCopyFormat}
+          disabled={copying}
+        />
+      </View>
 
       <View className="flex-row flex-wrap gap-2">
         <Button

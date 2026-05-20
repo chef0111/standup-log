@@ -1,4 +1,8 @@
 import type { SelectedRepository } from '@/features/repositories/types/repository';
+import {
+  assertGithubRateLimit,
+  githubHttpErrorMessage,
+} from '@/features/standup/lib/activity/github-rate-limit';
 import { AppError } from '@/lib/errors';
 
 export type GithubRepoRow = SelectedRepository & {
@@ -35,23 +39,14 @@ export async function fetchUserRepos(
       },
     });
 
-    const remaining = res.headers.get('x-ratelimit-remaining');
-    if (remaining === '0') {
-      throw new AppError(
-        'github',
-        'GitHub rate limit reached. Try again in a few minutes.'
-      );
-    }
+    assertGithubRateLimit(res);
 
     if (res.status === 401 || res.status === 403) {
-      throw new AppError(
-        'github',
-        'GitHub rejected this request. Reconnect your account and try again.'
-      );
+      throw new AppError('github', githubHttpErrorMessage(res.status));
     }
 
     if (!res.ok) {
-      throw new AppError('github', `GitHub request failed (${res.status}).`);
+      throw new AppError('github', githubHttpErrorMessage(res.status));
     }
 
     const chunk = (await res.json()) as GithubRepoApi[];

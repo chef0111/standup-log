@@ -1,6 +1,6 @@
 import { Text } from '@/components/ui/text';
-import { useAuth } from '@/features/auth';
-import { useThemeColor } from '@/features/theme/hooks/use-theme-color.web';
+import { useAuth } from '@/context/auth';
+import { useThemeColor } from '@/hooks/use-theme-color.web';
 import { Redirect } from 'expo-router';
 import * as React from 'react';
 import { ActivityIndicator, View } from 'react-native';

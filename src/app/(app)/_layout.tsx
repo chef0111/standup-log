@@ -1,6 +1,6 @@
-import { useAuth } from '@/features/auth';
-import { ScreenHeaderActions } from '@/features/shell';
-import { useThemeColor } from '@/features/theme';
+import { useAuth } from '@/context/auth';
+import { ScreenHeaderActions } from '@/features/shell/components/screen-header-actions';
+import { useThemeColor } from '@/hooks/use-theme-color';
 import { Redirect, Stack } from 'expo-router';
 import * as React from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';

@@ -10,7 +10,7 @@ import { Text } from '@/components/ui/text';
 import { Textarea } from '@/components/ui/textarea';
 import { extractStandupSummary } from '@/features/standup/lib/parse-standup-markdown';
 import { saveStandupUpdate } from '@/features/standup/lib/standup-api';
-import type { Workday } from '@/features/workday/types/workday';
+import type { Workday } from '@/features/standup/types/workday';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import * as React from 'react';
 import { Pressable, View } from 'react-native';

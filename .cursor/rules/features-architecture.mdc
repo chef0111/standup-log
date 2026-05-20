@@ -6,52 +6,92 @@ alwaysApply: false
 
 # Feature modules (`src/features`)
 
-Vertical slices mirror `src/` layout per feature:
+Organize by **screen** (Expo route / tab) plus **capabilities** shared across screens. No barrel `index.ts` files — import the concrete module path.
+
+## Layout
+
+**Screen feature** (one primary route group):
 
 ```
-features/<name>/
-  components/   # UI for this feature
+features/<screen>/
+  components/           # screen UI; nested sections as subfolders
+    <section>/          # e.g. standup: workday, activity, notes, voice
+  lib/                  # screen-specific domain helpers
+    <section>/          # paired with components/<section> when applicable
   hooks/
-  lib/          # data + domain helpers
-  types/
-  index.ts      # public API — relative re-exports only (no @/features/self in barrels)
+  context/<name>/       # optional screen orchestration (see react-context-provider.mdc)
+  types/                # types for this screen (section types may live here)
 ```
 
-## Global context (`src/context/`)
+**Capability feature** (cross-screen data / integration):
 
-App-wide React providers live here, not under `features/`:
+```
+features/<capability>/
+  components/
+  lib/
+  hooks/
+  types/
+```
 
-| Module               | Exports                                 |
-| -------------------- | --------------------------------------- |
-| `auth-provider.tsx`  | `AuthProvider`, `useAuth`               |
-| `theme-provider.tsx` | `AppThemeProvider`, `useAppColorScheme` |
+**Example — Generate standup (`standup`)** mirrors a portfolio-style screen:
 
-Wire providers in `src/app/_layout.tsx` from `@/context/...`. Feature barrels may re-export hooks for convenience (`@/features/auth` still exposes `useAuth`).
+```
+features/standup/
+  components/workday/     # date picker, workday section
+  components/activity/    # commit terminal, work-type sheet
+  components/notes/
+  components/voice/
+  components/weekly/    # Weekly Summary tab UI
+  lib/workday/
+  lib/activity/
+  lib/notes/
+  lib/voice/
+  lib/weekly/           # week bounds, aggregation, fetch
+  components/standup-draft-panel.tsx   # screen-level sections stay at components/ root
+  context/standup/
+  lib/compose-standup-markdown.ts      # Standup Update composition
+```
 
-## Rules
+## Top-level modules
 
-- **Routes stay thin** in `src/app/`; wire screens to `@/features/<name>`.
-- **Cross-feature imports** only via the other feature's `index.ts`, not deep paths.
-- **Barrel `index.ts`** re-exports use `./relative` paths — never `@/features/<same-feature>/...` (Metro cannot resolve self-aliases).
-- **Global providers** → `src/context/`, not `features/*/context/`.
-- **Feature-scoped providers** (screen orchestration) → `features/<name>/context/<name>/` — see `.cursor/rules/react-context-provider.mdc`.
-- **Shared design system**: `src/components/ui/`, `src/components/icons/`.
-- **Cross-cutting hooks** (use global context): `src/hooks/` — e.g. `use-github-access-token.ts`.
+| Module         | Kind       | Responsibility                                                            |
+| -------------- | ---------- | ------------------------------------------------------------------------- |
+| `home`         | Screen     | Home tab UI (e.g. standup widget)                                         |
+| `standup`      | Screen     | Generate standup + Weekly Summary tab (`components/weekly`, `lib/weekly`) |
+| `settings`     | Screen     | Settings, privacy, reminders, account deletion                            |
+| `onboarding`   | Screen     | First-time repo setup (route in app)                                      |
+| `auth`         | Capability | GitHub OAuth UI and token helpers (session via `@/context`)               |
+| `profile`      | Capability | Supabase profile row                                                      |
+| `repositories` | Capability | Repo list, picker, GitHub fetch, selection types                          |
+| `entitlements` | Capability | Tier limits, upgrade sheet                                                |
+| `shell`        | Capability | Tab layout, headers, footers                                              |
+
+Routes stay thin in `src/app/` and import from `@/features/<module>/...` paths.
+
+## Global app shell (not under `features/`)
+
+| Location             | Module                             | Exports / role                                     |
+| -------------------- | ---------------------------------- | -------------------------------------------------- |
+| `src/context/theme/` | `index.ts` barrel                  | `AppThemeProvider`, `useAppColorScheme`            |
+| `src/context/auth/`  | `index.ts` barrel                  | `AuthProvider`, `useAuth`                          |
+| `src/components/`    | `theme-toggle.tsx`                 | `ThemeToggle`                                      |
+| `src/hooks/`         | `use-theme-color.ts` (+ `.web.ts`) | Resolved CSS variable colors for native/web        |
+| `src/lib/`           | `theme-preference.ts`              | Persisted light/dark preference (used by provider) |
+| `src/lib/`           | `theme-colors.ts`                  | Token map for web `useThemeColor`                  |
+| `src/lib/`           | `theme.ts`                         | React Navigation `NAV_THEME` (separate from above) |
+
+Wire providers in `src/app/_layout.tsx` from `@/context/auth` and `@/context/theme` (no `src/context/index.ts`).
+
+## Import rules
+
+- **No `index.ts` barrels** under `src/features/` except `features/<screen>/context/<name>/index.ts` (see react-context-provider.mdc). Import concrete paths elsewhere.
+- **Cross-feature**: `@/features/<other-feature>/lib/...`, `components/...`, `hooks/...`, or `@/context/...` for app-wide providers.
+- **Same feature**: prefer **relative** imports (`../lib/workday/workday`) to avoid Metro self-alias issues; `@/features/standup/...` is fine from routes and other features.
+- **Do not** import from removed top-level folders (`workday`, `activity`, `notes`, `voice`, `reminders`, `account` as standalone features).
+
+## Other conventions
+
+- **Shared design system**: `src/components/ui/`, `src/components/icons/`, `src/components/theme-toggle.tsx`.
+- **Cross-cutting hooks**: `src/hooks/` — e.g. `use-github-access-token.ts`, `use-theme-color.ts`.
 - **Infrastructure**: `src/lib/errors.ts`, `src/lib/utils.ts`, `src/utils/supabase.ts`.
-
-## Current features
-
-| Feature        | Responsibility                                                  |
-| -------------- | --------------------------------------------------------------- |
-| `auth`         | GitHub OAuth, provider token, auth UI (session via `@/context`) |
-| `repositories` | Repo list, picker, GitHub fetch, selection types                |
-| `profile`      | Supabase profile row                                            |
-| `workday`      | Workday boundaries, default target date, UTC bounds for sync    |
-| `activity`     | GitHub commit fetch, activity sync, commit list UI              |
-| `notes`        | Manual notes CRUD, carry-forward query, note editor             |
-| `standup`      | Standup composition, editor, plain copy, offline cache          |
-| `onboarding`   | First-time repo setup (route in app)                            |
-| `settings`     | Manage repos (route in app)                                     |
-| `home`         | Home screen exports                                             |
-| `theme`        | Toggle, CSS variable colors (scheme via `@/context`)            |
-| `shell`        | Headers, footers, marketing blocks                              |
+- **Feature-scoped providers** → `features/<screen>/context/<name>/` — see `.cursor/rules/react-context-provider.mdc`.

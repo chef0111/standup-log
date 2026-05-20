@@ -1,4 +1,4 @@
-import { NoteEditorSheet } from '@/features/notes';
+import { NoteEditorSheet } from '@/features/standup/components/notes/note-editor-sheet';
 import * as React from 'react';
 import { useStandup } from '../context/standup';
 

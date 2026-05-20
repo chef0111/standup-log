@@ -1,4 +1,4 @@
-import { useAuth } from '@/context/auth-provider';
+import { useAuth } from '@/context/auth';
 import { resolveGitHubAccessToken } from '@/features/auth/lib/github-token';
 import * as React from 'react';
 
