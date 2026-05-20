@@ -8,7 +8,6 @@ import * as React from 'react';
 
 export type StandupContextValue = {
   workday: Workday;
-  workdayPickerKey: number;
   pickerBounds: WorkdayPickerBounds;
   isPro: boolean;
   onWorkdayChange: (next: Workday) => void;

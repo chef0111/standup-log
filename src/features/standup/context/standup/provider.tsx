@@ -27,7 +27,6 @@ export function StandupProvider({ children }: { children: React.ReactNode }) {
   const { supabase, session } = useAuth();
   const [isPro, setIsPro] = React.useState(false);
   const [workday, setWorkday] = React.useState(defaultTargetWorkday);
-  const [workdayPickerKey, setWorkdayPickerKey] = React.useState(0);
   const [editorOpen, setEditorOpen] = React.useState(false);
   const [editingNote, setEditingNote] = React.useState<ManualNoteRow | null>(
     null
@@ -306,7 +305,6 @@ export function StandupProvider({ children }: { children: React.ReactNode }) {
   const value = React.useMemo<StandupContextValue>(
     () => ({
       workday,
-      workdayPickerKey,
       pickerBounds,
       isPro,
       onWorkdayChange,
@@ -344,7 +342,6 @@ export function StandupProvider({ children }: { children: React.ReactNode }) {
     }),
     [
       workday,
-      workdayPickerKey,
       pickerBounds,
       isPro,
       onWorkdayChange,

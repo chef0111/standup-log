@@ -1,6 +1,12 @@
 export { StandupActivitySection } from './components/standup-activity-section';
+export { AiGenerationQuota } from './components/ai-generation-quota';
+export { StandupDraftPanel } from './components/standup-draft-panel';
 export { StandupDraftSection } from './components/standup-draft-section';
 export { StandupEditor } from './components/standup-editor';
+export {
+  StandupMarkdownEditor,
+  type StandupEditorMode,
+} from './components/standup-markdown-editor';
 export { StandupNoteEditor } from './components/standup-note-editor';
 export { StandupNotesSection } from './components/standup-notes-section';
 export { StandupOfflineBanner } from './components/standup-offline-banner';
@@ -11,6 +17,7 @@ export type { StandupContextValue } from './context/standup';
 export {
   buildEmptyStandupTemplate,
   composeManualMarkdown,
+  formatWorkdayHeading,
   isStandupMarkdownEmpty,
 } from './lib/compose-standup-markdown';
 export { formatPlainStandup } from './lib/format-plain';
