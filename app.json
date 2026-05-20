@@ -37,7 +37,14 @@
           }
         }
       ],
-      "expo-notifications"
+      "expo-notifications",
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "StandupLog uses the microphone to capture voice notes for your standup.",
+          "speechRecognitionPermission": "StandupLog uses speech recognition on your device to turn voice notes into text."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
