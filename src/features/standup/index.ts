@@ -1,12 +1,8 @@
-export { StandupActivitySection } from './components/standup-activity-section';
 export { AiGenerationQuota } from './components/ai-generation-quota';
+export { StandupActivitySection } from './components/standup-activity-section';
 export { StandupDraftPanel } from './components/standup-draft-panel';
 export { StandupDraftSection } from './components/standup-draft-section';
 export { StandupEditor } from './components/standup-editor';
-export {
-  StandupMarkdownEditor,
-  type StandupEditorMode,
-} from './components/standup-markdown-editor';
 export { StandupNoteEditor } from './components/standup-note-editor';
 export { StandupNotesSection } from './components/standup-notes-section';
 export { StandupOfflineBanner } from './components/standup-offline-banner';
@@ -15,17 +11,17 @@ export { StandupWorkdaySection } from './components/standup-workday-section';
 export { StandupProvider, useStandup } from './context/standup';
 export type { StandupContextValue } from './context/standup';
 export {
+  STANDUP_SUMMARY_PLACEHOLDER,
   buildEmptyStandupTemplate,
   composeManualMarkdown,
   formatWorkdayHeading,
   isStandupMarkdownEmpty,
+  isStandupSummaryReady,
 } from './lib/compose-standup-markdown';
-export { formatPlainStandup } from './lib/format-plain';
 export {
-  COPY_FORMAT_LABELS,
-  COPY_FORMATS,
-  formatStandup,
-  isCopyFormat,
+  PLAIN_COPY_FORMAT,
+  formatStandupForCopy,
+  formatStandupSummaryForCopy,
   type CopyFormat,
 } from './lib/format-standup';
 export {
@@ -34,10 +30,13 @@ export {
   writeWorkdaySnapshot,
   type WorkdaySnapshot,
 } from './lib/offline-cache';
-export { parseStandupMarkdown } from './lib/parse-standup-markdown';
+export {
+  extractStandupSummary,
+  parseStandupMarkdown,
+} from './lib/parse-standup-markdown';
+export { recordStandupCopy } from './lib/record-standup-copy';
 export {
   fetchStandupUpdate,
   saveStandupUpdate,
   type StandupUpdateRow,
 } from './lib/standup-api';
-export { recordStandupCopy } from './lib/record-standup-copy';

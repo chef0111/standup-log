@@ -1,5 +1,8 @@
+import {
+  formatWorkdayHeading,
+  STANDUP_SUMMARY_PLACEHOLDER,
+} from '@/features/standup/lib/compose-standup-markdown';
 import type { Workday } from '@/features/workday/types/workday';
-import { formatWorkdayHeading } from '@/features/standup/lib/compose-standup-markdown';
 
 export type LegacyStandupColumns = {
   workday: Workday;
@@ -20,6 +23,9 @@ export function convertLegacyStandupToMarkdown(
 
   return [
     `# Daily Standup — ${dateLabel}`,
+    '',
+    '## Summary',
+    STANDUP_SUMMARY_PLACEHOLDER,
     '',
     '## ✅ What I did',
     sectionBody(row.yesterday_text),

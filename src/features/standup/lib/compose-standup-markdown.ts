@@ -1,9 +1,13 @@
 import type { ActivityCommitRow } from '@/features/activity/types/activity-commit';
 import type { ManualNoteRow } from '@/features/notes/types/manual-note';
-import type { Workday } from '@/features/workday/types/workday';
+import { extractStandupSummary } from '@/features/standup/lib/parse-standup-markdown';
 import { workdayToLocalDate } from '@/features/workday/lib/workday';
+import type { Workday } from '@/features/workday/types/workday';
 
 export const MAX_ACTIVITY_BULLETS = 15;
+
+export const STANDUP_SUMMARY_PLACEHOLDER =
+  'Write a short standup message for your team chat…';
 
 export function formatWorkdayHeading(workday: Workday): string {
   return new Intl.DateTimeFormat('en-US', {
@@ -18,6 +22,9 @@ export function buildEmptyStandupTemplate(workday: Workday): string {
   const dateLabel = formatWorkdayHeading(workday);
   return [
     `# Daily Standup — ${dateLabel}`,
+    '',
+    '## Summary',
+    STANDUP_SUMMARY_PLACEHOLDER,
     '',
     '## ✅ What I did',
     '-',
@@ -60,7 +67,9 @@ export type ComposeManualMarkdownInput = {
   carryForwardNotes: ManualNoteRow[];
 };
 
-export function composeManualMarkdown(input: ComposeManualMarkdownInput): string {
+export function composeManualMarkdown(
+  input: ComposeManualMarkdownInput
+): string {
   const sorted = [...input.commits].sort(
     (a, b) =>
       new Date(b.committed_at).getTime() - new Date(a.committed_at).getTime()
@@ -96,6 +105,9 @@ export function composeManualMarkdown(input: ComposeManualMarkdownInput): string
   return [
     `# Daily Standup — ${dateLabel}`,
     '',
+    '## Summary',
+    STANDUP_SUMMARY_PLACEHOLDER,
+    '',
     '## ✅ What I did',
     whatIDid,
     '',
@@ -113,6 +125,20 @@ export function composeManualMarkdown(input: ComposeManualMarkdownInput): string
     '---',
     '*Time boxed: 5 min*',
   ].join('\n');
+}
+
+export function isStandupSummaryReady(markdown: string): boolean {
+  const summary = extractStandupSummary(markdown).trim();
+  if (summary.length === 0) {
+    return false;
+  }
+  if (summary === STANDUP_SUMMARY_PLACEHOLDER) {
+    return false;
+  }
+  if (summary === '-') {
+    return false;
+  }
+  return true;
 }
 
 export function isStandupMarkdownEmpty(markdown: string): boolean {

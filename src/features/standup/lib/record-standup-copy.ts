@@ -1,8 +1,6 @@
-import type { CopyFormat } from '@/features/standup/lib/format-standup';
+import { PLAIN_COPY_FORMAT } from '@/features/standup/lib/format-standup';
+import { STANDUP_UPDATE_COLUMNS } from '@/features/standup/lib/standup-api';
 import { nextStreakState } from '@/features/standup/lib/streak';
-import {
-  STANDUP_UPDATE_COLUMNS,
-} from '@/features/standup/lib/standup-api';
 import type { Workday } from '@/features/workday/types/workday';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
@@ -19,8 +17,7 @@ export async function recordStandupCopy(
   supabase: SupabaseClient,
   userId: string,
   workday: Workday,
-  draftMarkdown: string,
-  format: CopyFormat
+  draftMarkdown: string
 ): Promise<RecordStandupCopyResult> {
   const { data: standup, error: fetchError } = await supabase
     .from('standup_updates')
@@ -30,7 +27,11 @@ export async function recordStandupCopy(
     .maybeSingle();
 
   if (fetchError) {
-    return { streakIncremented: false, currentStreak: 0, error: fetchError.message };
+    return {
+      streakIncremented: false,
+      currentStreak: 0,
+      error: fetchError.message,
+    };
   }
 
   const alreadyCopied = Boolean(standup?.copied_at);
@@ -41,7 +42,7 @@ export async function recordStandupCopy(
       .from('standup_updates')
       .update({
         draft_markdown: draftMarkdown,
-        format_used: format,
+        format_used: PLAIN_COPY_FORMAT,
         ...(alreadyCopied ? {} : { copied_at: copiedAt }),
       })
       .eq('id', standup.id);
@@ -54,13 +55,15 @@ export async function recordStandupCopy(
       };
     }
   } else {
-    const { error: insertError } = await supabase.from('standup_updates').insert({
-      user_id: userId,
-      workday,
-      draft_markdown: draftMarkdown,
-      copied_at: copiedAt,
-      format_used: format,
-    });
+    const { error: insertError } = await supabase
+      .from('standup_updates')
+      .insert({
+        user_id: userId,
+        workday,
+        draft_markdown: draftMarkdown,
+        copied_at: copiedAt,
+        format_used: PLAIN_COPY_FORMAT,
+      });
 
     if (insertError) {
       return {

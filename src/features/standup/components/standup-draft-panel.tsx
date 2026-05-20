@@ -2,30 +2,28 @@ import { Button } from '@/components/ui/button';
 import { ButtonSpinner } from '@/components/ui/button-spinner';
 import { Text } from '@/components/ui/text';
 import { useAuth } from '@/features/auth';
-import { fetchUserProfile } from '@/features/profile';
 import { AiGenerationQuota } from '@/features/standup/components/ai-generation-quota';
 import { CopyToast } from '@/features/standup/components/copy-toast';
 import {
   StandupMarkdownEditor,
   type StandupEditorMode,
 } from '@/features/standup/components/standup-markdown-editor';
-import { StandupCopyFormatPicker } from '@/features/standup/components/standup-copy-format-picker';
 import {
   buildEmptyStandupTemplate,
   composeManualMarkdown,
   formatWorkdayHeading,
   isStandupMarkdownEmpty,
+  isStandupSummaryReady,
 } from '@/features/standup/lib/compose-standup-markdown';
 import {
-  COPY_FORMAT_LABELS,
-  formatStandup,
-  isCopyFormat,
-  type CopyFormat,
+  formatStandupForCopy,
+  formatStandupSummaryForCopy,
 } from '@/features/standup/lib/format-standup';
 import { recordStandupCopy } from '@/features/standup/lib/record-standup-copy';
 import { saveStandupUpdate } from '@/features/standup/lib/standup-api';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import * as Clipboard from 'expo-clipboard';
+import { CopyIcon, SaveIcon, StarsIcon } from 'lucide-react-native';
 import * as React from 'react';
 import { Alert, Pressable, View } from 'react-native';
 import { useStandup } from '../context/standup';
@@ -116,27 +114,19 @@ export function StandupDraftPanel() {
 
   const [markdown, setMarkdown] = React.useState(baselineMarkdown);
   const [editorMode, setEditorMode] = React.useState<StandupEditorMode>('edit');
-  const [copyFormat, setCopyFormat] = React.useState<CopyFormat>('plain');
   const [saving, setSaving] = React.useState(false);
   const [copying, setCopying] = React.useState(false);
   const [status, setStatus] = React.useState<string | null>(null);
   const [toastMessage, setToastMessage] = React.useState<string | null>(null);
 
+  const summaryReady = React.useMemo(
+    () => isStandupSummaryReady(markdown),
+    [markdown]
+  );
+
   React.useEffect(() => {
     setMarkdown(baselineMarkdown);
   }, [baselineMarkdown]);
-
-  React.useEffect(() => {
-    if (!supabase || !session) {
-      return;
-    }
-    void fetchUserProfile(supabase, session).then(({ profile }) => {
-      const format = profile?.default_copy_format;
-      if (format && isCopyFormat(format)) {
-        setCopyFormat(format);
-      }
-    });
-  }, [session, supabase]);
 
   const handleSave = async () => {
     if (!supabase || !session) {
@@ -159,31 +149,34 @@ export function StandupDraftPanel() {
     setStatus('Standup saved.');
   };
 
-  const performCopy = async () => {
+  const recordCopy = async (toastLabel: string) => {
+    if (!supabase || !session) {
+      return;
+    }
+    const { streakIncremented, error } = await recordStandupCopy(
+      supabase,
+      session.user.id,
+      workday,
+      markdown
+    );
+    if (error) {
+      setStatus(error);
+      return;
+    }
+    setToastMessage(
+      streakIncremented ? `${toastLabel} · Streak +1` : toastLabel
+    );
+  };
+
+  const performCopySummary = async () => {
     if (!supabase || !session) {
       return;
     }
     setCopying(true);
     setStatus(null);
     try {
-      await Clipboard.setStringAsync(formatStandup(markdown, copyFormat));
-      const { streakIncremented, error } = await recordStandupCopy(
-        supabase,
-        session.user.id,
-        workday,
-        markdown,
-        copyFormat
-      );
-      if (error) {
-        setStatus(error);
-        return;
-      }
-      const label = COPY_FORMAT_LABELS[copyFormat];
-      setToastMessage(
-        streakIncremented
-          ? `Copied · ${label} · Streak +1`
-          : `Copied · ${label}`
-      );
+      await Clipboard.setStringAsync(formatStandupSummaryForCopy(markdown));
+      await recordCopy('Summary copied');
     } catch {
       setStatus('Could not copy. Try again.');
     } finally {
@@ -191,19 +184,35 @@ export function StandupDraftPanel() {
     }
   };
 
-  const handleCopy = () => {
+  const performCopyFull = async () => {
+    if (!supabase || !session) {
+      return;
+    }
+    setCopying(true);
+    setStatus(null);
+    try {
+      await Clipboard.setStringAsync(formatStandupForCopy(markdown));
+      await recordCopy('Full standup copied');
+    } catch {
+      setStatus('Could not copy. Try again.');
+    } finally {
+      setCopying(false);
+    }
+  };
+
+  const handleCopyFull = () => {
     if (isStandupMarkdownEmpty(markdown)) {
       Alert.alert(
         'Empty standup',
         'This standup has no activity or notes. Copy anyway?',
         [
           { text: 'Cancel', style: 'cancel' },
-          { text: 'Copy', onPress: () => void performCopy() },
+          { text: 'Copy', onPress: () => void performCopyFull() },
         ]
       );
       return;
     }
-    void performCopy();
+    void performCopyFull();
   };
 
   return (
@@ -223,37 +232,48 @@ export function StandupDraftPanel() {
 
       <AiGenerationQuota />
 
-      <View className="gap-2">
-        <Text className="text-muted-foreground text-xs">Copy format</Text>
-        <StandupCopyFormatPicker value={copyFormat} onChange={setCopyFormat} />
-      </View>
+      <Button disabled={saving} onPress={() => void handleSave()}>
+        {saving ? (
+          <ButtonSpinner />
+        ) : (
+          <SaveIcon className="text-primary-foreground" />
+        )}
+        <Text>Save</Text>
+      </Button>
 
       <View className="flex-row flex-wrap gap-2">
         <Button
-          disabled={saving}
-          onPress={() => void handleSave()}
+          variant="outline"
+          disabled={copying || !summaryReady}
+          onPress={() => void performCopySummary()}
           className="flex-1"
         >
-          {saving && <ButtonSpinner />}
-          <Text>Save</Text>
+          {copying ? <ButtonSpinner /> : <CopyIcon />}
+          <Text>Copy summary</Text>
         </Button>
         <Button
           variant="outline"
           disabled={copying}
-          onPress={handleCopy}
+          onPress={handleCopyFull}
           className="flex-1"
         >
-          {copying && <ButtonSpinner />}
-          <Text>Copy</Text>
+          {copying ? <ButtonSpinner /> : <CopyIcon />}
+          <Text>Copy full</Text>
         </Button>
       </View>
+
+      {!summaryReady ? (
+        <Text className="text-muted-foreground text-xs leading-relaxed">
+          Generate or write the Summary section to enable Copy summary.
+        </Text>
+      ) : null}
 
       <Button
         variant="secondary"
         disabled={aiLoading || aiRateLimited}
         onPress={() => void regenerateDraft()}
       >
-        {aiLoading && <ButtonSpinner />}
+        {aiLoading ? <ButtonSpinner /> : <StarsIcon />}
         <Text>{providerDraft || initialSaved ? 'Regenerate' : 'Generate'}</Text>
       </Button>
 

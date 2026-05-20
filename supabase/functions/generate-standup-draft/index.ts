@@ -21,6 +21,9 @@ const WORK_TYPES = [
 
 const STANDUP_TEMPLATE = `# Daily Standup — [Date]
 
+## Summary
+(1–2 short sentences for team chat — theme only, not a commit list.)
+
 ## ✅ What I did
 -
 
@@ -87,9 +90,9 @@ function buildUserPrompt(input: GenerateDraftRequest): string {
   const contextNotes = input.notes
     .filter((n) => !n.is_blocker)
     .map((n) => {
-      const flags = [
-        n.is_carry_forward ? 'carry-forward' : null,
-      ].filter(Boolean);
+      const flags = [n.is_carry_forward ? 'carry-forward' : null].filter(
+        Boolean
+      );
       const suffix = flags.length > 0 ? ` (${flags.join(', ')})` : '';
       return `- ${n.body.trim()}${suffix}`;
     });
@@ -128,6 +131,10 @@ function buildUserPrompt(input: GenerateDraftRequest): string {
     'The draft_markdown MUST follow this template exactly (replace [Date] with a friendly date for the Workday):',
     STANDUP_TEMPLATE,
     '',
+    'Write Summary as 1–3 short sentences (about 40–60 words max) suitable for pasting into Slack or Teams.',
+    'Summary states the main theme or outcome for the Workday (e.g. "Merged PR #174 to staging with data-table and tournament UI fixes").',
+    'Do NOT enumerate individual commits, file names, or bullet items in Summary — those belong only under What I did.',
+    'If Focusing on or Blockers are "-", omit "what is next" / blockers from Summary unless carry-forward notes say otherwise.',
     'Populate What I did from commits and non-blocker notes. Populate Focusing on from carry-forward notes only.',
     'Populate Blockers from blocker notes only (use "-" if none). Do not invent tickets or metrics.',
     'Classify each commit sha by work_type.',
@@ -138,6 +145,8 @@ const SYSTEM_PROMPT = `You help developers write daily standup updates. You rece
 
 Rules:
 - Output a complete markdown standup matching the provided template structure and headings.
+- The Summary section is brief chat prose (1–3 sentences, ~40–60 words). High-level theme only — never a paragraph that repeats every bullet under What I did.
+- Detailed evidence (commits, PRs, fixes) belongs only in What I did and below.
 - This standup describes work ON the given Workday only.
 - Do NOT invent future plans beyond carry-forward notes.
 - Do NOT include code diffs, surveillance language, or speculation.

@@ -21,7 +21,9 @@ export function StandupMarkdownEditor({
 }: StandupMarkdownEditorProps) {
   const colorScheme = useAppColorScheme();
   const theme =
-    colorScheme === 'dark' ? themes.defaultTheme : themes.githubTheme;
+    colorScheme.colorScheme === 'dark'
+      ? themes.defaultTheme
+      : themes.githubTheme;
 
   if (mode === 'edit') {
     return (
@@ -29,7 +31,7 @@ export function StandupMarkdownEditor({
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        className="font-mono min-h-60 text-sm leading-relaxed"
+        className="min-h-99 font-mono text-sm leading-relaxed"
         autoCapitalize="sentences"
         autoCorrect
       />
@@ -38,7 +40,7 @@ export function StandupMarkdownEditor({
 
   return (
     <ScrollView
-      className="border-border bg-muted/20 max-h-96 rounded-md border p-3"
+      className="border-border bg-muted/20 max-h-99 rounded-md border p-3"
       nestedScrollEnabled
     >
       <View className="min-h-48">

@@ -1,19 +1,16 @@
 import type { StandupSections } from '@/features/standup/lib/compose-standup';
 
-export type ParsedStandupMarkdown = {
-  whatIDid: string;
-  focusingOn: string;
-  blockers: string;
-  metrics: string;
-};
+const SUMMARY_HEADING = /^##\s*Summary\s*$/im;
 
-const SECTION_HEADINGS: { key: keyof ParsedStandupMarkdown; pattern: RegExp }[] =
-  [
-    { key: 'whatIDid', pattern: /^##\s*✅\s*What I did\s*$/im },
-    { key: 'focusingOn', pattern: /^##\s*🔨\s*Focusing on\s*$/im },
-    { key: 'blockers', pattern: /^##\s*🚧\s*Blockers\s*$/im },
-    { key: 'metrics', pattern: /^##\s*📊\s*Metrics\s*\/\s*Notes\s*$/im },
-  ];
+const SECTION_HEADINGS: {
+  key: 'whatIDid' | 'focusingOn' | 'blockers' | 'metrics';
+  pattern: RegExp;
+}[] = [
+  { key: 'whatIDid', pattern: /^##\s*✅\s*What I did\s*$/im },
+  { key: 'focusingOn', pattern: /^##\s*🔨\s*Focusing on\s*$/im },
+  { key: 'blockers', pattern: /^##\s*🚧\s*Blockers\s*$/im },
+  { key: 'metrics', pattern: /^##\s*📊\s*Metrics\s*\/\s*Notes\s*$/im },
+];
 
 function extractSection(markdown: string, pattern: RegExp): string {
   const match = markdown.match(pattern);
@@ -28,8 +25,21 @@ function extractSection(markdown: string, pattern: RegExp): string {
   return body.trim();
 }
 
+export function extractStandupSummary(markdown: string): string {
+  return extractSection(markdown, SUMMARY_HEADING);
+}
+
+export type ParsedStandupMarkdown = {
+  summary: string;
+  whatIDid: string;
+  focusingOn: string;
+  blockers: string;
+  metrics: string;
+};
+
 export function parseStandupMarkdown(markdown: string): ParsedStandupMarkdown {
   const parsed: ParsedStandupMarkdown = {
+    summary: extractStandupSummary(markdown),
     whatIDid: '',
     focusingOn: '',
     blockers: '',

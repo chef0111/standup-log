@@ -37,11 +37,15 @@ A developer-editable category applied to an **Activity Signal** to explain the k
 _Avoid_: Label, tag, productivity bucket
 
 **Daily Streak**:
-A count of consecutive **Workdays** where the developer copied or shared a **Standup Update**.
+A count of consecutive **Workdays** where the developer copied or shared a **Standup Update** (via **Copy summary** or **Copy full**).
 _Avoid_: Login streak, note streak, generation streak
 
+**Standup Summary**:
+The opening section of a **Standup Update**—one or two short paste-ready sentences for chat (roughly 40–60 words), stating the main theme or outcome for that **Workday** and blockers only when relevant. Detailed commit and note evidence lives in the sections below, not repeated line-for-line in the summary.
+_Avoid_: Weekly roll-up, executive report, AI title only
+
 **AI Draft**:
-A suggested markdown **Standup Update** for a chosen **Workday**, generated from that day's **Activity Signals** and **Manual Notes** when the developer taps Generate. It does not run automatically on open.
+A suggested markdown **Standup Update** for a chosen **Workday**, generated from that day's **Activity Signals** and **Manual Notes** when the developer taps Generate. It does not run automatically on open. Includes a **Standup Summary** plus the structured sections.
 _Avoid_: Final update, automated standup, posted status
 
 **Activity Signal**:
@@ -67,6 +71,10 @@ _Avoid_: Connected repo, tracked repo, watched repo
 - A **Weekly Summary** summarizes generated **Standup Updates**, not raw work time.
 - A **Weekly Summary** groups **Activity Signals** by **Work Type**.
 - A **Daily Streak** advances only when the developer copies or shares a **Standup Update**.
+- A **Standup Update** begins with a **Standup Summary**, then structured sections for work done, focus, blockers, and optional metrics.
+- **Standup Summary** prose is produced by **AI Draft** on Generate; without Generate it shows instructional placeholder copy the developer replaces by hand.
+- **Copy summary** is available only when **Standup Summary** contains real prose (after Generate or manual edit); **Copy full** copies the entire **Standup Update**.
+- **Regenerate** replaces the whole **Standup Update**, including **Standup Summary**, from that **Workday**'s current inputs.
 - An **AI Draft** becomes a **Standup Update** only after developer review.
 - A **Standup Update** is generated from one or more **Activity Signals** and approved by the developer.
 - **Activity Metadata** may be retained to regenerate and audit **AI Drafts**, but code diffs are not retained.
@@ -76,7 +84,7 @@ _Avoid_: Connected repo, tracked repo, watched repo
 ## Example dialogue
 
 > **Dev:** "If I pick May 19 on the calendar, whose commits go into that standup?"
-> **Domain expert:** "Only activity and notes for **Workday** May 19. The standup you see is *for* that day. The app defaults to the previous local **Workday** when you first open Generate standup; change the picker to browse another day."
+> **Domain expert:** "Only activity and notes for **Workday** May 19. The standup you see is _for_ that day. The app defaults to the previous local **Workday** when you first open Generate standup; change the picker to browse another day."
 
 ## Flagged ambiguities
 

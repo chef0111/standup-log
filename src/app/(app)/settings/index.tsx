@@ -1,6 +1,5 @@
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
-import { CopyFormatSettings } from '@/features/settings';
 import { useSafeRouterBack } from '@/hooks/use-safe-router-back';
 import { Stack, useRouter } from 'expo-router';
 import * as React from 'react';
@@ -19,7 +18,6 @@ export default function SettingsScreen() {
           contentContainerClassName="mx-auto w-full max-w-lg gap-4 px-5 pb-4 pt-2"
           showsVerticalScrollIndicator={false}
         >
-          <CopyFormatSettings />
           <Button
             variant="outline"
             onPress={() => router.push('/(app)/settings/repositories')}
