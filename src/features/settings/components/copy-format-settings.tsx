@@ -8,6 +8,7 @@ import {
   isCopyFormat,
   type CopyFormat,
 } from '@/features/standup/lib/format-standup';
+import { useThemeColor } from '@/features/theme';
 import * as React from 'react';
 import { ActivityIndicator, View } from 'react-native';
 
@@ -17,6 +18,7 @@ export function CopyFormatSettings() {
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
   const [status, setStatus] = React.useState<string | null>(null);
+  const foreground = useThemeColor('--color-foreground');
 
   React.useEffect(() => {
     if (!supabase || !session) {
@@ -25,7 +27,10 @@ export function CopyFormatSettings() {
     }
 
     void fetchUserProfile(supabase, session).then(({ profile }) => {
-      if (profile?.default_copy_format && isCopyFormat(profile.default_copy_format)) {
+      if (
+        profile?.default_copy_format &&
+        isCopyFormat(profile.default_copy_format)
+      ) {
         setFormat(profile.default_copy_format);
       }
       setLoading(false);
@@ -67,15 +72,20 @@ export function CopyFormatSettings() {
         </Text>
       </View>
       {loading ? (
-        <ActivityIndicator />
+        <ActivityIndicator color={foreground} />
       ) : (
-        <StandupCopyFormatPicker value={format} onChange={(next) => void onChange(next)} />
+        <StandupCopyFormatPicker
+          value={format}
+          onChange={(next) => void onChange(next)}
+        />
       )}
       {saving ? (
         <Text className="text-muted-foreground text-xs">Saving…</Text>
       ) : null}
       {status ? (
-        <Text className="text-muted-foreground text-center text-xs">{status}</Text>
+        <Text className="text-muted-foreground text-center text-xs">
+          {status}
+        </Text>
       ) : null}
     </Card>
   );

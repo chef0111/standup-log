@@ -10,6 +10,7 @@ import {
   type ParsedCommitWorkType,
 } from '@/features/activity/lib/parse-commit-work-type';
 import type { ActivityCommitRow } from '@/features/activity/types/activity-commit';
+import { useThemeColor } from '@/features/theme/hooks/use-theme-color.web';
 import type { Workday } from '@/features/workday/types/workday';
 import { cn } from '@/lib/utils';
 import { RefreshCw } from 'lucide-react-native';
@@ -202,6 +203,7 @@ export function ActivityTerminal({
   onManageRepos,
 }: ActivityTerminalProps) {
   const refreshDisabled = syncing || tokenLoading || !hasToken;
+  const foreground = useThemeColor('--color-foreground');
 
   return (
     <View className="border-terminal-border overflow-hidden rounded-lg border">
@@ -231,7 +233,7 @@ export function ActivityTerminal({
           </View>
         ) : loading || (syncing && commits.length === 0) ? (
           <View className="items-center py-8">
-            <ActivityIndicator />
+            <ActivityIndicator color={foreground} />
           </View>
         ) : error ? (
           <Text selectable className="text-destructive py-4 font-mono text-xs">

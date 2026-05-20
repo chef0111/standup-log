@@ -93,7 +93,7 @@ export default function AppHomeScreen() {
       <>
         <Stack.Screen options={{ title: 'Home' }} />
         <View className="bg-background flex-1 items-center justify-center">
-          <ActivityIndicator size="large" />
+          <ActivityIndicator size="large" color={foreground} />
         </View>
       </>
     );

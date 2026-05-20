@@ -66,9 +66,8 @@ export function StandupEditor() {
 
   const baselineSections = initialSections ?? draftSections ?? composed;
 
-  const [sections, setSections] = React.useState<StandupSections>(
-    baselineSections
-  );
+  const [sections, setSections] =
+    React.useState<StandupSections>(baselineSections);
   const [copyFormat, setCopyFormat] = React.useState<CopyFormat>('plain');
   const [saving, setSaving] = React.useState(false);
   const [copying, setCopying] = React.useState(false);
@@ -195,7 +194,7 @@ export function StandupEditor() {
           onPress={() => void handleSave()}
           className="flex-1"
         >
-          {saving ? <ButtonSpinner /> : null}
+          {saving && <ButtonSpinner />}
           <Text>Save</Text>
         </Button>
         <Button
@@ -204,7 +203,7 @@ export function StandupEditor() {
           onPress={handleCopy}
           className="flex-1"
         >
-          {copying ? <ButtonSpinner /> : null}
+          {copying && <ButtonSpinner />}
           <Text>Copy</Text>
         </Button>
       </View>
@@ -214,8 +213,8 @@ export function StandupEditor() {
         disabled={aiLoading}
         onPress={() => void regenerateDraft()}
       >
-        {aiLoading ? <ButtonSpinner /> : null}
-        <Text>Regenerate</Text>
+        {aiLoading && <ButtonSpinner />}
+        <Text>Generate</Text>
       </Button>
 
       {aiError ? (

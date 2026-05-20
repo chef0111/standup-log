@@ -64,6 +64,7 @@ export function RepositoryPickerScreen({
   const limit = isPro ? null : FREE_TIER_REPO_LIMIT;
   const selectedCount = selected.length;
   const primaryForeground = useThemeColor('--color-primary-foreground');
+  const foreground = useThemeColor('--color-foreground');
 
   return (
     <View className="bg-background flex-1">
@@ -107,7 +108,7 @@ export function RepositoryPickerScreen({
       <View className="min-h-0 flex-1 px-4 py-3">
         {loadingRepos ? (
           <View className="flex-1 items-center justify-center gap-3 py-12">
-            <ActivityIndicator size="large" />
+            <ActivityIndicator size="large" color={foreground} />
             <Text className="text-muted-foreground text-sm">
               Loading your GitHub repositories…
             </Text>
