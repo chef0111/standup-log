@@ -3,7 +3,13 @@ import { Text } from '@/components/ui/text';
 import { useAuth } from '@/features/auth';
 import { UpgradeSheet } from '@/features/entitlements';
 import { fetchUserProfile } from '@/features/profile';
+import { updateDefaultCopyFormat } from '@/features/profile/lib/update-default-copy-format';
 import { scheduleStandupReminder } from '@/features/reminders';
+import { CopyFormatPicker } from '@/features/standup/components/copy-format-picker';
+import {
+  normalizeCopyFormat,
+  type CopyFormat,
+} from '@/features/standup/lib/format-standup';
 import { ScreenHeaderActions, useTabBarScrollPadding } from '@/features/shell';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Stack, useRouter } from 'expo-router';
@@ -31,6 +37,8 @@ export default function SettingsScreen() {
   const [reminderTime, setReminderTime] = React.useState(() =>
     parseReminderTime('09:00:00')
   );
+  const [defaultCopyFormat, setDefaultCopyFormat] =
+    React.useState<CopyFormat>('plain');
   const tabBarPadding = useTabBarScrollPadding();
 
   React.useEffect(() => {
@@ -45,8 +53,17 @@ export default function SettingsScreen() {
       setReminderTime(
         parseReminderTime(profile.reminder_time_local ?? '09:00:00')
       );
+      setDefaultCopyFormat(normalizeCopyFormat(profile.default_copy_format));
     });
   }, [session, supabase]);
+
+  const onCopyFormatChange = (format: CopyFormat) => {
+    if (!supabase || !session) {
+      return;
+    }
+    setDefaultCopyFormat(format);
+    void updateDefaultCopyFormat(supabase, session.user.id, format);
+  };
 
   const onSignOut = React.useCallback(async () => {
     if (!supabase) {
@@ -105,6 +122,23 @@ export default function SettingsScreen() {
         <Button variant="outline" onPress={() => setUpgradeOpen(true)}>
           <Text>Upgrade to Pro</Text>
         </Button>
+
+        <View className="border-border gap-3 rounded-lg border p-4">
+          <Text className="text-foreground text-sm font-medium">
+            Default copy format
+          </Text>
+          <Text
+            selectable
+            className="text-muted-foreground text-xs leading-relaxed"
+          >
+            Used when you copy a standup unless you pick another format on the
+            Generate or Read screen.
+          </Text>
+          <CopyFormatPicker
+            value={defaultCopyFormat}
+            onChange={onCopyFormatChange}
+          />
+        </View>
 
         <View className="border-border gap-3 rounded-lg border p-4">
           <Text className="text-foreground text-sm font-medium">

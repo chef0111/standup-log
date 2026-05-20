@@ -2,10 +2,12 @@ import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { useAuth } from '@/features/auth';
 import { useTabBarScrollPadding } from '@/features/shell';
+import { CopyFormatPicker } from '@/features/standup/components/copy-format-picker';
 import { CopyToast } from '@/features/standup/components/copy-toast';
 import { StandupMarkdownView } from '@/features/standup/components/standup-markdown-view';
 import { StandupQuickEditSheet } from '@/features/standup/components/standup-quick-edit-sheet';
 import { useStandupCopy } from '@/features/standup/hooks/use-standup-copy';
+import type { CopyFormat } from '@/features/standup/lib/format-standup';
 import { isStandupSummaryReady } from '@/features/standup/lib/compose-standup-markdown';
 import { fetchStandupUpdate } from '@/features/standup/lib/standup-api';
 import { defaultTargetWorkday, parseWorkdayParam } from '@/features/workday';
@@ -25,10 +27,13 @@ export default function StandupReadScreen() {
   const [editOpen, setEditOpen] = React.useState(false);
   const tabBarPadding = useTabBarScrollPadding();
 
-  const { copying, toastMessage, copySummary, copyFull } = useStandupCopy(
-    workday ?? '',
-    markdown
-  );
+  const [sessionCopyFormat, setSessionCopyFormat] =
+    React.useState<CopyFormat | null>(null);
+
+  const { copying, toastMessage, copySummary, copyFull, copyFormat } =
+    useStandupCopy(workday ?? '', markdown, {
+      formatOverride: sessionCopyFormat,
+    });
 
   const load = React.useCallback(async () => {
     if (!supabase || !workday) {
@@ -111,7 +116,17 @@ export default function StandupReadScreen() {
             {error}
           </Text>
         ) : (
-          <StandupMarkdownView markdown={markdown} />
+          <>
+            <View className="gap-2">
+              <Text className="text-muted-foreground text-xs">Copy format</Text>
+              <CopyFormatPicker
+                value={copyFormat}
+                onChange={setSessionCopyFormat}
+                disabled={copying}
+              />
+            </View>
+            <StandupMarkdownView markdown={markdown} />
+          </>
         )}
       </ScrollView>
 

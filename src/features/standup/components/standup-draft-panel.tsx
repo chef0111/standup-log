@@ -3,9 +3,11 @@ import { ButtonSpinner } from '@/components/ui/button-spinner';
 import { Text } from '@/components/ui/text';
 import { useAuth } from '@/features/auth';
 import { AiGenerationQuota } from '@/features/standup/components/ai-generation-quota';
+import { CopyFormatPicker } from '@/features/standup/components/copy-format-picker';
 import { CopyToast } from '@/features/standup/components/copy-toast';
 import { StandupMarkdownEditor } from '@/features/standup/components/standup-markdown-editor';
 import { useStandupCopy } from '@/features/standup/hooks/use-standup-copy';
+import type { CopyFormat } from '@/features/standup/lib/format-standup';
 import {
   buildEmptyStandupTemplate,
   composeManualMarkdown,
@@ -74,10 +76,11 @@ export function StandupDraftPanel() {
     [markdown]
   );
 
-  const { copying, toastMessage, copySummary, copyFull } = useStandupCopy(
-    workday,
-    markdown
-  );
+  const [sessionCopyFormat, setSessionCopyFormat] =
+    React.useState<CopyFormat | null>(null);
+
+  const { copying, toastMessage, copySummary, copyFull, copyFormat } =
+    useStandupCopy(workday, markdown, { formatOverride: sessionCopyFormat });
 
   React.useEffect(() => {
     setMarkdown(baselineMarkdown);
@@ -136,6 +139,15 @@ export function StandupDraftPanel() {
         )}
         <Text>Save</Text>
       </Button>
+
+      <View className="gap-2">
+        <Text className="text-muted-foreground text-xs">Copy format</Text>
+        <CopyFormatPicker
+          value={copyFormat}
+          onChange={setSessionCopyFormat}
+          disabled={copying}
+        />
+      </View>
 
       <View className="flex-row flex-wrap gap-2">
         <Button

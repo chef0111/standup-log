@@ -1,4 +1,5 @@
 export { AiGenerationQuota } from './components/ai-generation-quota';
+export { CopyFormatPicker } from './components/copy-format-picker';
 export { StandupActivitySection } from './components/standup-activity-section';
 export { StandupDraftPanel } from './components/standup-draft-panel';
 export { StandupDraftSection } from './components/standup-draft-section';
@@ -19,9 +20,11 @@ export {
   isStandupSummaryReady,
 } from './lib/compose-standup-markdown';
 export {
+  COPY_FORMAT_OPTIONS,
   PLAIN_COPY_FORMAT,
   formatStandupForCopy,
   formatStandupSummaryForCopy,
+  normalizeCopyFormat,
   type CopyFormat,
 } from './lib/format-standup';
 export {
