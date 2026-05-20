@@ -10,17 +10,22 @@ import { Platform } from 'react-native';
 
 const REMINDER_ID_KEY = 'standup-reminder-id';
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: false,
-    shouldSetBadge: false,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+if (Platform.OS !== 'web') {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: false,
+      shouldSetBadge: false,
+      shouldShowBanner: true,
+      shouldShowList: true,
+    }),
+  });
+}
 
 export async function cancelStandupReminder(): Promise<void> {
+  if (Platform.OS === 'web') {
+    return;
+  }
   await Notifications.cancelAllScheduledNotificationsAsync();
 }
 
@@ -30,6 +35,10 @@ export async function scheduleStandupReminder(input: {
   reminderEnabled: boolean;
   reminderTimeLocal: string;
 }): Promise<{ scheduled: boolean; reason?: string }> {
+  if (Platform.OS === 'web') {
+    return { scheduled: false, reason: 'web_unsupported' };
+  }
+
   await cancelStandupReminder();
 
   if (!input.reminderEnabled) {

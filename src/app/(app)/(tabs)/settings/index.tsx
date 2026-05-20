@@ -98,10 +98,7 @@ export default function SettingsScreen() {
         contentInsetAdjustmentBehavior="automatic"
         showsVerticalScrollIndicator={false}
       >
-        <Button
-          variant="outline"
-          onPress={() => router.push('/settings/repositories')}
-        >
+        <Button onPress={() => router.push('/settings/repositories')}>
           <Text>Manage repositories</Text>
         </Button>
 

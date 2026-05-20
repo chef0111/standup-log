@@ -3,7 +3,7 @@ import {
   addCalendarDays,
   formatWorkdayLocal,
   workdayToLocalDate,
-} from '@/features/workday/lib/workday';
+} from '@/features/workday/lib/workday-calendar';
 import type {
   Workday,
   WorkdayPickerBounds,
