@@ -1,9 +1,9 @@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
-import { NotesList } from '@/features/notes';
-import { useThemeColor } from '@/features/theme';
-import { VoiceNoteSheet } from '@/features/voice';
+import { NotesList } from '@/features/standup/components/notes/notes-list';
+import { VoiceNoteSheet } from '@/features/standup/components/voice/voice-note-sheet';
+import { useThemeColor } from '@/hooks/use-theme-color';
 import { Mic, Plus } from 'lucide-react-native';
 import * as React from 'react';
 import { ActivityIndicator, View } from 'react-native';
@@ -33,7 +33,11 @@ export function StandupNotesSection() {
             <Plus size={14} />
             <Text>Add note</Text>
           </Button>
-          <Button variant="outline" size="sm" onPress={() => setVoiceOpen(true)}>
+          <Button
+            variant="outline"
+            size="sm"
+            onPress={() => setVoiceOpen(true)}
+          >
             <Mic size={14} />
             <Text>Voice</Text>
           </Button>

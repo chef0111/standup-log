@@ -1,4 +1,4 @@
-import { useAppColorScheme } from '@/features/theme';
+import { useAppColorScheme } from '@/context/theme';
 import { themes } from 'react-native-remark';
 
 export function useRemarkTheme() {

@@ -2,7 +2,7 @@ import type { SelectedRepository } from '@/features/repositories/types/repositor
 import {
   assertGithubRateLimit,
   githubHttpErrorMessage,
-} from '@/features/activity/lib/github-rate-limit';
+} from '@/features/standup/lib/activity/github-rate-limit';
 import { AppError } from '@/lib/errors';
 
 export type GithubRepoRow = SelectedRepository & {

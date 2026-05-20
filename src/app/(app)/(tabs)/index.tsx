@@ -2,17 +2,18 @@ import { GithubIcon, RepositoryIcon } from '@/components/icons';
 import { Card, CardContent } from '@/components/ui/card';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
-import { useAuth } from '@/features/auth';
-import { StandupWidget } from '@/features/home';
-import { fetchUserProfile, type ProfileHomeRow } from '@/features/profile';
-import { useStandupReminder } from '@/features/reminders';
-import { parseSelectedRepositories } from '@/features/repositories';
+import { useAuth } from '@/context/auth';
+import { StandupWidget } from '@/features/home/components/standup-widget';
 import {
-  MarketingHeader,
-  ScreenHeaderActions,
-  useTabBarScrollPadding,
-} from '@/features/shell';
-import { useThemeColor } from '@/features/theme';
+  fetchUserProfile,
+  type ProfileHomeRow,
+} from '@/features/profile/lib/profile';
+import { parseSelectedRepositories } from '@/features/repositories/types/repository';
+import { useStandupReminder } from '@/features/settings/hooks/use-standup-reminder';
+import { MarketingHeader } from '@/features/shell/components/marketing-header';
+import { ScreenHeaderActions } from '@/features/shell/components/screen-header-actions';
+import { useTabBarScrollPadding } from '@/features/shell/hooks/use-tab-bar-scroll-padding';
+import { useThemeColor } from '@/hooks/use-theme-color';
 import { useFocusEffect } from '@react-navigation/native';
 import { Image } from 'expo-image';
 import { Redirect, Stack } from 'expo-router';

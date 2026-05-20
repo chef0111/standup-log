@@ -4,7 +4,7 @@ import {
 } from '@/features/standup/lib/format-standup';
 import { STANDUP_UPDATE_COLUMNS } from '@/features/standup/lib/standup-api';
 import { nextStreakState } from '@/features/standup/lib/streak';
-import type { Workday } from '@/features/workday/types/workday';
+import type { Workday } from '@/features/standup/types/workday';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 const PROFILE_STREAK_COLUMNS =

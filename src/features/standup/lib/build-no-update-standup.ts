@@ -4,7 +4,7 @@ import {
   STANDUP_SUMMARY_PLACEHOLDER,
 } from '@/features/standup/lib/compose-standup-markdown';
 import { extractStandupSummary } from '@/features/standup/lib/parse-standup-markdown';
-import type { Workday } from '@/features/workday/types/workday';
+import type { Workday } from '@/features/standup/types/workday';
 
 export const NO_UPDATE_SUMMARY = 'No update for this Workday.';
 

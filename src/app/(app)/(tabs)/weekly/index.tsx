@@ -1,7 +1,8 @@
 import { Text } from '@/components/ui/text';
-import { UpgradeSheet } from '@/features/entitlements';
-import { ScreenHeaderActions, useTabBarScrollPadding } from '@/features/shell';
-import { WeeklySummaryView } from '@/features/standup/components/weekly-summary-view';
+import { UpgradeSheet } from '@/features/entitlements/components/upgrade-sheet';
+import { ScreenHeaderActions } from '@/features/shell/components/screen-header-actions';
+import { useTabBarScrollPadding } from '@/features/shell/hooks/use-tab-bar-scroll-padding';
+import { WeeklySummaryView } from '@/features/standup/components/weekly/weekly-summary-view';
 import { track } from '@/lib/analytics';
 import { Stack, useFocusEffect } from 'expo-router';
 import * as React from 'react';

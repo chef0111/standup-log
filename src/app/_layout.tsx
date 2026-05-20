@@ -1,5 +1,5 @@
-import { AuthProvider } from '@/context/auth-provider';
-import { AppThemeProvider, useAppColorScheme } from '@/context/theme-provider';
+import { AuthProvider } from '@/context/auth';
+import { AppThemeProvider, useAppColorScheme } from '@/context/theme';
 import '@/global.css';
 import { NAV_THEME } from '@/lib/theme';
 import { cn } from '@/lib/utils';

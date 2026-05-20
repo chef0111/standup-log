@@ -1,6 +1,6 @@
-import type { ActivityCommitRow } from '@/features/activity/types/activity-commit';
-import type { ManualNoteRow } from '@/features/notes/types/manual-note';
-import type { Workday } from '@/features/workday/types/workday';
+import type { ActivityCommitRow } from '@/features/standup/types/activity-commit';
+import type { ManualNoteRow } from '@/features/standup/types/manual-note';
+import type { Workday } from '@/features/standup/types/workday';
 import { createMMKV } from 'react-native-mmkv';
 
 const storage = createMMKV({ id: 'standup-offline-cache' });

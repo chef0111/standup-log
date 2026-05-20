@@ -6,10 +6,14 @@ type GithubIconProps = {
   color?: string;
 };
 
-/** GitHub mark — inline SVG (rn-iconify exports point at missing `src/components/Mdi.ts`). */
 export function GithubIcon({ size = 24, color }: GithubIconProps) {
   return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" accessibilityRole="image">
+    <Svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      accessibilityRole="image"
+    >
       <Path
         fill={color ?? 'currentColor'}
         fillRule="evenodd"

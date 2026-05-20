@@ -1,5 +1,5 @@
 import { APP_TAB_ITEMS } from '@/features/shell/lib/tab-items';
-import { useThemeColor } from '@/features/theme';
+import { useThemeColor } from '@/hooks/use-theme-color';
 import { NativeTabs } from 'expo-router/unstable-native-tabs';
 import { Platform } from 'react-native';
 

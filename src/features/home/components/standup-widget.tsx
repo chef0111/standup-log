@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
-import { useAuth } from '@/features/auth';
+import { useAuth } from '@/context/auth';
 import { useStandupWidgetData } from '@/features/home/hooks/use-standup-widget-data';
 import { formatWorkdayHeading } from '@/features/standup/lib/compose-standup-markdown';
 import {

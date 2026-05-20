@@ -3,11 +3,11 @@ import {
   addCalendarDays,
   formatWorkdayLocal,
   workdayToLocalDate,
-} from '@/features/workday/lib/workday-calendar';
+} from '@/features/standup/lib/workday/workday-calendar';
 import type {
   Workday,
   WorkdayPickerBounds,
-} from '@/features/workday/types/workday';
+} from '@/features/standup/types/workday';
 
 export const FREE_TIER_WORKDAY_HISTORY_DAYS = 30;
 

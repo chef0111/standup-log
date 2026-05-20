@@ -6,36 +6,36 @@ alwaysApply: false
 
 # React context provider structure
 
-When a screen or feature orchestrator grows large (~150+ lines), or is likely to (multiple data sources, shared UI state, prop drilling), extract a **feature-scoped provider** instead of keeping everything in the route file.
+When a screen or feature orchestrator grows large (~150+ lines), or is likely to (multiple data sources, shared UI state, prop drilling), extract a **provider module** instead of keeping everything in the route file.
 
 ## When to apply
 
 - Screen has **3+ hooks**, **multiple `useEffect`s**, or **prop drilling** through section components.
-- State is **scoped to one feature/screen** (not app-wide).
+- State is **scoped to one screen/feature** (not app-wide).
 - You expect the screen to keep growing (notes + activity + editor + offline cache, etc.).
 
-**App-wide** providers (auth, theme) stay in `src/context/` as single files. **Feature-scoped** providers live under `features/<name>/context/<name>/`.
+**App-wide** providers (auth, theme) use the same layout under `src/context/<name>/`. **Feature-scoped** providers live under `features/<screen>/context/<name>/`.
 
 ## Folder layout
 
 ```
-features/<name>/context/<name>/
-  index.ts         # barrel — export * from siblings
+context/<name>/
+  index.ts         # barrel — re-exports public API (relative paths only)
   context.ts       # ContextValue type + React.createContext
   provider.tsx     # <Name>Provider component (state, effects, memoized value)
   use-<name>.ts    # use<Name>() hook with guard
 ```
 
-Reference: `src/features/standup/context/standup/`.
+References: `src/context/auth/`, `src/context/theme/`, `src/features/standup/context/standup/`.
 
 ## File responsibilities
 
-| File           | Exports                         | Contains                                       |
-| -------------- | ------------------------------- | ---------------------------------------------- |
-| `context.ts`   | `FooContextValue`, `FooContext` | Types and context object only — no hooks       |
-| `provider.tsx` | `FooProvider`                   | State, effects, callbacks, `useMemo` value     |
-| `use-foo.ts`   | `useFoo`                        | `useContext` + "must be within provider" guard |
-| `index.ts`     | re-exports                      | Public API for the context module              |
+| File           | Exports                         | Contains                                                                         |
+| -------------- | ------------------------------- | -------------------------------------------------------------------------------- |
+| `context.ts`   | `FooContextValue`, `FooContext` | Types and context object only — no hooks                                         |
+| `provider.tsx` | `FooProvider`                   | State, effects, callbacks, `useMemo` value                                       |
+| `use-foo.ts`   | `useFoo`                        | `useContext` + "must be within provider" guard                                   |
+| `index.ts`     | re-exports                      | `./relative` paths only — no `@/context/self` or `@/features/<same>/context/...` |
 
 ## Route / screen pattern
 
@@ -58,21 +58,25 @@ Split UI into **section components** under `features/<name>/components/` that ca
 
 ## Rules
 
-- **No monolithic `foo-provider.tsx`** once the provider exceeds ~100 lines — split into the four-file layout above.
+- **No monolithic `foo-provider.tsx`** once the provider exceeds ~100 lines — split into the layout above.
 - **`context.ts` stays pure** — no side effects, no provider logic.
 - **Memoize provider value** with `useMemo` to limit re-renders.
-- **Barrel exports** from `features/<name>/index.ts` for `FooProvider`, `useFoo`, and `FooContextValue`.
-- **Avoid self-barrel imports** inside the same feature — provider files import siblings via relative paths or direct `@/features/<name>/context/<name>/...` paths, not `@/features/<name>` (Metro circular dependency).
+- **`index.ts` only at the context module** (`context/<name>/index.ts`). No `src/context/index.ts` root barrel.
+- **Avoid self-alias imports** inside the same context module — provider files import siblings via relative paths.
 
 ## Example imports
 
 ```tsx
-// Route or external consumer
-import { StandupProvider, useStandup } from '@/features/standup';
+// App root
+import { AuthProvider } from '@/context/auth';
+import { AppThemeProvider, useAppColorScheme } from '@/context/theme';
 
-// Inside provider module
-import { StandupContext } from './context';
+// Feature route
+import { StandupProvider } from '@/features/standup/context/standup';
 
 // Section component in same feature
 import { useStandup } from '../context/standup';
+
+// Inside provider module
+import { StandupContext } from './context';
 ```

@@ -4,7 +4,7 @@ import {
   getWorkdayHistoryBounds,
   isWorkdayWithinHistory,
 } from '@/features/entitlements/lib/entitlements';
-import type { Workday } from '@/features/workday/types/workday';
+import type { Workday } from '@/features/standup/types/workday';
 import * as React from 'react';
 
 export function useEntitlements(isPro: boolean) {

@@ -1,21 +1,22 @@
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
-import { useAuth } from '@/features/auth';
-import { UpgradeSheet } from '@/features/entitlements';
-import { deleteAccount } from '@/features/account/lib/delete-account';
-import { fetchUserProfile } from '@/features/profile';
+import { useAuth } from '@/context/auth';
+import { UpgradeSheet } from '@/features/entitlements/components/upgrade-sheet';
+import { fetchUserProfile } from '@/features/profile/lib/profile';
 import { updateDefaultCopyFormat } from '@/features/profile/lib/update-default-copy-format';
-import { scheduleStandupReminder } from '@/features/reminders';
+import { deleteAccount } from '@/features/settings/lib/delete-account';
+import { scheduleStandupReminder } from '@/features/settings/lib/schedule-standup-reminder';
+import { ScreenHeaderActions } from '@/features/shell/components/screen-header-actions';
+import { useTabBarScrollPadding } from '@/features/shell/hooks/use-tab-bar-scroll-padding';
 import { CopyFormatPicker } from '@/features/standup/components/copy-format-picker';
 import {
   normalizeCopyFormat,
   type CopyFormat,
 } from '@/features/standup/lib/format-standup';
-import { ScreenHeaderActions, useTabBarScrollPadding } from '@/features/shell';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Stack, useRouter } from 'expo-router';
 import * as React from 'react';
-import { ScrollView, Switch, View } from 'react-native';
+import { Alert, ScrollView, Switch, View } from 'react-native';
 
 function parseReminderTime(timeLocal: string): Date {
   const [hours, minutes] = timeLocal.split(':').map(Number);
@@ -175,7 +176,10 @@ export default function SettingsScreen() {
           <Text>Manage repositories</Text>
         </Button>
 
-        <Button variant="outline" onPress={() => router.push('/settings/privacy')}>
+        <Button
+          variant="outline"
+          onPress={() => router.push('/settings/privacy')}
+        >
           <Text>Privacy</Text>
         </Button>
 

@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { buildNoUpdateStandupMarkdown } from '@/features/standup/lib/build-no-update-standup';
 import { formatWorkdayHeading } from '@/features/standup/lib/compose-standup-markdown';
-import type { Workday } from '@/features/workday/types/workday';
+import type { Workday } from '@/features/standup/types/workday';
 import * as React from 'react';
 import { View } from 'react-native';
 

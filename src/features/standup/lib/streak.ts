@@ -1,5 +1,5 @@
-import { addCalendarDays } from '@/features/workday/lib/workday';
-import type { Workday } from '@/features/workday/types/workday';
+import { addCalendarDays } from '@/features/standup/lib/workday/workday';
+import type { Workday } from '@/features/standup/types/workday';
 
 export type StreakState = {
   currentStreak: number;

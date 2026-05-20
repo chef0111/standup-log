@@ -1,11 +1,12 @@
-import { ActivityTerminal } from '@/features/activity';
-import { WorkTypePickerSheet } from '@/features/activity/components/work-type-picker-sheet';
-import { updateActivityCommitWorkType } from '@/features/activity/lib/update-activity-commit-work-type';
+import { useAuth } from '@/context/auth';
+import { signInWithGitHub } from '@/features/auth/lib/oauth';
+import { ActivityTerminal } from '@/features/standup/components/activity/activity-terminal';
+import { WorkTypePickerSheet } from '@/features/standup/components/activity/work-type-picker-sheet';
+import { updateActivityCommitWorkType } from '@/features/standup/lib/activity/update-activity-commit-work-type';
 import type {
   ActivityCommitRow,
   StoredWorkType,
-} from '@/features/activity/types/activity-commit';
-import { signInWithGitHub, useAuth } from '@/features/auth';
+} from '@/features/standup/types/activity-commit';
 import { useRouter } from 'expo-router';
 import * as React from 'react';
 import { useStandup } from '../context/standup';
@@ -60,9 +61,9 @@ export function StandupActivitySection() {
         syncing={syncing}
         tokenLoading={tokenLoading}
         hasToken={Boolean(token)}
-      error={activityError}
-      rateLimitResetAt={rateLimitResetAt}
-      onRefresh={refreshActivity}
+        error={activityError}
+        rateLimitResetAt={rateLimitResetAt}
+        onRefresh={refreshActivity}
         onReconnect={() => void signInWithGitHub()}
         onManageRepos={() => router.push('/settings/repositories')}
         onEditWorkType={setEditingCommit}

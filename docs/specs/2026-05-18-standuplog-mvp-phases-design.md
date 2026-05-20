@@ -35,13 +35,11 @@ Use this as a release-readiness index; gates should stay checked only after veri
 
 ## Structuring options (pick implicit default below)
 
-
 | Approach                         | Idea                                                                                              | Upside                                                | Downside                                        |
 | -------------------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------------------------------- | ----------------------------------------------- |
 | **A. Layer cake**                | Infra → DB → all APIs → all UI                                                                    | Clear ownership by layer                              | Long time before usable “generate standup” demo |
 | **B. Pure vertical slices**      | Each slice is end-to-end feature                                                                  | Fast user-visible value                               | Repeated schema/API churn early                 |
 | **C. Risk-first spine** (chosen) | Thin E2E path first (auth → repos → fake/static draft → copy), then real GitHub + AI + engagement | Validates hardest unknowns early; demo stays runnable | Requires discipline to avoid “throwaway” UI     |
-
 
 **Chosen:** **C — risk-first spine**, with **B-style vertical completion** inside the core “generate → edit → copy” slice once schema stabilizes after Phase 4.
 

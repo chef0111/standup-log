@@ -1,10 +1,8 @@
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
-import {
-  FREE_TIER_WORKDAY_HISTORY_DAYS,
-  UpgradeSheet,
-} from '@/features/entitlements';
-import { WorkdayDatePicker } from '@/features/workday';
+import { UpgradeSheet } from '@/features/entitlements/components/upgrade-sheet';
+import { FREE_TIER_WORKDAY_HISTORY_DAYS } from '@/features/entitlements/lib/entitlements';
+import { WorkdayDatePicker } from '@/features/standup/components/workday/workday-date-picker';
 import * as React from 'react';
 import { View } from 'react-native';
 import { useStandup } from '../context/standup';
@@ -26,7 +24,10 @@ export function StandupWorkdaySection() {
       />
       {!isPro ? (
         <View className="flex flex-col gap-2">
-          <Text selectable className="text-muted-foreground text-xs leading-relaxed">
+          <Text
+            selectable
+            className="text-muted-foreground text-xs leading-relaxed"
+          >
             Free accounts: last {FREE_TIER_WORKDAY_HISTORY_DAYS} days. Upgrade
             to Pro for full history.
           </Text>

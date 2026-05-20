@@ -1,7 +1,5 @@
-import { useAuth } from '@/features/auth';
-import { fetchUserProfile } from '@/features/profile';
-import { markFirstEvent } from '@/lib/analytics-flags';
-import { track } from '@/lib/analytics';
+import { useAuth } from '@/context/auth';
+import { fetchUserProfile } from '@/features/profile/lib/profile';
 import { isStandupCopyEmpty } from '@/features/standup/lib/build-no-update-standup';
 import {
   formatStandupForCopy,
@@ -10,7 +8,9 @@ import {
   type CopyFormat,
 } from '@/features/standup/lib/format-standup';
 import { recordStandupCopy } from '@/features/standup/lib/record-standup-copy';
-import type { Workday } from '@/features/workday/types/workday';
+import type { Workday } from '@/features/standup/types/workday';
+import { track } from '@/lib/analytics';
+import { markFirstEvent } from '@/lib/analytics-flags';
 import * as Clipboard from 'expo-clipboard';
 import * as React from 'react';
 import { Alert } from 'react-native';

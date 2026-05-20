@@ -1,4 +1,4 @@
-import type { ActivityCommitRow } from '@/features/activity/types/activity-commit';
+import type { ActivityCommitRow } from '@/features/standup/types/activity-commit';
 import {
   buildEmptyStandupTemplate,
   composeManualMarkdown,

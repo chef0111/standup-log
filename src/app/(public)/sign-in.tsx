@@ -2,13 +2,11 @@ import { GithubIcon } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { ButtonSpinner } from '@/components/ui/button-spinner';
 import { Text } from '@/components/ui/text';
-import {
-  AuthStatusView,
-  SignInLanding,
-  signInWithGitHub,
-  useAuth,
-} from '@/features/auth';
-import { useThemeColor } from '@/features/theme';
+import { useAuth } from '@/context/auth';
+import { AuthStatusView } from '@/features/auth/components/auth-status';
+import { SignInLanding } from '@/features/auth/components/sign-in-landing';
+import { signInWithGitHub } from '@/features/auth/lib/oauth';
+import { useThemeColor } from '@/hooks/use-theme-color';
 import { track } from '@/lib/analytics';
 import { AppError, userFacingMessage } from '@/lib/errors';
 import { getSupabase } from '@/utils/supabase';

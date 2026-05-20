@@ -1,8 +1,8 @@
-import type { ActivityCommitRow } from '@/features/activity/types/activity-commit';
-import type { ManualNoteRow } from '@/features/notes/types/manual-note';
+import type { ActivityCommitRow } from '@/features/standup/types/activity-commit';
+import type { ManualNoteRow } from '@/features/standup/types/manual-note';
 import { extractStandupSummary } from '@/features/standup/lib/parse-standup-markdown';
-import { workdayToLocalDate } from '@/features/workday/lib/workday';
-import type { Workday } from '@/features/workday/types/workday';
+import { workdayToLocalDate } from '@/features/standup/lib/workday/workday';
+import type { Workday } from '@/features/standup/types/workday';
 
 export const MAX_ACTIVITY_BULLETS = 15;
 

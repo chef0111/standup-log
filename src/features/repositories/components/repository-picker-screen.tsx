@@ -9,7 +9,7 @@ import {
   type SelectedRepository,
 } from '@/features/repositories/types/repository';
 import { ScreenFooter } from '@/features/shell/components/screen-footer';
-import { useThemeColor } from '@/features/theme';
+import { useThemeColor } from '@/hooks/use-theme-color';
 import { SaveIcon, Search } from 'lucide-react-native';
 import * as React from 'react';
 import { ActivityIndicator, Platform, TextInput, View } from 'react-native';

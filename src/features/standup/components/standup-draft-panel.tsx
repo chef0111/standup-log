@@ -1,21 +1,21 @@
 import { Button } from '@/components/ui/button';
 import { ButtonSpinner } from '@/components/ui/button-spinner';
 import { Text } from '@/components/ui/text';
-import { useAuth } from '@/features/auth';
+import { useAuth } from '@/context/auth';
 import { AiGenerationQuota } from '@/features/standup/components/ai-generation-quota';
-import { EmptyWorkdayGuide } from '@/features/standup/components/empty-workday-guide';
-import { isWorkdayInputEmpty } from '@/features/standup/lib/build-no-update-standup';
 import { CopyFormatPicker } from '@/features/standup/components/copy-format-picker';
 import { CopyToast } from '@/features/standup/components/copy-toast';
+import { EmptyWorkdayGuide } from '@/features/standup/components/empty-workday-guide';
 import { StandupMarkdownEditor } from '@/features/standup/components/standup-markdown-editor';
 import { useStandupCopy } from '@/features/standup/hooks/use-standup-copy';
-import type { CopyFormat } from '@/features/standup/lib/format-standup';
+import { isWorkdayInputEmpty } from '@/features/standup/lib/build-no-update-standup';
 import {
   buildEmptyStandupTemplate,
   composeManualMarkdown,
   isStandupMarkdownEmpty,
   isStandupSummaryReady,
 } from '@/features/standup/lib/compose-standup-markdown';
+import type { CopyFormat } from '@/features/standup/lib/format-standup';
 import { saveStandupUpdate } from '@/features/standup/lib/standup-api';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { useRouter } from 'expo-router';

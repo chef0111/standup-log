@@ -1,7 +1,10 @@
-import { useActivitySync } from '@/features/activity';
-import { useAuth } from '@/features/auth';
-import { useManualNotes, type ManualNoteRow } from '@/features/notes';
-import { fetchUserProfile } from '@/features/profile';
+import { useAuth } from '@/context/auth';
+import { fetchUserProfile } from '@/features/profile/lib/profile';
+import { useActivitySync } from '@/features/standup/hooks/use-activity-sync';
+import {
+  useManualNotes,
+  type ManualNoteRow,
+} from '@/features/standup/hooks/use-manual-notes';
 import { buildGenerateDraftRequest } from '@/features/standup/lib/build-generate-draft-request';
 import { composeManualMarkdown } from '@/features/standup/lib/compose-standup-markdown';
 import { generateAiDraft } from '@/features/standup/lib/generate-ai-draft';
@@ -16,10 +19,10 @@ import {
   clampWorkdayToBounds,
   defaultTargetWorkday,
   getWorkdayPickerBounds,
-} from '@/features/workday';
-import type { Workday } from '@/features/workday/types/workday';
-import { markFirstEvent } from '@/lib/analytics-flags';
+} from '@/features/standup/lib/workday/workday';
+import type { Workday } from '@/features/standup/types/workday';
 import { track } from '@/lib/analytics';
+import { markFirstEvent } from '@/lib/analytics-flags';
 import { userFacingMessage } from '@/lib/errors';
 import { useFocusEffect } from '@react-navigation/native';
 import * as React from 'react';

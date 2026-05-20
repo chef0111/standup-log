@@ -1,16 +1,19 @@
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
-import { useAuth } from '@/features/auth';
-import { useTabBarScrollPadding } from '@/features/shell';
+import { useAuth } from '@/context/auth';
+import { useTabBarScrollPadding } from '@/features/shell/hooks/use-tab-bar-scroll-padding';
 import { CopyFormatPicker } from '@/features/standup/components/copy-format-picker';
 import { CopyToast } from '@/features/standup/components/copy-toast';
 import { StandupMarkdownView } from '@/features/standup/components/standup-markdown-view';
 import { StandupQuickEditSheet } from '@/features/standup/components/standup-quick-edit-sheet';
 import { useStandupCopy } from '@/features/standup/hooks/use-standup-copy';
-import type { CopyFormat } from '@/features/standup/lib/format-standup';
 import { isStandupSummaryReady } from '@/features/standup/lib/compose-standup-markdown';
+import type { CopyFormat } from '@/features/standup/lib/format-standup';
 import { fetchStandupUpdate } from '@/features/standup/lib/standup-api';
-import { defaultTargetWorkday, parseWorkdayParam } from '@/features/workday';
+import {
+  defaultTargetWorkday,
+  parseWorkdayParam,
+} from '@/features/standup/lib/workday/workday';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import * as React from 'react';
 import { ActivityIndicator, ScrollView, View } from 'react-native';

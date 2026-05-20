@@ -1,9 +1,9 @@
-import { useActivitySync } from '@/features/activity';
-import type { ManualNoteRow } from '@/features/notes';
+import { useActivitySync } from '@/features/standup/hooks/use-activity-sync';
+import type { ManualNoteRow } from '@/features/standup/types/manual-note';
 import type {
   Workday,
   WorkdayPickerBounds,
-} from '@/features/workday/types/workday';
+} from '@/features/standup/types/workday';
 import * as React from 'react';
 
 export type StandupContextValue = {

@@ -1,5 +1,5 @@
 import type { CopyFormat } from '@/features/standup/lib/format-standup';
-import type { Workday } from '@/features/workday/types/workday';
+import type { Workday } from '@/features/standup/types/workday';
 import type { Session, SupabaseClient } from '@supabase/supabase-js';
 
 export const PROFILE_HOME_COLUMNS =

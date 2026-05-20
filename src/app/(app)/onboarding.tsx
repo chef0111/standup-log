@@ -1,22 +1,22 @@
-import {
-  signInWithGitHub,
-  useAuth,
-  useGitHubAccessToken,
-} from '@/features/auth';
+import { useAuth } from '@/context/auth';
+import { signInWithGitHub } from '@/features/auth/lib/oauth';
+import { UpgradeSheet } from '@/features/entitlements/components/upgrade-sheet';
 import {
   canSelectRepository,
   formatRepoLimitError,
-  UpgradeSheet,
-} from '@/features/entitlements';
-import { fetchUserProfile } from '@/features/profile';
+} from '@/features/entitlements/lib/entitlements';
+import { fetchUserProfile } from '@/features/profile/lib/profile';
+import { RepositoryPickerScreen } from '@/features/repositories/components/repository-picker-screen';
 import {
   fetchUserRepos,
+  type GithubRepoRow,
+} from '@/features/repositories/lib/github-repos';
+import {
   FREE_TIER_REPO_LIMIT,
   parseSelectedRepositories,
-  RepositoryPickerScreen,
-  type GithubRepoRow,
   type SelectedRepository,
-} from '@/features/repositories';
+} from '@/features/repositories/types/repository';
+import { useGitHubAccessToken } from '@/hooks/use-github-access-token';
 import { track } from '@/lib/analytics';
 import { AppError, userFacingMessage } from '@/lib/errors';
 import { Stack, useRouter } from 'expo-router';

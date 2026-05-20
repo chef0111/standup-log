@@ -1,4 +1,4 @@
-import type { Workday } from '@/features/workday/types/workday';
+import type { Workday } from '@/features/standup/types/workday';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 export type StandupUpdateRow = {

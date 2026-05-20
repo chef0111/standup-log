@@ -1,10 +1,13 @@
-import { useAuth } from '@/features/auth';
-import { fetchUserProfile, type ProfileHomeRow } from '@/features/profile';
+import { useAuth } from '@/context/auth';
+import {
+  fetchUserProfile,
+  type ProfileHomeRow,
+} from '@/features/profile/lib/profile';
 import { isStandupSummaryReady } from '@/features/standup/lib/compose-standup-markdown';
 import { extractStandupSummary } from '@/features/standup/lib/parse-standup-markdown';
 import { fetchStandupUpdate } from '@/features/standup/lib/standup-api';
-import { defaultTargetWorkday } from '@/features/workday';
-import type { Workday } from '@/features/workday/types/workday';
+import { defaultTargetWorkday } from '@/features/standup/lib/workday/workday';
+import type { Workday } from '@/features/standup/types/workday';
 import { useFocusEffect } from '@react-navigation/native';
 import * as React from 'react';
 
