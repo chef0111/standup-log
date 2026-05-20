@@ -8,6 +8,8 @@ const corsHeaders: Record<string, string> = {
     'authorization, x-client-info, apikey, content-type',
 };
 
+const FREE_TIER_GENERATIONS_PER_MINUTE = 5;
+
 const WORK_TYPES = [
   'feature',
   'bug',
@@ -17,6 +19,25 @@ const WORK_TYPES = [
   'style',
 ] as const;
 
+const STANDUP_TEMPLATE = `# Daily Standup — [Date]
+
+## ✅ What I did
+-
+
+## 🔨 Focusing on
+-
+
+## 🚧 Blockers
+-
+
+## 📊 Metrics / Notes
+- PRs open:
+- PRs merged:
+- Tickets in progress:
+
+---
+*Time boxed: 5 min*`;
+
 type GenerateDraftRequest = {
   workday: string;
   commits: {
@@ -25,6 +46,7 @@ type GenerateDraftRequest = {
     repository_full_name: string;
     pr_number: number | null;
     pr_title: string | null;
+    pr_state?: string | null;
   }[];
   notes: {
     body: string;
@@ -34,7 +56,7 @@ type GenerateDraftRequest = {
 };
 
 type GenerateDraftResponse = {
-  yesterday: string;
+  draft_markdown: string;
   classifications: { sha: string; work_type: string }[];
 };
 
@@ -58,26 +80,56 @@ function buildUserPrompt(input: GenerateDraftRequest): string {
       c.pr_number != null && c.pr_title
         ? ` (PR #${c.pr_number}: ${c.pr_title})`
         : '';
-    return `- sha:${c.sha} | ${repo}: ${line}${pr}`;
+    const state = c.pr_state ? ` [${c.pr_state}]` : '';
+    return `- sha:${c.sha} | ${repo}: ${line}${pr}${state}`;
   });
 
-  const noteLines = input.notes
+  const contextNotes = input.notes
     .filter((n) => !n.is_blocker)
+    .map((n) => {
+      const flags = [
+        n.is_carry_forward ? 'carry-forward' : null,
+      ].filter(Boolean);
+      const suffix = flags.length > 0 ? ` (${flags.join(', ')})` : '';
+      return `- ${n.body.trim()}${suffix}`;
+    });
+
+  const blockerNotes = input.notes
+    .filter((n) => n.is_blocker)
     .map((n) => `- ${n.body.trim()}`);
+
+  const openPrs = input.commits.filter(
+    (c) => c.pr_number != null && c.pr_state?.toLowerCase() !== 'merged'
+  ).length;
+  const mergedPrs = input.commits.filter(
+    (c) => c.pr_state?.toLowerCase() === 'merged'
+  ).length;
 
   return [
     `Workday: ${input.workday}`,
+    'This standup is FOR this calendar day only — not "yesterday" relative to today.',
     '',
     'Commits (Activity Metadata only — no diffs):',
     commitLines.length > 0 ? commitLines.join('\n') : '(none)',
     '',
-    'Manual notes (context, not blockers):',
-    noteLines.length > 0 ? noteLines.join('\n') : '(none)',
+    'Manual notes (non-blocker):',
+    contextNotes.length > 0 ? contextNotes.join('\n') : '(none)',
+    '',
+    'Blocker notes (use only under Blockers section):',
+    blockerNotes.length > 0 ? blockerNotes.join('\n') : '(none)',
+    '',
+    'Suggested metrics (you may use in Metrics section):',
+    `- PRs open: ${openPrs}`,
+    `- PRs merged: ${mergedPrs}`,
     '',
     'Return JSON only with this exact shape:',
-    '{"yesterday":"...","classifications":[{"sha":"...","work_type":"feature|bug|refactor|test|chore|style"}]}',
+    '{"draft_markdown":"...full markdown...","classifications":[{"sha":"...","work_type":"feature|bug|refactor|test|chore|style"}]}',
     '',
-    'Write Yesterday as concise team-facing prose summarizing what was done.',
+    'The draft_markdown MUST follow this template exactly (replace [Date] with a friendly date for the Workday):',
+    STANDUP_TEMPLATE,
+    '',
+    'Populate What I did from commits and non-blocker notes. Populate Focusing on from carry-forward notes only.',
+    'Populate Blockers from blocker notes only (use "-" if none). Do not invent tickets or metrics.',
     'Classify each commit sha by work_type.',
   ].join('\n');
 }
@@ -85,8 +137,9 @@ function buildUserPrompt(input: GenerateDraftRequest): string {
 const SYSTEM_PROMPT = `You help developers write daily standup updates. You receive commit metadata and manual notes for one Workday.
 
 Rules:
-- Rewrite ONLY the Yesterday section as clear, concise, non-boastful team-facing prose.
-- Do NOT invent future plans, Today items, or blockers.
+- Output a complete markdown standup matching the provided template structure and headings.
+- This standup describes work ON the given Workday only.
+- Do NOT invent future plans beyond carry-forward notes.
 - Do NOT include code diffs, surveillance language, or speculation.
 - Use only the provided commit messages and notes.
 - Output valid JSON matching the requested schema exactly.
@@ -109,7 +162,7 @@ async function callAnthropic(
       },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 1024,
+        max_tokens: 2048,
         system: SYSTEM_PROMPT,
         messages: [{ role: 'user', content: userPrompt }],
       }),
@@ -143,7 +196,7 @@ function parseDraftResponse(raw: string): GenerateDraftResponse | null {
 
   try {
     const parsed = JSON.parse(jsonMatch[0]) as GenerateDraftResponse;
-    if (typeof parsed.yesterday !== 'string') {
+    if (typeof parsed.draft_markdown !== 'string') {
       return null;
     }
     if (!Array.isArray(parsed.classifications)) {
@@ -159,6 +212,39 @@ function parseDraftResponse(raw: string): GenerateDraftResponse | null {
   } catch {
     return null;
   }
+}
+
+async function checkRateLimit(
+  admin: ReturnType<typeof createClient>,
+  userId: string
+): Promise<{ allowed: boolean; retryAfterSeconds: number }> {
+  const { data: profile } = await admin
+    .from('profiles')
+    .select('is_pro')
+    .eq('id', userId)
+    .maybeSingle();
+
+  if (profile?.is_pro) {
+    return { allowed: true, retryAfterSeconds: 0 };
+  }
+
+  const windowStart = new Date(Date.now() - 60_000).toISOString();
+  const { count, error } = await admin
+    .from('ai_generation_events')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .gte('created_at', windowStart);
+
+  if (error) {
+    return { allowed: true, retryAfterSeconds: 0 };
+  }
+
+  const used = count ?? 0;
+  if (used >= FREE_TIER_GENERATIONS_PER_MINUTE) {
+    return { allowed: false, retryAfterSeconds: 60 };
+  }
+
+  return { allowed: true, retryAfterSeconds: 0 };
 }
 
 Deno.serve(async (req) => {
@@ -209,12 +295,29 @@ Deno.serve(async (req) => {
   }
 
   const nonBlockerNotes = (body.notes ?? []).filter((n) => !n.is_blocker);
+  const blockerNotes = (body.notes ?? []).filter((n) => n.is_blocker);
   const commits = body.commits ?? [];
 
-  if (commits.length === 0 && nonBlockerNotes.length === 0) {
+  if (
+    commits.length === 0 &&
+    nonBlockerNotes.length === 0 &&
+    blockerNotes.length === 0
+  ) {
     return jsonResponse(
       { error: 'No activity to summarize', fallback: true },
       400
+    );
+  }
+
+  const rateLimit = await checkRateLimit(admin, user.id);
+  if (!rateLimit.allowed) {
+    return jsonResponse(
+      {
+        error: 'rate_limited',
+        retry_after_seconds: rateLimit.retryAfterSeconds,
+        remaining: 0,
+      },
+      429
     );
   }
 
@@ -225,6 +328,11 @@ Deno.serve(async (req) => {
     if (!draft) {
       return jsonResponse({ error: 'malformed', fallback: true }, 502);
     }
+
+    await admin.from('ai_generation_events').insert({
+      user_id: user.id,
+      workday: body.workday,
+    });
 
     return jsonResponse(draft as unknown as Record<string, unknown>);
   } catch (err) {

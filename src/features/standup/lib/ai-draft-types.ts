@@ -12,6 +12,7 @@ export type GenerateDraftCommitInput = {
   repository_full_name: string;
   pr_number: number | null;
   pr_title: string | null;
+  pr_state?: string | null;
 };
 
 export type GenerateDraftNoteInput = {
@@ -32,6 +33,12 @@ export type GenerateDraftClassification = {
 };
 
 export type GenerateDraftResponse = {
-  yesterday: string;
+  draft_markdown: string;
   classifications: GenerateDraftClassification[];
+};
+
+export type GenerateDraftRateLimitError = {
+  error: 'rate_limited';
+  retry_after_seconds: number;
+  remaining: number;
 };

@@ -16,6 +16,7 @@ export function buildGenerateDraftRequest(
       repository_full_name: commit.repository_full_name,
       pr_number: commit.pr_number,
       pr_title: commit.pr_title,
+      pr_state: commit.pr_state,
     })),
     notes: notes.map((note) => ({
       body: note.body,

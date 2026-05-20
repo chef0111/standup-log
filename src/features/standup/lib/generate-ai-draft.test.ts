@@ -20,11 +20,12 @@ describe('generateAiDraft', () => {
   });
 
   it('returns draft when invoke succeeds', async () => {
+    const markdown = '# Daily Standup — Mon, May 18, 2026\n\n## ✅ What I did\n- Shipped login fix.';
     const supabase = {
       functions: {
         invoke: vi.fn().mockResolvedValue({
           data: {
-            yesterday: 'Shipped login fix.',
+            draft_markdown: markdown,
             classifications: [{ sha: 'abc', work_type: 'feature' }],
           },
           error: null,
@@ -39,6 +40,30 @@ describe('generateAiDraft', () => {
     });
 
     expect(result.fallback).toBe(false);
-    expect(result.draft?.yesterday).toBe('Shipped login fix.');
+    expect(result.draft?.draft_markdown).toBe(markdown);
+  });
+
+  it('surfaces rate limit from response data', async () => {
+    const supabase = {
+      functions: {
+        invoke: vi.fn().mockResolvedValue({
+          data: {
+            error: 'rate_limited',
+            retry_after_seconds: 42,
+            remaining: 0,
+          },
+          error: null,
+        }),
+      },
+    } as never;
+
+    const result = await generateAiDraft(supabase, {
+      workday: '2026-05-18',
+      commits: [],
+      notes: [],
+    });
+
+    expect(result.rateLimited).toBe(true);
+    expect(result.retryAfterSeconds).toBe(42);
   });
 });
