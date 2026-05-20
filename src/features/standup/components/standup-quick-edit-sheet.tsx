@@ -17,10 +17,7 @@ import { Pressable, View } from 'react-native';
 
 type EditMode = 'summary' | 'full';
 
-function mergeSummaryIntoMarkdown(
-  markdown: string,
-  summary: string
-): string {
+function mergeSummaryIntoMarkdown(markdown: string, summary: string): string {
   const match = markdown.match(/^##\s*Summary\s*$/im);
   if (!match || match.index === undefined) {
     return markdown;

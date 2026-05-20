@@ -4,18 +4,19 @@ import { useAuth } from '@/features/auth';
 import { CopyToast } from '@/features/standup/components/copy-toast';
 import { StandupMarkdownView } from '@/features/standup/components/standup-markdown-view';
 import { StandupQuickEditSheet } from '@/features/standup/components/standup-quick-edit-sheet';
-import { isStandupSummaryReady } from '@/features/standup/lib/compose-standup-markdown';
 import { useStandupCopy } from '@/features/standup/hooks/use-standup-copy';
+import { isStandupSummaryReady } from '@/features/standup/lib/compose-standup-markdown';
 import { fetchStandupUpdate } from '@/features/standup/lib/standup-api';
-import { parseWorkdayParam, defaultTargetWorkday } from '@/features/workday';
+import { defaultTargetWorkday, parseWorkdayParam } from '@/features/workday';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import * as React from 'react';
 import { ActivityIndicator, ScrollView, View } from 'react-native';
 
 export default function StandupReadScreen() {
-  const { workday: workdayParam } = useLocalSearchParams<{ workday?: string }>();
-  const workday =
-    parseWorkdayParam(workdayParam) ?? defaultTargetWorkday();
+  const { workday: workdayParam } = useLocalSearchParams<{
+    workday?: string;
+  }>();
+  const workday = parseWorkdayParam(workdayParam) ?? defaultTargetWorkday();
   const { supabase, session } = useAuth();
   const [markdown, setMarkdown] = React.useState('');
   const [loading, setLoading] = React.useState(true);

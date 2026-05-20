@@ -26,7 +26,10 @@ export default function WeeklyScreen() {
           <Text variant="h3" className="border-0 pb-0">
             Weekly Summary
           </Text>
-          <Text selectable className="text-muted-foreground text-sm leading-relaxed">
+          <Text
+            selectable
+            className="text-muted-foreground text-sm leading-relaxed"
+          >
             Activity grouped by Work Type for the current week.
           </Text>
         </View>

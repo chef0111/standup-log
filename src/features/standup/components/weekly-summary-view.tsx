@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
 import { useAuth } from '@/features/auth';
+import { fetchUserProfile } from '@/features/profile';
 import {
   aggregateWeeklySummary,
   applyWeeklyPreviewGate,
@@ -18,7 +19,6 @@ import {
   fetchStandupsForWeek,
 } from '@/features/standup/lib/fetch-standups-for-week';
 import { getCurrentWeekBounds } from '@/features/standup/lib/week-bounds';
-import { fetchUserProfile } from '@/features/profile';
 import * as React from 'react';
 import { ActivityIndicator, View } from 'react-native';
 
@@ -35,9 +35,9 @@ export function WeeklySummaryView({ onUpgrade }: WeeklySummaryViewProps) {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [isPro, setIsPro] = React.useState(false);
-  const [summary, setSummary] = React.useState<
-    ReturnType<typeof applyWeeklyPreviewGate> | null
-  >(null);
+  const [summary, setSummary] = React.useState<ReturnType<
+    typeof applyWeeklyPreviewGate
+  > | null>(null);
   const bounds = React.useMemo(() => getCurrentWeekBounds(), []);
 
   React.useEffect(() => {
@@ -52,16 +52,19 @@ export function WeeklySummaryView({ onUpgrade }: WeeklySummaryViewProps) {
       setLoading(true);
       setError(null);
 
-      const [{ profile }, { commits, error: commitsError }, { standups, error: standupsError }] =
-        await Promise.all([
-          fetchUserProfile(supabase!, session!),
-          fetchActivityCommitsForWeek(
-            supabase!,
-            bounds.weekStart,
-            bounds.weekEnd
-          ),
-          fetchStandupsForWeek(supabase!, bounds.weekStart, bounds.weekEnd),
-        ]);
+      const [
+        { profile },
+        { commits, error: commitsError },
+        { standups, error: standupsError },
+      ] = await Promise.all([
+        fetchUserProfile(supabase!, session!),
+        fetchActivityCommitsForWeek(
+          supabase!,
+          bounds.weekStart,
+          bounds.weekEnd
+        ),
+        fetchStandupsForWeek(supabase!, bounds.weekStart, bounds.weekEnd),
+      ]);
 
       if (cancelled) {
         return;

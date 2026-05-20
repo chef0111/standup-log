@@ -26,8 +26,8 @@ Use this as a release-readiness index; gates should stay checked only after veri
 - **Phase 5** — Standup record + draft editor, manual path (all gates) - [DONE]
 - **Phase 6** — AI draft via Edge proxy (all gates) - [DONE]
 - **Phase 7** — Copy formats, clipboard, streak on copy (all gates) - [DONE]
-- **Phase 8** — Entitlements: free vs Pro (all gates)
-- **Phase 9** — Engagement: weekly summary + reminders (all gates)
+- **Phase 8** — Entitlements: free vs Pro (all gates) - [DONE]
+- **Phase 9** — Engagement: weekly summary + reminders (all gates) - [DONE]
 - **Phase 10** — Should-have sweep (all gates)
 - **Phase 11** — Hardening, analytics, beta readiness (all gates)
 
@@ -35,13 +35,11 @@ Use this as a release-readiness index; gates should stay checked only after veri
 
 ## Structuring options (pick implicit default below)
 
-
 | Approach                         | Idea                                                                                              | Upside                                                | Downside                                        |
 | -------------------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------------------------------- | ----------------------------------------------- |
 | **A. Layer cake**                | Infra → DB → all APIs → all UI                                                                    | Clear ownership by layer                              | Long time before usable “generate standup” demo |
 | **B. Pure vertical slices**      | Each slice is end-to-end feature                                                                  | Fast user-visible value                               | Repeated schema/API churn early                 |
 | **C. Risk-first spine** (chosen) | Thin E2E path first (auth → repos → fake/static draft → copy), then real GitHub + AI + engagement | Validates hardest unknowns early; demo stays runnable | Requires discipline to avoid “throwaway” UI     |
-
 
 **Chosen:** **C — risk-first spine**, with **B-style vertical completion** inside the core “generate → edit → copy” slice once schema stabilizes after Phase 4.
 
@@ -195,36 +193,36 @@ Use this as a release-readiness index; gates should stay checked only after veri
 
 ---
 
-## Phase 8 — Entitlements: free vs Pro (MVP economics)
+## Phase 8 — Entitlements: free vs Pro (MVP economics) - [DONE]
 
 **Outcome:** Free = **3 repos, 30-day history, all formats, weekly preview**; Pro = **unlimited repos, full history, full Weekly Summary**. Upgrade prompts at limit surfaces.
 
 ### Checklist
 
-- Entitlement source of truth (Stripe subscription vs manual Pro flag for beta) — **open implementation choice**; product behavior is fixed above.
-- Enforce repo count + history window in sync queries.
-- Upgrade surfaces: repo cap, history cap, weekly summary locked sections.
+- [x] Entitlement source of truth (Stripe subscription vs manual Pro flag for beta) — **open implementation choice**; product behavior is fixed above.
+- [x] Enforce repo count + history window in sync queries.
+- [x] Upgrade surfaces: repo cap, history cap, weekly summary locked sections.
 
 ### Phase gate
 
-- Free user cannot exceed 3 selected repos or 30-day fetch window; Pro user can (test with flagged account).
+- [x] Free user cannot exceed 3 selected repos or 30-day fetch window; Pro user can (test with flagged account).
 
 ---
 
-## Phase 9 — Engagement: weekly summary + reminders
+## Phase 9 — Engagement: weekly summary + reminders - [DONE]
 
 **Outcome:** Weekly summary view: aggregates by **Work Type**; free **limited preview**; Pro **full**. Push notification at user-set time, default 09:00 local, **only if prior Workday not copied** (per PRD).
 
 ### Checklist
 
-- Weekly aggregation queries from stored standups/classifications.
-- Preview gating UX (what exactly is blurred/limited — align with PRD open question on preview limits; pick a simple rule in implementation plan).
-- Expo Notifications: permission UX, scheduling, re-schedule on settings change.
-- “Copied yesterday?” signal feeding reminder eligibility.
+- [x] Weekly aggregation queries from stored standups/classifications.
+- [x] Preview gating UX (what exactly is blurred/limited — align with PRD open question on preview limits; pick a simple rule in implementation plan).
+- [x] Expo Notifications: permission UX, scheduling, re-schedule on settings change.
+- [x] “Copied yesterday?” signal feeding reminder eligibility.
 
 ### Phase gate
 
-- Toggle system time / simulate: reminder fires per rules; does not fire when standup already copied for prior Workday.
+- [x] Toggle system time / simulate: reminder fires per rules; does not fire when standup already copied for prior Workday.
 
 ---
 

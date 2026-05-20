@@ -1,10 +1,8 @@
 import { useAuth } from '@/features/auth';
 import { fetchUserProfile, type ProfileHomeRow } from '@/features/profile';
-import { fetchStandupUpdate } from '@/features/standup/lib/standup-api';
-import {
-  extractStandupSummary,
-} from '@/features/standup/lib/parse-standup-markdown';
 import { isStandupSummaryReady } from '@/features/standup/lib/compose-standup-markdown';
+import { extractStandupSummary } from '@/features/standup/lib/parse-standup-markdown';
+import { fetchStandupUpdate } from '@/features/standup/lib/standup-api';
 import { defaultTargetWorkday } from '@/features/workday';
 import type { Workday } from '@/features/workday/types/workday';
 import { useFocusEffect } from '@react-navigation/native';
@@ -43,11 +41,13 @@ export function useStandupWidgetData(): StandupWidgetData {
     setLoading(true);
     setError(null);
 
-    const [{ profile: row, error: profileError }, { standup, error: standupError }] =
-      await Promise.all([
-        fetchUserProfile(supabase, session),
-        fetchStandupUpdate(supabase, workday),
-      ]);
+    const [
+      { profile: row, error: profileError },
+      { standup, error: standupError },
+    ] = await Promise.all([
+      fetchUserProfile(supabase, session),
+      fetchStandupUpdate(supabase, workday),
+    ]);
 
     if (profileError) {
       setError(profileError);

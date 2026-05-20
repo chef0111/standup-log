@@ -1,9 +1,9 @@
 import { useAuth } from '@/features/auth';
+import { isStandupMarkdownEmpty } from '@/features/standup/lib/compose-standup-markdown';
 import {
   formatStandupForCopy,
   formatStandupSummaryForCopy,
 } from '@/features/standup/lib/format-standup';
-import { isStandupMarkdownEmpty } from '@/features/standup/lib/compose-standup-markdown';
 import { recordStandupCopy } from '@/features/standup/lib/record-standup-copy';
 import type { Workday } from '@/features/workday/types/workday';
 import * as Clipboard from 'expo-clipboard';

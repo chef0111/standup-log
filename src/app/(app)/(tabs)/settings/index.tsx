@@ -5,15 +5,20 @@ import { UpgradeSheet } from '@/features/entitlements';
 import { fetchUserProfile } from '@/features/profile';
 import { scheduleStandupReminder } from '@/features/reminders';
 import { ScreenHeaderActions } from '@/features/shell';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { Stack, useRouter } from 'expo-router';
 import * as React from 'react';
 import { ScrollView, Switch, View } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
 
 function parseReminderTime(timeLocal: string): Date {
   const [hours, minutes] = timeLocal.split(':').map(Number);
   const d = new Date();
-  d.setHours(Number.isFinite(hours) ? hours : 9, Number.isFinite(minutes) ? minutes : 0, 0, 0);
+  d.setHours(
+    Number.isFinite(hours) ? hours : 9,
+    Number.isFinite(minutes) ? minutes : 0,
+    0,
+    0
+  );
   return d;
 }
 
@@ -23,7 +28,9 @@ export default function SettingsScreen() {
   const [upgradeOpen, setUpgradeOpen] = React.useState(false);
   const [busy, setBusy] = React.useState(false);
   const [reminderEnabled, setReminderEnabled] = React.useState(true);
-  const [reminderTime, setReminderTime] = React.useState(() => parseReminderTime('09:00:00'));
+  const [reminderTime, setReminderTime] = React.useState(() =>
+    parseReminderTime('09:00:00')
+  );
 
   React.useEffect(() => {
     if (!supabase || !session) {
@@ -34,7 +41,9 @@ export default function SettingsScreen() {
         return;
       }
       setReminderEnabled(profile.reminder_enabled ?? true);
-      setReminderTime(parseReminderTime(profile.reminder_time_local ?? '09:00:00'));
+      setReminderTime(
+        parseReminderTime(profile.reminder_time_local ?? '09:00:00')
+      );
     });
   }, [session, supabase]);
 
@@ -102,7 +111,10 @@ export default function SettingsScreen() {
           <Text className="text-foreground text-sm font-medium">
             Morning reminder
           </Text>
-          <Text selectable className="text-muted-foreground text-xs leading-relaxed">
+          <Text
+            selectable
+            className="text-muted-foreground text-xs leading-relaxed"
+          >
             Reminds you at the chosen time if yesterday&apos;s standup was not
             copied.
           </Text>
@@ -129,7 +141,11 @@ export default function SettingsScreen() {
           />
         </View>
 
-        <Button variant="outline" disabled={busy} onPress={() => void onSignOut()}>
+        <Button
+          variant="outline"
+          disabled={busy}
+          onPress={() => void onSignOut()}
+        >
           <Text>Sign out</Text>
         </Button>
       </ScrollView>

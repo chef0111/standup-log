@@ -13,8 +13,8 @@ import {
 } from '@/features/standup/lib/compose-standup-markdown';
 import { saveStandupUpdate } from '@/features/standup/lib/standup-api';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { SaveIcon, StarsIcon } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
+import { SaveIcon, StarsIcon } from 'lucide-react-native';
 import * as React from 'react';
 import { View } from 'react-native';
 import { useStandup } from '../context/standup';
@@ -74,12 +74,10 @@ export function StandupDraftPanel() {
     [markdown]
   );
 
-  const {
-    copying,
-    toastMessage,
-    copySummary,
-    copyFull,
-  } = useStandupCopy(workday, markdown);
+  const { copying, toastMessage, copySummary, copyFull } = useStandupCopy(
+    workday,
+    markdown
+  );
 
   React.useEffect(() => {
     setMarkdown(baselineMarkdown);
