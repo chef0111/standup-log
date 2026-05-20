@@ -1,28 +1,25 @@
 import { GithubIcon, RepositoryIcon } from '@/components/icons';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { useAuth } from '@/features/auth';
 import { fetchUserProfile, type ProfileHomeRow } from '@/features/profile';
 import { parseSelectedRepositories } from '@/features/repositories';
-import { MarketingHeader, ScreenFooter, ScreenHeaderActions } from '@/features/shell';
+import { StandupWidget } from '@/features/home';
+import { MarketingHeader, ScreenHeaderActions } from '@/features/shell';
 import { useThemeColor } from '@/features/theme';
-import { defaultTargetWorkday } from '@/features/workday';
 import { useFocusEffect } from '@react-navigation/native';
 import { Image } from 'expo-image';
-import { Redirect, Stack, useRouter } from 'expo-router';
+import { Redirect, Stack } from 'expo-router';
 import { Flame } from 'lucide-react-native';
 import * as React from 'react';
 import { ActivityIndicator, ScrollView, View } from 'react-native';
 
 export default function AppHomeScreen() {
-  const router = useRouter();
   const foreground = useThemeColor('--color-foreground');
   const { supabase, session } = useAuth();
   const [profile, setProfile] = React.useState<ProfileHomeRow | null>(null);
   const [loadingProfile, setLoadingProfile] = React.useState(true);
-  const [busy, setBusy] = React.useState(false);
   const [status, setStatus] = React.useState<string | null>(null);
   const initialLoad = React.useRef(true);
 
@@ -72,21 +69,6 @@ export default function AppHomeScreen() {
   const selectedCount = profile
     ? parseSelectedRepositories(profile.selected_repositories).length
     : 0;
-
-  const onSignOut = React.useCallback(async () => {
-    if (!supabase) {
-      return;
-    }
-    setBusy(true);
-    setStatus(null);
-    const { error } = await supabase.auth.signOut();
-    setBusy(false);
-    if (error) {
-      setStatus(error.message);
-      return;
-    }
-    router.replace('/(public)/sign-in');
-  }, [router, supabase]);
 
   if (loadingProfile) {
     return (
@@ -146,7 +128,8 @@ export default function AppHomeScreen() {
       <View className="bg-background flex-1">
         <ScrollView
           className="flex-1"
-          contentContainerClassName="mx-auto w-full max-w-lg flex-grow gap-6 px-5 pb-4 pt-2"
+          contentContainerClassName="mx-auto w-full max-w-lg flex-grow gap-6 px-5 pb-8 pt-2"
+          contentInsetAdjustmentBehavior="automatic"
           showsVerticalScrollIndicator={false}
         >
           <MarketingHeader
@@ -154,6 +137,8 @@ export default function AppHomeScreen() {
             title="StandupLog"
             description="Your workspace for daily standup updates."
           />
+
+          <StandupWidget />
 
           <Card>
             <CardContent className="items-center gap-4 pt-6">
@@ -216,46 +201,12 @@ export default function AppHomeScreen() {
             </Card>
           </View>
 
-          <Card className="gap-3 p-4">
-            <Text className="text-foreground text-sm font-medium">
-              What&apos;s next
-            </Text>
-            <Text className="text-muted-foreground text-sm leading-relaxed">
-              {selectedCount === 0
-                ? 'Generate a standup from manual notes, or select repositories in settings to include commit activity.'
-                : 'Generate your standup from yesterday’s commits and notes.'}
-            </Text>
-          </Card>
-
           {status ? (
             <Text className="text-destructive text-center text-sm">
               {status}
             </Text>
           ) : null}
         </ScrollView>
-
-        <ScreenFooter className="mx-auto w-full max-w-lg">
-          <Button
-            onPress={() =>
-              router.push({
-                pathname: '/standup',
-                params: { workday: defaultTargetWorkday() },
-              })
-            }
-          >
-            <Text>Generate standup</Text>
-          </Button>
-          <Button
-            disabled={busy}
-            onPress={() => router.push('/settings')}
-          >
-            <RepositoryIcon size={16} className="text-primary-foreground" />
-            <Text>Settings</Text>
-          </Button>
-          <Button variant="outline" disabled={busy} onPress={onSignOut}>
-            <Text>Sign out</Text>
-          </Button>
-        </ScreenFooter>
       </View>
     </>
   );

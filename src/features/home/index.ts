@@ -1,6 +1,2 @@
-/**
- * Home — signed-in workspace overview.
- * Route: `src/app/(app)/index.tsx`
- */
-export { fetchUserProfile, type ProfileHomeRow } from '@/features/profile';
-export { parseSelectedRepositories } from '@/features/repositories';
+export { StandupWidget } from './components/standup-widget';
+export { useStandupWidgetData } from './hooks/use-standup-widget-data';
