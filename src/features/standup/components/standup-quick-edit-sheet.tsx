@@ -123,7 +123,7 @@ export function StandupQuickEditSheet({
       <Textarea
         value={draft}
         onChangeText={setDraft}
-        className={mode === 'full' ? 'min-h-48 font-mono text-sm' : 'min-h-24'}
+        className={mode === 'full' ? 'min-h-99 font-mono text-sm' : 'min-h-32'}
         multiline
       />
 

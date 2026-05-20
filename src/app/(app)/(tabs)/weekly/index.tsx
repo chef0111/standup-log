@@ -1,6 +1,6 @@
 import { Text } from '@/components/ui/text';
 import { UpgradeSheet } from '@/features/entitlements';
-import { ScreenHeaderActions } from '@/features/shell';
+import { ScreenHeaderActions, useTabBarScrollPadding } from '@/features/shell';
 import { WeeklySummaryView } from '@/features/standup/components/weekly-summary-view';
 import { Stack } from 'expo-router';
 import * as React from 'react';
@@ -8,6 +8,7 @@ import { ScrollView, View } from 'react-native';
 
 export default function WeeklyScreen() {
   const [upgradeOpen, setUpgradeOpen] = React.useState(false);
+  const tabBarPadding = useTabBarScrollPadding();
 
   return (
     <>
@@ -19,7 +20,8 @@ export default function WeeklyScreen() {
       />
       <ScrollView
         className="bg-background flex-1"
-        contentContainerClassName="mx-auto w-full max-w-lg flex-grow gap-4 px-5 pb-8 pt-2"
+        contentContainerClassName="mx-auto w-full max-w-lg flex-grow gap-4 px-5 pt-2"
+        contentContainerStyle={{ paddingBottom: tabBarPadding }}
         contentInsetAdjustmentBehavior="automatic"
       >
         <View className="gap-2">

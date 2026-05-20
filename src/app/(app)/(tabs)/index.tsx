@@ -7,7 +7,11 @@ import { StandupWidget } from '@/features/home';
 import { fetchUserProfile, type ProfileHomeRow } from '@/features/profile';
 import { useStandupReminder } from '@/features/reminders';
 import { parseSelectedRepositories } from '@/features/repositories';
-import { MarketingHeader, ScreenHeaderActions } from '@/features/shell';
+import {
+  MarketingHeader,
+  ScreenHeaderActions,
+  useTabBarScrollPadding,
+} from '@/features/shell';
 import { useThemeColor } from '@/features/theme';
 import { useFocusEffect } from '@react-navigation/native';
 import { Image } from 'expo-image';
@@ -72,6 +76,7 @@ export default function AppHomeScreen() {
   const selectedCount = profile
     ? parseSelectedRepositories(profile.selected_repositories).length
     : 0;
+  const tabBarPadding = useTabBarScrollPadding();
 
   if (loadingProfile) {
     return (
@@ -131,7 +136,8 @@ export default function AppHomeScreen() {
       <View className="bg-background flex-1">
         <ScrollView
           className="flex-1"
-          contentContainerClassName="mx-auto w-full max-w-lg flex-grow gap-6 px-5 pb-8 pt-2"
+          contentContainerClassName="mx-auto w-full max-w-lg flex-grow gap-6 px-5 pt-2"
+          contentContainerStyle={{ paddingBottom: tabBarPadding }}
           contentInsetAdjustmentBehavior="automatic"
           showsVerticalScrollIndicator={false}
         >

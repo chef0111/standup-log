@@ -4,7 +4,7 @@ import { useAuth } from '@/features/auth';
 import { UpgradeSheet } from '@/features/entitlements';
 import { fetchUserProfile } from '@/features/profile';
 import { scheduleStandupReminder } from '@/features/reminders';
-import { ScreenHeaderActions } from '@/features/shell';
+import { ScreenHeaderActions, useTabBarScrollPadding } from '@/features/shell';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Stack, useRouter } from 'expo-router';
 import * as React from 'react';
@@ -31,6 +31,7 @@ export default function SettingsScreen() {
   const [reminderTime, setReminderTime] = React.useState(() =>
     parseReminderTime('09:00:00')
   );
+  const tabBarPadding = useTabBarScrollPadding();
 
   React.useEffect(() => {
     if (!supabase || !session) {
@@ -92,7 +93,8 @@ export default function SettingsScreen() {
       />
       <ScrollView
         className="bg-background flex-1"
-        contentContainerClassName="mx-auto w-full max-w-lg gap-4 px-5 pb-8 pt-2"
+        contentContainerClassName="mx-auto w-full max-w-lg gap-4 px-5 pt-2"
+        contentContainerStyle={{ paddingBottom: tabBarPadding }}
         contentInsetAdjustmentBehavior="automatic"
         showsVerticalScrollIndicator={false}
       >

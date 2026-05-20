@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { useAuth } from '@/features/auth';
+import { useTabBarScrollPadding } from '@/features/shell';
 import { CopyToast } from '@/features/standup/components/copy-toast';
 import { StandupMarkdownView } from '@/features/standup/components/standup-markdown-view';
 import { StandupQuickEditSheet } from '@/features/standup/components/standup-quick-edit-sheet';
@@ -22,6 +23,7 @@ export default function StandupReadScreen() {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [editOpen, setEditOpen] = React.useState(false);
+  const tabBarPadding = useTabBarScrollPadding();
 
   const { copying, toastMessage, copySummary, copyFull } = useStandupCopy(
     workday ?? '',
@@ -98,7 +100,8 @@ export default function StandupReadScreen() {
       />
       <ScrollView
         className="bg-background flex-1"
-        contentContainerClassName="mx-auto w-full max-w-lg gap-4 px-5 pb-8 pt-2"
+        contentContainerClassName="mx-auto w-full max-w-lg gap-4 px-5 pt-2"
+        contentContainerStyle={{ paddingBottom: tabBarPadding }}
         contentInsetAdjustmentBehavior="automatic"
       >
         {loading ? (
