@@ -1,9 +1,8 @@
-import {
-  STANDUP_UPDATE_COLUMNS,
-  type StandupSections,
-} from '@/features/standup/lib/compose-standup';
 import type { CopyFormat } from '@/features/standup/lib/format-standup';
 import { nextStreakState } from '@/features/standup/lib/streak';
+import {
+  STANDUP_UPDATE_COLUMNS,
+} from '@/features/standup/lib/standup-api';
 import type { Workday } from '@/features/workday/types/workday';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
@@ -20,7 +19,7 @@ export async function recordStandupCopy(
   supabase: SupabaseClient,
   userId: string,
   workday: Workday,
-  sections: StandupSections,
+  draftMarkdown: string,
   format: CopyFormat
 ): Promise<RecordStandupCopyResult> {
   const { data: standup, error: fetchError } = await supabase
@@ -41,6 +40,7 @@ export async function recordStandupCopy(
     const { error: updateError } = await supabase
       .from('standup_updates')
       .update({
+        draft_markdown: draftMarkdown,
         format_used: format,
         ...(alreadyCopied ? {} : { copied_at: copiedAt }),
       })
@@ -57,9 +57,7 @@ export async function recordStandupCopy(
     const { error: insertError } = await supabase.from('standup_updates').insert({
       user_id: userId,
       workday,
-      yesterday_text: sections.yesterday,
-      today_text: sections.today,
-      blockers_text: sections.blockers,
+      draft_markdown: draftMarkdown,
       copied_at: copiedAt,
       format_used: format,
     });

@@ -1,8 +1,8 @@
-import type { StandupSections } from '@/features/standup/lib/compose-standup';
 import { formatJiraStandup } from '@/features/standup/lib/format-jira';
 import { formatNotionStandup } from '@/features/standup/lib/format-notion';
 import { formatPlainStandup } from '@/features/standup/lib/format-plain';
 import { formatSlackStandup } from '@/features/standup/lib/format-slack';
+import { standupSectionsFromMarkdown } from '@/features/standup/lib/parse-standup-markdown';
 
 export type CopyFormat = 'plain' | 'slack' | 'jira' | 'notion';
 
@@ -20,17 +20,23 @@ export function isCopyFormat(value: string): value is CopyFormat {
 }
 
 export function formatStandup(
-  sections: StandupSections,
+  draftMarkdown: string,
   format: CopyFormat
 ): string {
+  if (format === 'plain') {
+    return draftMarkdown.trim();
+  }
+
+  const sections = standupSectionsFromMarkdown(draftMarkdown);
+
   switch (format) {
-    case 'plain':
-      return formatPlainStandup(sections);
     case 'slack':
       return formatSlackStandup(sections);
     case 'jira':
       return formatJiraStandup(sections);
     case 'notion':
       return formatNotionStandup(sections);
+    default:
+      return formatPlainStandup(sections);
   }
 }

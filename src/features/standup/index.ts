@@ -9,13 +9,10 @@ export { StandupWorkdaySection } from './components/standup-workday-section';
 export { StandupProvider, useStandup } from './context/standup';
 export type { StandupContextValue } from './context/standup';
 export {
-  DEFAULT_BLOCKERS,
-  DEFAULT_TODAY_PLACEHOLDER,
-  composeManualStandup,
-  isStandupEmpty,
-  type StandupSections,
-  type StandupUpdateRow,
-} from './lib/compose-standup';
+  buildEmptyStandupTemplate,
+  composeManualMarkdown,
+  isStandupMarkdownEmpty,
+} from './lib/compose-standup-markdown';
 export { formatPlainStandup } from './lib/format-plain';
 export {
   COPY_FORMAT_LABELS,
@@ -30,10 +27,10 @@ export {
   writeWorkdaySnapshot,
   type WorkdaySnapshot,
 } from './lib/offline-cache';
+export { parseStandupMarkdown } from './lib/parse-standup-markdown';
 export {
   fetchStandupUpdate,
-  loadOrComposeStandup,
-  mergeStandupSections,
   saveStandupUpdate,
+  type StandupUpdateRow,
 } from './lib/standup-api';
 export { recordStandupCopy } from './lib/record-standup-copy';

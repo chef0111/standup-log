@@ -1,28 +1,31 @@
-import type { StandupSections } from '@/features/standup/lib/compose-standup';
 import {
   formatStandup,
   type CopyFormat,
 } from '@/features/standup/lib/format-standup';
 import { describe, expect, it } from 'vitest';
 
-const fixture: StandupSections = {
-  yesterday: '- acme/web: Fix login bug',
-  today: "What I'm working on today…",
-  blockers: 'No blockers',
-};
+const fixture = `# Daily Standup — Mon, May 19, 2026
+
+## ✅ What I did
+- acme/web: Fix login bug
+
+## 🔨 Focusing on
+What I'm working on today…
+
+## 🚧 Blockers
+No blockers
+
+## 📊 Metrics / Notes
+- PRs open:
+- PRs merged:
+- Tickets in progress:
+
+---
+*Time boxed: 5 min*`;
 
 describe('formatStandup', () => {
-  it('formats plain text', () => {
-    expect(formatStandup(fixture, 'plain')).toMatchInlineSnapshot(`
-      "Yesterday:
-      - acme/web: Fix login bug
-
-      Today:
-      What I'm working on today…
-
-      Blockers:
-      No blockers"
-    `);
+  it('returns raw markdown for plain format', () => {
+    expect(formatStandup(fixture, 'plain')).toBe(fixture.trim());
   });
 
   it('formats slack markdown', () => {
@@ -62,16 +65,6 @@ describe('formatStandup', () => {
       ## Blockers
       No blockers"
     `);
-  });
-
-  it('uses (none) for empty sections', () => {
-    const empty: StandupSections = {
-      yesterday: '',
-      today: '   ',
-      blockers: '',
-    };
-    expect(formatStandup(empty, 'plain')).toContain('Yesterday:\n(none)');
-    expect(formatStandup(empty, 'slack')).toContain('*Yesterday*\n(none)');
   });
 });
 
