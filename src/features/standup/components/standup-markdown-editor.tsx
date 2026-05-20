@@ -1,8 +1,8 @@
 import { Textarea } from '@/components/ui/textarea';
-import { useAppColorScheme } from '@/features/theme';
+import { useRemarkTheme } from '@/features/standup/lib/remark-theme';
 import * as React from 'react';
 import { ScrollView, View } from 'react-native';
-import { Markdown, themes } from 'react-native-remark';
+import { Markdown } from 'react-native-remark';
 
 export type StandupEditorMode = 'edit' | 'preview';
 
@@ -19,11 +19,7 @@ export function StandupMarkdownEditor({
   onChangeText,
   placeholder,
 }: StandupMarkdownEditorProps) {
-  const colorScheme = useAppColorScheme();
-  const theme =
-    colorScheme.colorScheme === 'dark'
-      ? themes.defaultTheme
-      : themes.githubTheme;
+  const theme = useRemarkTheme();
 
   if (mode === 'edit') {
     return (
