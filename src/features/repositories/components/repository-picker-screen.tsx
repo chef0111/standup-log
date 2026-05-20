@@ -3,64 +3,35 @@ import { ButtonSpinner } from '@/components/ui/button-spinner';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { RepositoryList } from '@/features/repositories/components/repository-list';
-import type { GithubRepoRow } from '@/features/repositories/lib/github-repos';
-import {
-  FREE_TIER_REPO_LIMIT,
-  type SelectedRepository,
-} from '@/features/repositories/types/repository';
+import { useRepositoryPicker } from '@/features/repositories/context/repository-picker';
+import { FREE_TIER_REPO_LIMIT } from '@/features/repositories/types/repository';
 import { ScreenFooter } from '@/features/shell/components/screen-footer';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { SaveIcon, Search } from 'lucide-react-native';
 import * as React from 'react';
 import { ActivityIndicator, Platform, TextInput, View } from 'react-native';
 
-type RepositoryPickerScreenProps = {
-  title: string;
-  description: string;
-  isPro: boolean;
-  query: string;
-  onQueryChange: (value: string) => void;
-  filtered: GithubRepoRow[];
-  selected: SelectedRepository[];
-  selectedIds: ReadonlySet<number>;
-  onToggle: (repo: GithubRepoRow) => void;
-  loadingRepos: boolean;
-  loadError: string | null;
-  onRetryLoad?: () => void;
-  onReconnectGitHub?: () => void;
-  saveError: string | null;
-  saving: boolean;
-  primaryLabel: string;
-  onPrimary: () => void;
-  secondaryLabel?: string;
-  onSecondary?: () => void;
-  outlineLabel?: string;
-  onOutline?: () => void;
-};
+export function RepositoryPickerScreen() {
+  const {
+    copy,
+    isPro,
+    query,
+    setQuery,
+    filtered,
+    selected,
+    selectedIds,
+    onToggle,
+    loadingRepos,
+    loadError,
+    onRetryLoad,
+    onReconnectGitHub,
+    saveError,
+    saving,
+    onPrimary,
+    onSecondary,
+    onOutline,
+  } = useRepositoryPicker();
 
-export function RepositoryPickerScreen({
-  title,
-  description,
-  isPro,
-  query,
-  onQueryChange,
-  filtered,
-  selected,
-  selectedIds,
-  onToggle,
-  loadingRepos,
-  loadError,
-  onRetryLoad,
-  onReconnectGitHub,
-  saveError,
-  saving,
-  primaryLabel,
-  onPrimary,
-  secondaryLabel,
-  onSecondary,
-  outlineLabel,
-  onOutline,
-}: RepositoryPickerScreenProps) {
   const limit = isPro ? null : FREE_TIER_REPO_LIMIT;
   const selectedCount = selected.length;
   const primaryForeground = useThemeColor('--color-primary-foreground');
@@ -74,10 +45,10 @@ export function RepositoryPickerScreen({
             variant="h3"
             className="text-foreground border-0 pb-0 tracking-tight"
           >
-            {title}
+            {copy.title}
           </Text>
           <Text className="text-muted-foreground text-sm leading-relaxed">
-            {description}
+            {copy.description}
           </Text>
         </View>
 
@@ -95,7 +66,7 @@ export function RepositoryPickerScreen({
           </View>
           <TextInput
             value={query}
-            onChangeText={onQueryChange}
+            onChangeText={setQuery}
             placeholder="Search repositories"
             placeholderTextColor={Platform.OS === 'ios' ? '#737373' : '#888'}
             className="border-input bg-background text-foreground rounded-md border py-2.5 pl-10 pr-3 text-sm"
@@ -120,16 +91,12 @@ export function RepositoryPickerScreen({
             </Text>
             <Text className="text-muted-foreground text-sm">{loadError}</Text>
             <View className="flex-row flex-wrap gap-2">
-              {onRetryLoad && (
-                <Button size="sm" variant="secondary" onPress={onRetryLoad}>
-                  <Text>Try again</Text>
-                </Button>
-              )}
-              {onReconnectGitHub && (
-                <Button size="sm" variant="outline" onPress={onReconnectGitHub}>
-                  <Text>Reconnect GitHub</Text>
-                </Button>
-              )}
+              <Button size="sm" variant="secondary" onPress={onRetryLoad}>
+                <Text>Try again</Text>
+              </Button>
+              <Button size="sm" variant="outline" onPress={onReconnectGitHub}>
+                <Text>Reconnect GitHub</Text>
+              </Button>
             </View>
           </View>
         ) : (
@@ -160,16 +127,16 @@ export function RepositoryPickerScreen({
           ) : (
             <Icon as={SaveIcon} size={16} color={primaryForeground} />
           )}
-          <Text>{saving ? 'Saving…' : primaryLabel}</Text>
+          <Text>{saving ? 'Saving…' : copy.primaryLabel}</Text>
         </Button>
-        {secondaryLabel && onSecondary && (
+        {copy.secondaryLabel && onSecondary && (
           <Button variant="secondary" disabled={saving} onPress={onSecondary}>
-            <Text>{secondaryLabel}</Text>
+            <Text>{copy.secondaryLabel}</Text>
           </Button>
         )}
-        {outlineLabel && onOutline && (
+        {copy.outlineLabel && onOutline && (
           <Button variant="outline" disabled={saving} onPress={onOutline}>
-            <Text>{outlineLabel}</Text>
+            <Text>{copy.outlineLabel}</Text>
           </Button>
         )}
       </ScreenFooter>

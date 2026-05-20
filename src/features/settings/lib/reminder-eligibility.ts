@@ -25,3 +25,15 @@ export function nextReminderDate(
   }
   return next;
 }
+
+export function parseReminderTime(timeLocal: string): Date {
+  const [hours, minutes] = timeLocal.split(':').map(Number);
+  const d = new Date();
+  d.setHours(
+    Number.isFinite(hours) ? hours : 9,
+    Number.isFinite(minutes) ? minutes : 0,
+    0,
+    0
+  );
+  return d;
+}

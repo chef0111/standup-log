@@ -4,6 +4,7 @@ import { Text } from '@/components/ui/text';
 import { MarketingHeader } from '@/features/shell/components/marketing-header';
 import { userFacingMessage } from '@/lib/errors';
 import { Link } from 'expo-router';
+import * as React from 'react';
 import { ScrollView } from 'react-native';
 
 export default function SetupScreen() {
