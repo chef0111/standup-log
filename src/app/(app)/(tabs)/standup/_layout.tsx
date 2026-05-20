@@ -1,0 +1,18 @@
+import { ScreenHeaderActions } from '@/features/shell';
+import { Stack } from 'expo-router';
+
+export default function StandupLayout() {
+  return (
+    <Stack
+      screenOptions={{
+        headerShown: true,
+        headerBackTitle: 'Back',
+        headerShadowVisible: false,
+        headerStyle: { backgroundColor: 'transparent' },
+        headerTitleStyle: { fontWeight: '600' },
+        contentStyle: { backgroundColor: 'transparent' },
+        headerRight: () => <ScreenHeaderActions />,
+      }}
+    />
+  );
+}

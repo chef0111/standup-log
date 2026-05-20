@@ -6,7 +6,7 @@ import { Text } from '@/components/ui/text';
 import { useAuth } from '@/features/auth';
 import { fetchUserProfile, type ProfileHomeRow } from '@/features/profile';
 import { parseSelectedRepositories } from '@/features/repositories';
-import { MarketingHeader, ScreenFooter } from '@/features/shell';
+import { MarketingHeader, ScreenFooter, ScreenHeaderActions } from '@/features/shell';
 import { useThemeColor } from '@/features/theme';
 import { defaultTargetWorkday } from '@/features/workday';
 import { useFocusEffect } from '@react-navigation/native';
@@ -91,7 +91,12 @@ export default function AppHomeScreen() {
   if (loadingProfile) {
     return (
       <>
-        <Stack.Screen options={{ title: 'Home' }} />
+        <Stack.Screen
+          options={{
+            title: 'Home',
+            headerRight: () => <ScreenHeaderActions />,
+          }}
+        />
         <View className="bg-background flex-1 items-center justify-center">
           <ActivityIndicator size="large" color={foreground} />
         </View>
@@ -102,7 +107,12 @@ export default function AppHomeScreen() {
   if (!profile) {
     return (
       <>
-        <Stack.Screen options={{ title: 'Home' }} />
+        <Stack.Screen
+          options={{
+            title: 'Home',
+            headerRight: () => <ScreenHeaderActions />,
+          }}
+        />
         <View className="bg-background flex-1 justify-center gap-4 p-6">
           <Card className="gap-3 p-6">
             <Text className="text-muted-foreground text-center text-sm leading-relaxed">
@@ -127,7 +137,12 @@ export default function AppHomeScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Home' }} />
+      <Stack.Screen
+        options={{
+          title: 'Home',
+          headerRight: () => <ScreenHeaderActions />,
+        }}
+      />
       <View className="bg-background flex-1">
         <ScrollView
           className="flex-1"
@@ -232,7 +247,7 @@ export default function AppHomeScreen() {
           </Button>
           <Button
             disabled={busy}
-            onPress={() => router.push('/(app)/settings')}
+            onPress={() => router.push('/settings')}
           >
             <RepositoryIcon size={16} className="text-primary-foreground" />
             <Text>Settings</Text>

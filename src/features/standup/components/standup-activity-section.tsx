@@ -28,7 +28,7 @@ export function StandupActivitySection() {
       error={activityError}
       onRefresh={refreshActivity}
       onReconnect={() => void signInWithGitHub()}
-      onManageRepos={() => router.push('/(app)/settings')}
+      onManageRepos={() => router.push('/settings/repositories')}
     />
   );
 }

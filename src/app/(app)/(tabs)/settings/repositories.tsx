@@ -24,7 +24,7 @@ import * as React from 'react';
 import { Alert } from 'react-native';
 
 export default function SettingsRepositoriesScreen() {
-  const goBack = useSafeRouterBack('/(app)/settings');
+  const goBack = useSafeRouterBack('/settings');
   const { supabase, session } = useAuth();
   const {
     token,

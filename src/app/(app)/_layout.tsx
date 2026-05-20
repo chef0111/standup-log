@@ -38,6 +38,12 @@ export default function AppGroupLayout() {
         contentStyle: { backgroundColor: 'transparent' },
         headerRight: () => <ScreenHeaderActions />,
       }}
-    />
+    >
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen
+        name="onboarding"
+        options={{ title: 'Select repositories', headerShown: true }}
+      />
+    </Stack>
   );
 }
