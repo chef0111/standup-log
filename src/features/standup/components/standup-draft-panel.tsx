@@ -3,6 +3,8 @@ import { ButtonSpinner } from '@/components/ui/button-spinner';
 import { Text } from '@/components/ui/text';
 import { useAuth } from '@/features/auth';
 import { AiGenerationQuota } from '@/features/standup/components/ai-generation-quota';
+import { EmptyWorkdayGuide } from '@/features/standup/components/empty-workday-guide';
+import { isWorkdayInputEmpty } from '@/features/standup/lib/build-no-update-standup';
 import { CopyFormatPicker } from '@/features/standup/components/copy-format-picker';
 import { CopyToast } from '@/features/standup/components/copy-toast';
 import { StandupMarkdownEditor } from '@/features/standup/components/standup-markdown-editor';
@@ -11,6 +13,7 @@ import type { CopyFormat } from '@/features/standup/lib/format-standup';
 import {
   buildEmptyStandupTemplate,
   composeManualMarkdown,
+  isStandupMarkdownEmpty,
   isStandupSummaryReady,
 } from '@/features/standup/lib/compose-standup-markdown';
 import { saveStandupUpdate } from '@/features/standup/lib/standup-api';
@@ -51,7 +54,10 @@ export function StandupDraftPanel() {
     aiRateLimited,
     regenerateDraft,
     onStandupSaved: onSaved,
+    openAddNote,
   } = useStandup();
+
+  const [guideDismissed, setGuideDismissed] = React.useState(false);
 
   const composed = React.useMemo(
     () =>
@@ -66,6 +72,11 @@ export function StandupDraftPanel() {
 
   const baselineMarkdown =
     providerDraft ?? initialSaved ?? buildEmptyStandupTemplate(workday);
+
+  const showEmptyGuide =
+    !guideDismissed &&
+    isWorkdayInputEmpty(commits.length, notes.length) &&
+    isStandupMarkdownEmpty(baselineMarkdown);
 
   const [markdown, setMarkdown] = React.useState(baselineMarkdown);
   const [saving, setSaving] = React.useState(false);
@@ -84,7 +95,8 @@ export function StandupDraftPanel() {
 
   React.useEffect(() => {
     setMarkdown(baselineMarkdown);
-  }, [baselineMarkdown]);
+    setGuideDismissed(false);
+  }, [baselineMarkdown, workday]);
 
   const handleSave = async () => {
     if (!supabase || !session) {
@@ -121,6 +133,25 @@ export function StandupDraftPanel() {
           <Text>View standup</Text>
         </Button>
       </View>
+
+      {showEmptyGuide ? (
+        <EmptyWorkdayGuide
+          workday={workday}
+          onHadWork={() => {
+            setGuideDismissed(true);
+            openAddNote();
+          }}
+          onAddBlockerNote={() => {
+            setGuideDismissed(true);
+            openAddNote();
+          }}
+          onApplyDraft={(next) => {
+            setMarkdown(next);
+            setGuideDismissed(true);
+          }}
+          onDismiss={() => setGuideDismissed(true)}
+        />
+      ) : null}
 
       <StandupMarkdownEditor
         mode="edit"

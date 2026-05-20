@@ -86,6 +86,7 @@ _Avoid_: Connected repo, tracked repo, watched repo
 - **Activity Metadata** may be retained to regenerate and audit **AI Drafts**, but code diffs are not retained.
 - A developer may choose one or more **Selected Repositories** as sources of **Activity Signals**.
 - Opening **Generate standup** defaults to the previous local **Workday**; the developer may pick another allowed day via the calendar and that selection persists while they stay on the screen.
+- When a **Workday** has no **Activity Signals** and no **Manual Notes**, a guided flow can produce an explicit no-update **Standup Update** the developer edits before copying.
 
 ## Example dialogue
 

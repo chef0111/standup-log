@@ -28,18 +28,20 @@ Use this as a release-readiness index; gates should stay checked only after veri
 - **Phase 7** — Copy formats, clipboard, streak on copy (all gates) - [DONE]
 - **Phase 8** — Entitlements: free vs Pro (all gates) - [DONE]
 - **Phase 9** — Engagement: weekly summary + reminders (all gates) - [DONE]
-- **Phase 10** — Should-have sweep (all gates)
+- **Phase 10** — Should-have sweep (all gates) - [DONE]
 - **Phase 11** — Hardening, analytics, beta readiness (all gates)
 
 ---
 
 ## Structuring options (pick implicit default below)
 
+
 | Approach                         | Idea                                                                                              | Upside                                                | Downside                                        |
 | -------------------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------------------------------- | ----------------------------------------------- |
 | **A. Layer cake**                | Infra → DB → all APIs → all UI                                                                    | Clear ownership by layer                              | Long time before usable “generate standup” demo |
 | **B. Pure vertical slices**      | Each slice is end-to-end feature                                                                  | Fast user-visible value                               | Repeated schema/API churn early                 |
 | **C. Risk-first spine** (chosen) | Thin E2E path first (auth → repos → fake/static draft → copy), then real GitHub + AI + engagement | Validates hardest unknowns early; demo stays runnable | Requires discipline to avoid “throwaway” UI     |
+
 
 **Chosen:** **C — risk-first spine**, with **B-style vertical completion** inside the core “generate → edit → copy” slice once schema stabilizes after Phase 4.
 
@@ -199,13 +201,13 @@ Use this as a release-readiness index; gates should stay checked only after veri
 
 ### Checklist
 
-- [x] Entitlement source of truth (Stripe subscription vs manual Pro flag for beta) — **open implementation choice**; product behavior is fixed above.
-- [x] Enforce repo count + history window in sync queries.
-- [x] Upgrade surfaces: repo cap, history cap, weekly summary locked sections.
+- Entitlement source of truth (Stripe subscription vs manual Pro flag for beta) — **open implementation choice**; product behavior is fixed above.
+- Enforce repo count + history window in sync queries.
+- Upgrade surfaces: repo cap, history cap, weekly summary locked sections.
 
 ### Phase gate
 
-- [x] Free user cannot exceed 3 selected repos or 30-day fetch window; Pro user can (test with flagged account).
+- Free user cannot exceed 3 selected repos or 30-day fetch window; Pro user can (test with flagged account).
 
 ---
 
@@ -215,31 +217,31 @@ Use this as a release-readiness index; gates should stay checked only after veri
 
 ### Checklist
 
-- [x] Weekly aggregation queries from stored standups/classifications.
-- [x] Preview gating UX (what exactly is blurred/limited — align with PRD open question on preview limits; pick a simple rule in implementation plan).
-- [x] Expo Notifications: permission UX, scheduling, re-schedule on settings change.
-- [x] “Copied yesterday?” signal feeding reminder eligibility.
+- Weekly aggregation queries from stored standups/classifications.
+- Preview gating UX (what exactly is blurred/limited — align with PRD open question on preview limits; pick a simple rule in implementation plan).
+- Expo Notifications: permission UX, scheduling, re-schedule on settings change.
+- “Copied yesterday?” signal feeding reminder eligibility.
 
 ### Phase gate
 
-- [x] Toggle system time / simulate: reminder fires per rules; does not fire when standup already copied for prior Workday.
+- Toggle system time / simulate: reminder fires per rules; does not fire when standup already copied for prior Workday.
 
 ---
 
-## Phase 10 — Should-have sweep (still MVP scope)
+## Phase 10 — Should-have sweep (still MVP scope) - [DONE]
 
 **Outcome:** PRD should-haves shipped or consciously deferred with issue links.
 
 ### Checklist
 
-- Voice note (≤30s): microphone permission → **on-device OS speech-to-text** → edit transcript → save as Manual Note; retry + text fallback per PRD; **no** Edge upload for audio/STT, **no** cloud STT API.
-- Editable **Work Type** on commits/signals affecting weekly summary.
-- Empty activity UX: no commits path + confirm copy for “no update” if product chooses that branch (PRD open question — pick in implementation plan).
-- Settings: default copy format (if not already in Phase 7).
+- [x] Voice note (≤30s): microphone permission → **on-device OS speech-to-text** → edit transcript → save as Manual Note; retry + text fallback per PRD; **no** Edge upload for audio/STT, **no** cloud STT API.
+- [x] Editable **Work Type** on commits/signals affecting weekly summary.
+- [x] Empty activity UX: guided no-update flow when zero commits and zero notes.
+- [x] Settings: default copy format (if not already in Phase 7).
 
 ### Phase gate
 
-- Voice happy path + deny-permission path + transcription-failure path all non-blocking for core standup flow.
+- [x] Voice happy path + deny-permission path + transcription-failure path all non-blocking for core standup flow.
 
 ---
 

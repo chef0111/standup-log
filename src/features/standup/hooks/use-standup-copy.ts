@@ -1,6 +1,6 @@
 import { useAuth } from '@/features/auth';
 import { fetchUserProfile } from '@/features/profile';
-import { isStandupMarkdownEmpty } from '@/features/standup/lib/compose-standup-markdown';
+import { isStandupCopyEmpty } from '@/features/standup/lib/build-no-update-standup';
 import {
   formatStandupForCopy,
   formatStandupSummaryForCopy,
@@ -99,7 +99,7 @@ export function useStandupCopy(
   }, [copyFormat, markdown, recordCopy, session, supabase]);
 
   const copyFullWithConfirm = React.useCallback(() => {
-    if (isStandupMarkdownEmpty(markdown)) {
+    if (isStandupCopyEmpty(markdown)) {
       Alert.alert(
         'Empty standup',
         'This standup has no activity or notes. Copy anyway?',
