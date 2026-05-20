@@ -7,4 +7,10 @@ export {
   isWorkdayWithinHistory,
   type ActivitySyncGuardResult,
 } from './lib/entitlements';
+export {
+  formatRepoLimitError,
+  isFreeTierRepoLimitError,
+  UpgradeSheet,
+  type UpgradeReason,
+} from './components/upgrade-sheet';
 export { useEntitlements } from './hooks/use-entitlements';

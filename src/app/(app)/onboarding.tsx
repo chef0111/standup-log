@@ -3,6 +3,11 @@ import {
   useAuth,
   useGitHubAccessToken,
 } from '@/features/auth';
+import {
+  canSelectRepository,
+  formatRepoLimitError,
+  UpgradeSheet,
+} from '@/features/entitlements';
 import { fetchUserProfile } from '@/features/profile';
 import {
   fetchUserRepos,
@@ -37,6 +42,7 @@ export default function OnboardingRepositoriesScreen() {
   const [selected, setSelected] = React.useState<SelectedRepository[]>([]);
   const [saving, setSaving] = React.useState(false);
   const [saveError, setSaveError] = React.useState<string | null>(null);
+  const [upgradeOpen, setUpgradeOpen] = React.useState(false);
 
   React.useEffect(() => {
     if (!supabase || !session) {
@@ -126,12 +132,8 @@ export default function OnboardingRepositoriesScreen() {
         if (exists) {
           return prev.filter((p) => p.id !== repo.id);
         }
-        if (!isPro && prev.length >= FREE_TIER_REPO_LIMIT) {
-          Alert.alert(
-            'Repository limit',
-            'Free accounts can track up to three repositories. Upgrade to Pro (coming soon) for unlimited repos.',
-            [{ text: 'OK' }]
-          );
+        if (!canSelectRepository(prev.length, isPro)) {
+          setUpgradeOpen(true);
           return prev;
         }
         return [
@@ -161,7 +163,7 @@ export default function OnboardingRepositoriesScreen() {
       setSaving(false);
 
       if (error) {
-        setSaveError(error.message);
+        setSaveError(formatRepoLimitError(error.message));
         return;
       }
 
@@ -192,7 +194,7 @@ export default function OnboardingRepositoriesScreen() {
         description={
           isPro
             ? 'Pick which repositories StandupLog can use as activity sources. You can change this anytime in settings.'
-            : `Free accounts can track up to ${FREE_TIER_REPO_LIMIT} repositories. Pro unlocks unlimited selection (coming soon).`
+            : `Free accounts can track up to ${FREE_TIER_REPO_LIMIT} repositories. Pro unlocks unlimited selection.`
         }
         isPro={isPro}
         query={query}
@@ -211,6 +213,11 @@ export default function OnboardingRepositoriesScreen() {
         onPrimary={() => void finishOnboarding(selected)}
         secondaryLabel="Skip for now"
         onSecondary={() => void finishOnboarding([])}
+      />
+      <UpgradeSheet
+        open={upgradeOpen}
+        onOpenChange={setUpgradeOpen}
+        reason="repos"
       />
     </>
   );
