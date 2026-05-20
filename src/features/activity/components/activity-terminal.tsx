@@ -3,19 +3,18 @@ import { Button } from '@/components/ui/button';
 import { ButtonSpinner } from '@/components/ui/button-spinner';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
+import { commitFirstLine } from '@/features/activity/lib/parse-commit-work-type';
 import {
-  commitFirstLine,
-  parseCommitWorkType,
-  type CommitWorkType,
-  type ParsedCommitWorkType,
-} from '@/features/activity/lib/parse-commit-work-type';
+  resolveCommitWorkType,
+  type WorkTypeDisplay,
+} from '@/features/activity/lib/stored-work-type';
 import type { ActivityCommitRow } from '@/features/activity/types/activity-commit';
 import { useThemeColor } from '@/features/theme/hooks/use-theme-color.web';
 import type { Workday } from '@/features/workday/types/workday';
 import { cn } from '@/lib/utils';
 import { RefreshCw } from 'lucide-react-native';
 import * as React from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, Pressable, View } from 'react-native';
 
 type ActivityTerminalProps = {
   workday: Workday;
@@ -29,29 +28,33 @@ type ActivityTerminalProps = {
   onRefresh?: () => void;
   onReconnect?: () => void;
   onManageRepos?: () => void;
+  onEditWorkType?: (commit: ActivityCommitRow) => void;
 };
 
-const WORK_TYPE_BADGE_CLASS: Record<CommitWorkType, string> = {
+const WORK_TYPE_BADGE_CLASS: Record<WorkTypeDisplay['type'], string> = {
   feature: 'border-transparent bg-green-500/20',
   bug: 'border-transparent bg-destructive/15',
   refactor: 'border-transparent bg-blue-500/20',
+  test: 'border-transparent bg-purple-500/20',
   chore: 'border-transparent bg-muted',
   style: 'border-transparent bg-amber-500/20',
 };
 
-const WORK_TYPE_BADGE_TEXT_CLASS: Record<CommitWorkType, string> = {
+const WORK_TYPE_BADGE_TEXT_CLASS: Record<WorkTypeDisplay['type'], string> = {
   feature: 'text-green-500',
   bug: 'text-destructive',
   refactor: 'text-blue-500',
+  test: 'text-purple-500',
   chore: 'text-muted-foreground',
   style: 'text-amber-500',
 };
 
-const SYMBOL_STYLES: Record<ParsedCommitWorkType['symbol'], string> = {
+const SYMBOL_STYLES: Record<WorkTypeDisplay['symbol'], string> = {
   '+': 'text-green-500',
   '!': 'text-destructive',
   '~': 'text-blue-500',
   $: 'text-amber-500',
+  T: 'text-purple-500',
 };
 
 function formatLogTime(iso: string): string {
@@ -74,31 +77,49 @@ function formatWorkdayTitle(workday: Workday): string {
   }).format(new Date(year, month - 1, day));
 }
 
-function WorkTypeBadge({ label }: { label: CommitWorkType }) {
-  return (
+function WorkTypeBadge({
+  display,
+  onPress,
+}: {
+  display: WorkTypeDisplay;
+  onPress?: () => void;
+}) {
+  const badge = (
     <Badge
       variant="outline"
-      className={cn('px-2 py-0.5', WORK_TYPE_BADGE_CLASS[label])}
+      className={cn('px-2 py-0.5', WORK_TYPE_BADGE_CLASS[display.type])}
     >
       <Text
         selectable
         className={cn(
           'font-mono text-[10px] leading-none',
-          WORK_TYPE_BADGE_TEXT_CLASS[label]
+          WORK_TYPE_BADGE_TEXT_CLASS[display.type]
         )}
       >
-        {label}
+        {display.label}
       </Text>
     </Badge>
+  );
+
+  if (!onPress) {
+    return badge;
+  }
+
+  return (
+    <Pressable accessibilityRole="button" onPress={onPress}>
+      {badge}
+    </Pressable>
   );
 }
 
 const ActivityLogLine = React.memo(function ActivityLogLine({
   item,
+  onEditWorkType,
 }: {
   item: ActivityCommitRow;
+  onEditWorkType?: (commit: ActivityCommitRow) => void;
 }) {
-  const workType = parseCommitWorkType(item.message);
+  const workType = resolveCommitWorkType(item);
   const summary = commitFirstLine(item.message);
 
   return (
@@ -126,7 +147,23 @@ const ActivityLogLine = React.memo(function ActivityLogLine({
         >
           {summary}
         </Text>
-        {workType ? <WorkTypeBadge label={workType.label} /> : null}
+        {workType ? (
+          <WorkTypeBadge
+            display={workType}
+            onPress={
+              onEditWorkType ? () => onEditWorkType(item) : undefined
+            }
+          />
+        ) : onEditWorkType ? (
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => onEditWorkType(item)}
+          >
+            <Text className="text-terminal-muted font-mono text-[10px]">
+              + type
+            </Text>
+          </Pressable>
+        ) : null}
       </View>
       {item.pr_number != null ? (
         <Text
@@ -201,6 +238,7 @@ export function ActivityTerminal({
   onRefresh,
   onReconnect,
   onManageRepos,
+  onEditWorkType,
 }: ActivityTerminalProps) {
   const refreshDisabled = syncing || tokenLoading || !hasToken;
   const foreground = useThemeColor('--color-foreground');
@@ -251,7 +289,11 @@ export function ActivityTerminal({
         ) : (
           <View>
             {commits.map((item) => (
-              <ActivityLogLine key={item.sha} item={item} />
+              <ActivityLogLine
+                key={item.sha}
+                item={item}
+                onEditWorkType={onEditWorkType}
+              />
             ))}
           </View>
         )}
