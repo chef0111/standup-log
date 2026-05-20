@@ -56,8 +56,7 @@ export function VoiceNoteSheet({
     setIsCarryForward(false);
     reset();
     void startRecording();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleCancel = () => {
     reset();

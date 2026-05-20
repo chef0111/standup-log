@@ -21,6 +21,7 @@ export function StandupActivitySection() {
     tokenLoading,
     token,
     activityError,
+    rateLimitResetAt,
     refreshActivity,
   } = useStandup();
 
@@ -59,8 +60,9 @@ export function StandupActivitySection() {
         syncing={syncing}
         tokenLoading={tokenLoading}
         hasToken={Boolean(token)}
-        error={activityError}
-        onRefresh={refreshActivity}
+      error={activityError}
+      rateLimitResetAt={rateLimitResetAt}
+      onRefresh={refreshActivity}
         onReconnect={() => void signInWithGitHub()}
         onManageRepos={() => router.push('/settings/repositories')}
         onEditWorkType={setEditingCommit}

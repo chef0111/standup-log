@@ -29,7 +29,7 @@ Use this as a release-readiness index; gates should stay checked only after veri
 - **Phase 8** — Entitlements: free vs Pro (all gates) - [DONE]
 - **Phase 9** — Engagement: weekly summary + reminders (all gates) - [DONE]
 - **Phase 10** — Should-have sweep (all gates) - [DONE]
-- **Phase 11** — Hardening, analytics, beta readiness (all gates)
+- **Phase 11** — Hardening, analytics, beta readiness (all gates) - [DONE]
 
 ---
 
@@ -245,20 +245,20 @@ Use this as a release-readiness index; gates should stay checked only after veri
 
 ---
 
-## Phase 11 — Hardening, analytics, beta readiness
+## Phase 11 — Hardening, analytics, beta readiness - [DONE]
 
 **Outcome:** Instrumentation for PRD funnel metrics; crash/ANR budget; privacy copy; store submission readiness checklist.
 
 ### Checklist
 
-- Analytics events list from PRD §13 wired with privacy review (no commit bodies).
-- Rate limit handling for GitHub + backoff UX.
-- Content safety review for AI outputs (abuse, sensitive repo names) — product-level handling: user edit always wins.
-- Beta / TestFlight / Play internal testing gates.
+- [x] Analytics events list from PRD §13 wired with privacy review (no commit bodies).
+- [x] Rate limit handling for GitHub + backoff UX.
+- [x] Content safety review for AI outputs (abuse, sensitive repo names) — product-level handling: user edit always wins.
+- [x] Beta / TestFlight / Play internal testing gates (`eas.json`, bundle IDs, README operator notes).
 
 ### Phase gate
 
-- Core funnel measurable end-to-end: install → GitHub → select repos → generate → copy (time-to-first-copy experiment possible).
+- [x] Core funnel measurable end-to-end: install → GitHub → select repos → generate → copy (time-to-first-copy experiment possible).
 
 ---
 

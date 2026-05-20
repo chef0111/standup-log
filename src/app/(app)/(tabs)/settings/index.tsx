@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { useAuth } from '@/features/auth';
 import { UpgradeSheet } from '@/features/entitlements';
+import { deleteAccount } from '@/features/account/lib/delete-account';
 import { fetchUserProfile } from '@/features/profile';
 import { updateDefaultCopyFormat } from '@/features/profile/lib/update-default-copy-format';
 import { scheduleStandupReminder } from '@/features/reminders';
@@ -77,6 +78,61 @@ export default function SettingsScreen() {
     }
   }, [router, supabase]);
 
+  const onDisconnectGitHub = React.useCallback(() => {
+    if (!supabase || !session) {
+      return;
+    }
+    Alert.alert(
+      'Disconnect GitHub',
+      'StandupLog uses read-only GitHub access for selected repositories. Disconnecting clears your repo selection; sign in again to sync activity.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Disconnect',
+          style: 'destructive',
+          onPress: () => {
+            void (async () => {
+              await supabase
+                .from('profiles')
+                .update({ selected_repositories: [] })
+                .eq('id', session.user.id);
+              await onSignOut();
+            })();
+          },
+        },
+      ]
+    );
+  }, [onSignOut, session, supabase]);
+
+  const onDeleteAccount = React.useCallback(() => {
+    if (!supabase || !session) {
+      return;
+    }
+    Alert.alert(
+      'Delete account',
+      'This permanently deletes your standups, notes, activity metadata, and settings. This cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            void (async () => {
+              setBusy(true);
+              const { error } = await deleteAccount(supabase);
+              setBusy(false);
+              if (error) {
+                Alert.alert('Delete failed', error);
+                return;
+              }
+              await onSignOut();
+            })();
+          },
+        },
+      ]
+    );
+  }, [onSignOut, session, supabase]);
+
   const persistReminder = async (enabled: boolean, time: Date) => {
     if (!supabase || !session) {
       return;
@@ -117,6 +173,10 @@ export default function SettingsScreen() {
       >
         <Button onPress={() => router.push('/settings/repositories')}>
           <Text>Manage repositories</Text>
+        </Button>
+
+        <Button variant="outline" onPress={() => router.push('/settings/privacy')}>
+          <Text>Privacy</Text>
         </Button>
 
         <Button variant="outline" onPress={() => setUpgradeOpen(true)}>
@@ -177,9 +237,21 @@ export default function SettingsScreen() {
         <Button
           variant="outline"
           disabled={busy}
+          onPress={() => void onDisconnectGitHub()}
+        >
+          <Text>Disconnect GitHub</Text>
+        </Button>
+
+        <Button
+          variant="outline"
+          disabled={busy}
           onPress={() => void onSignOut()}
         >
           <Text>Sign out</Text>
+        </Button>
+
+        <Button variant="outline" disabled={busy} onPress={onDeleteAccount}>
+          <Text className="text-destructive">Delete account</Text>
         </Button>
       </ScrollView>
 

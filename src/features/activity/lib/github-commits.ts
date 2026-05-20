@@ -1,4 +1,8 @@
 import type { ActivityCommitInsert } from '@/features/activity/types/activity-commit';
+import {
+  assertGithubRateLimit,
+  githubHttpErrorMessage,
+} from '@/features/activity/lib/github-rate-limit';
 import { AppError } from '@/lib/errors';
 
 const GITHUB_HEADERS = {
@@ -28,14 +32,10 @@ export type ParsedCommit = Omit<
   'user_id' | 'workday' | 'synced_at'
 >;
 
-function checkRateLimit(res: Response): void {
-  const remaining = res.headers.get('x-ratelimit-remaining');
-  if (remaining === '0') {
-    throw new AppError(
-      'github',
-      'GitHub rate limit reached. Try again in a few minutes.'
-    );
-  }
+const REPO_SYNC_DELAY_MS = 200;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function githubAuthHeaders(token: string): Record<string, string> {
@@ -147,16 +147,13 @@ async function fetchRepoCommitsPage(
   const res = await fetch(url.toString(), {
     headers: githubAuthHeaders(token),
   });
-  checkRateLimit(res);
+  assertGithubRateLimit(res);
 
   if (res.status === 401 || res.status === 403) {
-    throw new AppError(
-      'github',
-      'GitHub rejected this request. Reconnect your account and try again.'
-    );
+    throw new AppError('github', githubHttpErrorMessage(res.status));
   }
   if (!res.ok) {
-    throw new AppError('github', `GitHub request failed (${res.status}).`);
+    throw new AppError('github', githubHttpErrorMessage(res.status));
   }
 
   const chunk = (await res.json()) as GithubCommitApi[];
@@ -272,6 +269,9 @@ export async function fetchAllRepoCommitsForWorkday(input: {
     );
     for (const chunk of results) {
       all.push(...chunk);
+    }
+    if (i + CONCURRENCY < repos.length) {
+      await sleep(REPO_SYNC_DELAY_MS);
     }
   }
 

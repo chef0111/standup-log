@@ -16,6 +16,7 @@ export type StandupContextValue = {
   loadingActivity: boolean;
   syncing: boolean;
   activityError: string | null;
+  rateLimitResetAt: number | null;
   token: ReturnType<typeof useActivitySync>['token'];
   tokenLoading: boolean;
   refreshActivity: () => void;

@@ -8,6 +8,7 @@ import {
   resolveCommitWorkType,
   type WorkTypeDisplay,
 } from '@/features/activity/lib/stored-work-type';
+import { GithubRateLimitBanner } from '@/features/activity/components/github-rate-limit-banner';
 import type { ActivityCommitRow } from '@/features/activity/types/activity-commit';
 import { useThemeColor } from '@/features/theme/hooks/use-theme-color.web';
 import type { Workday } from '@/features/workday/types/workday';
@@ -29,6 +30,7 @@ type ActivityTerminalProps = {
   onReconnect?: () => void;
   onManageRepos?: () => void;
   onEditWorkType?: (commit: ActivityCommitRow) => void;
+  rateLimitResetAt?: number | null;
 };
 
 const WORK_TYPE_BADGE_CLASS: Record<WorkTypeDisplay['type'], string> = {
@@ -239,8 +241,12 @@ export function ActivityTerminal({
   onReconnect,
   onManageRepos,
   onEditWorkType,
+  rateLimitResetAt,
 }: ActivityTerminalProps) {
-  const refreshDisabled = syncing || tokenLoading || !hasToken;
+  const rateLimited =
+    rateLimitResetAt != null && rateLimitResetAt > Date.now();
+  const refreshDisabled =
+    syncing || tokenLoading || !hasToken || rateLimited;
   const foreground = useThemeColor('--color-foreground');
 
   return (
@@ -252,6 +258,9 @@ export function ActivityTerminal({
         onRefresh={onRefresh}
       />
       <TerminalBody>
+        {rateLimited && rateLimitResetAt ? (
+          <GithubRateLimitBanner resetAt={rateLimitResetAt} />
+        ) : null}
         {!hasToken && !tokenLoading ? (
           <View className="gap-3 py-4">
             <Text selectable className="text-terminal-muted font-mono text-xs">

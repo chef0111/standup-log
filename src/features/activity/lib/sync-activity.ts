@@ -2,6 +2,7 @@ import {
   fetchAllRepoCommitsForWorkday,
   type ParsedCommit,
 } from '@/features/activity/lib/github-commits';
+import { isGithubRateLimitError } from '@/features/activity/lib/github-rate-limit';
 import {
   ACTIVITY_COMMIT_COLUMNS,
   type ActivityCommitRow,
@@ -36,7 +37,11 @@ export async function syncActivityForWorkday(input: {
   githubUserId: number | null;
   githubLogin: string | null;
   timeZone?: string;
-}): Promise<{ commits: ActivityCommitRow[]; error: string | null }> {
+}): Promise<{
+  commits: ActivityCommitRow[];
+  error: string | null;
+  rateLimitResetAt?: number | null;
+}> {
   const { since, until } = workdayUtcBounds(input.workday, input.timeZone);
   const repoNames = input.repos.map((r) => r.full_name);
 
@@ -53,7 +58,11 @@ export async function syncActivityForWorkday(input: {
     });
   } catch (e) {
     const message = e instanceof Error ? e.message : 'GitHub sync failed.';
-    return { commits: [], error: message };
+    return {
+      commits: [],
+      error: message,
+      rateLimitResetAt: isGithubRateLimitError(e) ? e.resetAt : null,
+    };
   }
 
   if (parsed.length === 0) {

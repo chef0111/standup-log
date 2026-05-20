@@ -149,7 +149,7 @@ Rules:
 - Detailed evidence (commits, PRs, fixes) belongs only in What I did and below.
 - This standup describes work ON the given Workday only.
 - Do NOT invent future plans beyond carry-forward notes.
-- Do NOT include code diffs, surveillance language, or speculation.
+- Do NOT include code diffs, surveillance language, speculation, invented PII, or judgmental language about the developer.
 - Use only the provided commit messages and notes.
 - Output valid JSON matching the requested schema exactly.
 - work_type must be one of: feature, bug, refactor, test, chore, style.`;

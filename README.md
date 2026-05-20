@@ -16,6 +16,8 @@ Create **`.env.local`** in the project root (never commit secrets). The app read
 | `EXPO_PUBLIC_SUPABASE_URL` | Yes | Supabase project URL (`https://xxx.supabase.co`) |
 | `EXPO_PUBLIC_SUPABASE_ANON_KEY` | Yes* | Supabase anon (publishable) key |
 | `EXPO_PUBLIC_SUPABASE_KEY` | Legacy | Accepted if `EXPO_PUBLIC_SUPABASE_ANON_KEY` is unset |
+| `EXPO_PUBLIC_POSTHOG_KEY` | No | PostHog project key for product analytics (optional) |
+| `EXPO_PUBLIC_POSTHOG_HOST` | No | PostHog host (default `https://us.i.posthog.com`) |
 
 \*Use the **anon** key from [Supabase Dashboard → Settings → API](https://supabase.com/dashboard/project/_/settings/api). Do **not** put the **service_role** key in any `EXPO_PUBLIC_*` variable.
 
@@ -59,6 +61,18 @@ pnpm lint           # expo lint
 - `src/app/` — Expo Router routes (`(public)` pre-auth, `(app)` authed shell)
 - `src/components/ui/` — [React Native Reusables](https://reactnativereusables.com/) primitives
 - `src/utils/supabase.ts` — Supabase client factory (`getSupabase()` returns `null` when env is incomplete)
+
+## Beta builds (EAS)
+
+Voice notes and native speech recognition require a **development build** (not Expo Go).
+
+```bash
+bun install
+bunx eas-cli build --profile development --platform ios
+bunx eas-cli build --profile development --platform android
+```
+
+After adding `expo-speech-recognition` or `expo-notifications`, rebuild the native client. See [docs/analytics-privacy.md](docs/analytics-privacy.md) and [docs/ai-content-safety.md](docs/ai-content-safety.md).
 
 ## Learn more
 

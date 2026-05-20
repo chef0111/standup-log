@@ -15,6 +15,7 @@ import {
 import { fetchUserProfile } from '@/features/profile';
 import { parseSelectedRepositories } from '@/features/repositories';
 import type { Workday } from '@/features/workday/types/workday';
+import { isGithubRateLimitError } from '@/features/activity/lib/github-rate-limit';
 import { useGitHubAccessToken } from '@/hooks/use-github-access-token';
 import * as React from 'react';
 
@@ -39,6 +40,9 @@ export function useActivitySync(workday: Workday, isPro: boolean) {
   const [error, setError] = React.useState<string | null>(() =>
     readCachedError(workday)
   );
+  const [rateLimitResetAt, setRateLimitResetAt] = React.useState<number | null>(
+    null
+  );
 
   const syncFromGitHub = React.useCallback(
     async (targetWorkday: Workday) => {
@@ -48,6 +52,7 @@ export function useActivitySync(workday: Workday, isPro: boolean) {
           error: tokenLoading
             ? null
             : 'GitHub access is not available. Reconnect GitHub to sync activity.',
+          rateLimitResetAt: null,
         };
       }
 
@@ -59,6 +64,7 @@ export function useActivitySync(workday: Workday, isPro: boolean) {
         return {
           commits: [] as ActivityCommitRow[],
           error: profileError ?? 'Could not load profile.',
+          rateLimitResetAt: null,
         };
       }
 
@@ -74,18 +80,30 @@ export function useActivitySync(workday: Workday, isPro: boolean) {
         return {
           commits: stored,
           error: loadError ?? HISTORY_CAP_MESSAGE,
+          rateLimitResetAt: null,
         };
       }
 
-      return syncActivityForWorkday({
-        supabase,
-        token,
-        userId: session.user.id,
-        workday: targetWorkday,
-        repos,
-        githubUserId: profile.github_user_id ?? null,
-        githubLogin: profile.github_login,
-      });
+      try {
+        return await syncActivityForWorkday({
+          supabase,
+          token,
+          userId: session.user.id,
+          workday: targetWorkday,
+          repos,
+          githubUserId: profile.github_user_id ?? null,
+          githubLogin: profile.github_login,
+        });
+      } catch (e) {
+        if (isGithubRateLimitError(e)) {
+          return {
+            commits: [] as ActivityCommitRow[],
+            error: e.message,
+            rateLimitResetAt: e.resetAt,
+          };
+        }
+        throw e;
+      }
     },
     [isPro, session, supabase, token, tokenLoading]
   );
@@ -133,18 +151,18 @@ export function useActivitySync(workday: Workday, isPro: boolean) {
         }
 
         setSyncing(true);
-        const { commits: synced, error: syncError } =
-          await syncFromGitHub(workday);
+        const syncResult = await syncFromGitHub(workday);
         if (cancelled) {
           return;
         }
 
-        setCommits(synced);
-        setError(syncError);
+        setCommits(syncResult.commits);
+        setError(syncResult.error);
+        setRateLimitResetAt(syncResult.rateLimitResetAt ?? null);
         setSyncing(false);
         setActivityWorkdayCache(workday, {
-          commits: synced,
-          error: syncError,
+          commits: syncResult.commits,
+          error: syncResult.error,
           githubSynced: true,
         });
         return;
@@ -172,18 +190,18 @@ export function useActivitySync(workday: Workday, isPro: boolean) {
       }
 
       setSyncing(true);
-      const { commits: synced, error: syncError } =
-        await syncFromGitHub(workday);
+      const syncResult = await syncFromGitHub(workday);
       if (cancelled) {
         return;
       }
 
-      setCommits(synced);
-      setError(syncError);
+      setCommits(syncResult.commits);
+      setError(syncResult.error);
+      setRateLimitResetAt(syncResult.rateLimitResetAt ?? null);
       setSyncing(false);
       setActivityWorkdayCache(workday, {
-        commits: synced,
-        error: syncError,
+        commits: syncResult.commits,
+        error: syncResult.error,
         githubSynced: true,
       });
     }
@@ -199,14 +217,15 @@ export function useActivitySync(workday: Workday, isPro: boolean) {
     setSyncing(true);
     setError(null);
 
-    const { commits: synced, error: syncError } = await syncFromGitHub(workday);
+    const syncResult = await syncFromGitHub(workday);
 
-    setCommits(synced);
-    setError(syncError);
+    setCommits(syncResult.commits);
+    setError(syncResult.error);
+    setRateLimitResetAt(syncResult.rateLimitResetAt ?? null);
     setSyncing(false);
     setActivityWorkdayCache(workday, {
-      commits: synced,
-      error: syncError,
+      commits: syncResult.commits,
+      error: syncResult.error,
       githubSynced: true,
     });
   }, [syncFromGitHub, workday]);
@@ -216,6 +235,7 @@ export function useActivitySync(workday: Workday, isPro: boolean) {
     syncing,
     loading,
     error,
+    rateLimitResetAt,
     token,
     tokenLoading,
     refresh,
