@@ -112,7 +112,7 @@ export function StandupDraftPanel() {
   );
 
   const baselineMarkdown =
-    initialSaved ?? providerDraft ?? buildEmptyStandupTemplate(workday);
+    providerDraft ?? initialSaved ?? buildEmptyStandupTemplate(workday);
 
   const [markdown, setMarkdown] = React.useState(baselineMarkdown);
   const [editorMode, setEditorMode] = React.useState<StandupEditorMode>('edit');
