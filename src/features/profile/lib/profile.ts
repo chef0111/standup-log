@@ -3,7 +3,7 @@ import type { Workday } from '@/features/workday/types/workday';
 import type { Session, SupabaseClient } from '@supabase/supabase-js';
 
 export const PROFILE_HOME_COLUMNS =
-  'github_login, avatar_url, github_user_id, onboarding_completed_at, selected_repositories, is_pro, default_copy_format, current_streak, longest_streak, last_streak_workday' as const;
+  'github_login, avatar_url, github_user_id, onboarding_completed_at, selected_repositories, is_pro, default_copy_format, current_streak, longest_streak, last_streak_workday, reminder_enabled, reminder_time_local' as const;
 
 export type ProfileHomeRow = {
   github_login: string | null;
@@ -16,6 +16,8 @@ export type ProfileHomeRow = {
   current_streak: number;
   longest_streak: number;
   last_streak_workday: Workday | null;
+  reminder_enabled: boolean;
+  reminder_time_local: string;
 };
 
 function githubLoginFromSession(session: Session): string | null {

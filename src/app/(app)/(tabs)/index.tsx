@@ -6,6 +6,7 @@ import { useAuth } from '@/features/auth';
 import { fetchUserProfile, type ProfileHomeRow } from '@/features/profile';
 import { parseSelectedRepositories } from '@/features/repositories';
 import { StandupWidget } from '@/features/home';
+import { useStandupReminder } from '@/features/reminders';
 import { MarketingHeader, ScreenHeaderActions } from '@/features/shell';
 import { useThemeColor } from '@/features/theme';
 import { useFocusEffect } from '@react-navigation/native';
@@ -22,6 +23,8 @@ export default function AppHomeScreen() {
   const [loadingProfile, setLoadingProfile] = React.useState(true);
   const [status, setStatus] = React.useState<string | null>(null);
   const initialLoad = React.useRef(true);
+
+  useStandupReminder();
 
   const loadProfile = React.useCallback(async () => {
     if (!supabase || !session) {
