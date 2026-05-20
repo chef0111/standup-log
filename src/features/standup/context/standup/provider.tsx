@@ -18,6 +18,8 @@ import {
   getWorkdayPickerBounds,
 } from '@/features/workday';
 import type { Workday } from '@/features/workday/types/workday';
+import { markFirstEvent } from '@/lib/analytics-flags';
+import { track } from '@/lib/analytics';
 import { userFacingMessage } from '@/lib/errors';
 import { useFocusEffect } from '@react-navigation/native';
 import * as React from 'react';
@@ -196,8 +198,20 @@ export function StandupProvider({ children }: { children: React.ReactNode }) {
           result.draft.classifications
         );
       }
+      const firstDraft = await markFirstEvent(
+        session.user.id,
+        'first_draft_generated'
+      );
+      track('draft_generated', {
+        workday,
+        first_draft: firstDraft,
+      });
     } else {
       setDraftMarkdown(manualMarkdown);
+      track('draft_generation_failed', {
+        workday,
+        error_code: result.error ?? 'fallback',
+      });
       setAiError(
         result.error && result.error !== 'rate_limited'
           ? userFacingMessage('ai')
@@ -282,6 +296,10 @@ export function StandupProvider({ children }: { children: React.ReactNode }) {
       }
       setEditorOpen(false);
       setEditingNote(null);
+      track('manual_note_created', {
+        is_blocker: input.is_blocker,
+        is_carry_forward: input.is_carry_forward,
+      });
     },
     [addNote, editNote, editingNote]
   );

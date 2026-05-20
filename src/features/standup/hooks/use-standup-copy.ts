@@ -1,5 +1,7 @@
 import { useAuth } from '@/features/auth';
 import { fetchUserProfile } from '@/features/profile';
+import { markFirstEvent } from '@/lib/analytics-flags';
+import { track } from '@/lib/analytics';
 import { isStandupCopyEmpty } from '@/features/standup/lib/build-no-update-standup';
 import {
   formatStandupForCopy,
@@ -56,6 +58,16 @@ export function useStandupCopy(
       if (error) {
         return { error };
       }
+      const firstCopy = await markFirstEvent(
+        session.user.id,
+        'first_standup_copied'
+      );
+      track('standup_copied', {
+        workday,
+        format: copyFormat,
+        first_copy: firstCopy,
+      });
+      track('copy_format_selected', { format: copyFormat });
       setToastMessage(
         streakIncremented ? `${toastLabel} · Streak +1` : toastLabel
       );

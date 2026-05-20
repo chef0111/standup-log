@@ -46,6 +46,7 @@
     "lucide-react-native": "^1.16.0",
     "nativewind": "5.0.0-preview.2",
     "postcss": "^8.4.49",
+    "posthog-react-native": "^4.45.10",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "react-native": "0.83.6",

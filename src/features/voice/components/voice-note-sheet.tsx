@@ -10,9 +10,10 @@ import {
 import { Label } from '@/components/ui/label';
 import { Text } from '@/components/ui/text';
 import { Textarea } from '@/components/ui/textarea';
+import type { ManualNoteInput } from '@/features/notes/types/manual-note';
 import { useVoiceNoteCapture } from '@/features/voice/hooks/use-voice-note-capture';
 import { formatVoiceCountdown } from '@/features/voice/lib/voice-note-constants';
-import type { ManualNoteInput } from '@/features/notes/types/manual-note';
+import { track } from '@/lib/analytics';
 import * as React from 'react';
 import { Switch, View } from 'react-native';
 
@@ -55,7 +56,7 @@ export function VoiceNoteSheet({
     setIsCarryForward(false);
     reset();
     void startRecording();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- start when sheet opens only
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   const handleCancel = () => {
@@ -68,6 +69,7 @@ export function VoiceNoteSheet({
     if (body.length === 0) {
       return;
     }
+    track('voice_note_saved');
     await onSave({
       body,
       is_blocker: isBlocker,
@@ -91,7 +93,9 @@ export function VoiceNoteSheet({
 
       {phase === 'recording' ? (
         <View className="gap-2 py-2">
-          <Text className="text-foreground text-sm font-medium">Listening…</Text>
+          <Text className="text-foreground text-sm font-medium">
+            Listening…
+          </Text>
           <Text className="text-muted-foreground font-mono text-xs">
             {formatVoiceCountdown(secondsLeft)} remaining
           </Text>

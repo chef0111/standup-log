@@ -4,6 +4,7 @@ import {
   shouldScheduleReminder,
 } from '@/features/reminders/lib/reminder-eligibility';
 import { fetchStandupUpdate } from '@/features/standup/lib/standup-api';
+import { track } from '@/lib/analytics';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
@@ -47,8 +48,10 @@ export async function scheduleStandupReminder(input: {
 
   const permission = await Notifications.requestPermissionsAsync();
   if (!permission.granted) {
+    track('reminder_permission_denied');
     return { scheduled: false, reason: 'permission_denied' };
   }
+  track('reminder_permission_accepted');
 
   const priorWorkday = getReminderPriorWorkday();
   const { standup } = await fetchStandupUpdate(input.supabase, priorWorkday);

@@ -1,3 +1,4 @@
+import { track } from '@/lib/analytics';
 import { VOICE_NOTE_MAX_SECONDS } from '@/features/voice/lib/voice-note-constants';
 import {
   ExpoSpeechRecognitionModule,
@@ -55,6 +56,7 @@ export function useVoiceNoteCapture() {
     }
     if (event.isFinal && phaseRef.current === 'recording') {
       clearTimers();
+      track('voice_note_transcribed');
       setPhase('review');
     }
   });
@@ -99,6 +101,7 @@ export function useVoiceNoteCapture() {
     }
 
     setPhase('recording');
+    track('voice_note_recorded');
     countdownRef.current = setInterval(() => {
       setSecondsLeft((s) => Math.max(0, s - 1));
     }, 1000);

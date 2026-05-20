@@ -7,6 +7,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Text } from '@/components/ui/text';
+import { track } from '@/lib/analytics';
 import * as React from 'react';
 
 export type UpgradeReason = 'repos' | 'history' | 'weekly';
@@ -44,6 +45,12 @@ export function UpgradeSheet({
   reason = 'repos',
 }: UpgradeSheetProps) {
   const { title, description } = COPY[reason];
+
+  React.useEffect(() => {
+    if (open) {
+      track('upgrade_prompt_viewed', { reason });
+    }
+  }, [open, reason]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

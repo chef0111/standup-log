@@ -17,6 +17,7 @@ import {
   type GithubRepoRow,
   type SelectedRepository,
 } from '@/features/repositories';
+import { track } from '@/lib/analytics';
 import { AppError, userFacingMessage } from '@/lib/errors';
 import { Stack, useRouter } from 'expo-router';
 import * as React from 'react';
@@ -43,6 +44,10 @@ export default function OnboardingRepositoriesScreen() {
   const [saving, setSaving] = React.useState(false);
   const [saveError, setSaveError] = React.useState<string | null>(null);
   const [upgradeOpen, setUpgradeOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    track('onboarding_started');
+  }, []);
 
   React.useEffect(() => {
     if (!supabase || !session) {
@@ -167,6 +172,8 @@ export default function OnboardingRepositoriesScreen() {
         return;
       }
 
+      track('onboarding_completed');
+      track('repository_selection_completed', { count: reposPayload.length });
       router.replace('/(app)');
     },
     [router, session, supabase]

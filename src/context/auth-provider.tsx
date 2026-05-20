@@ -3,6 +3,7 @@ import {
   persistGitHubProviderToken,
 } from '@/features/auth/lib/github-token';
 import { createSessionFromUrl } from '@/features/auth/lib/oauth';
+import { identifyUser, resetAnalyticsUser, track } from '@/lib/analytics';
 import { getSupabase, isSupabaseConfigured } from '@/utils/supabase';
 import type { Session, SupabaseClient } from '@supabase/supabase-js';
 import * as Linking from 'expo-linking';
@@ -57,8 +58,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (next?.provider_token) {
         void persistGitHubProviderToken(next.provider_token);
       }
+      if (_event === 'SIGNED_IN' && next?.user) {
+        identifyUser(next.user.id);
+        track('github_oauth_success');
+      }
       if (_event === 'SIGNED_OUT') {
         void clearGitHubProviderToken();
+        resetAnalyticsUser();
       }
     });
 

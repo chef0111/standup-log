@@ -1,8 +1,10 @@
 import { ActivityTerminal } from '@/features/activity';
-import type { ActivityCommitRow } from '@/features/activity/types/activity-commit';
 import { WorkTypePickerSheet } from '@/features/activity/components/work-type-picker-sheet';
 import { updateActivityCommitWorkType } from '@/features/activity/lib/update-activity-commit-work-type';
-import type { StoredWorkType } from '@/features/activity/types/activity-commit';
+import type {
+  ActivityCommitRow,
+  StoredWorkType,
+} from '@/features/activity/types/activity-commit';
 import { signInWithGitHub, useAuth } from '@/features/auth';
 import { useRouter } from 'expo-router';
 import * as React from 'react';

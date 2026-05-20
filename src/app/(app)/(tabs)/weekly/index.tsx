@@ -2,13 +2,20 @@ import { Text } from '@/components/ui/text';
 import { UpgradeSheet } from '@/features/entitlements';
 import { ScreenHeaderActions, useTabBarScrollPadding } from '@/features/shell';
 import { WeeklySummaryView } from '@/features/standup/components/weekly-summary-view';
-import { Stack } from 'expo-router';
+import { track } from '@/lib/analytics';
+import { Stack, useFocusEffect } from 'expo-router';
 import * as React from 'react';
 import { ScrollView, View } from 'react-native';
 
 export default function WeeklyScreen() {
   const [upgradeOpen, setUpgradeOpen] = React.useState(false);
   const tabBarPadding = useTabBarScrollPadding();
+
+  useFocusEffect(
+    React.useCallback(() => {
+      track('weekly_summary_viewed');
+    }, [])
+  );
 
   return (
     <>

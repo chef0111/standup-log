@@ -18,6 +18,7 @@ import {
   type SelectedRepository,
 } from '@/features/repositories';
 import { useSafeRouterBack } from '@/hooks/use-safe-router-back';
+import { track } from '@/lib/analytics';
 import { AppError, userFacingMessage } from '@/lib/errors';
 import { Stack } from 'expo-router';
 import * as React from 'react';
@@ -164,6 +165,7 @@ export default function SettingsRepositoriesScreen() {
       return;
     }
 
+    track('repository_selection_completed', { count: selected.length });
     goBack();
   }, [goBack, selected, session, supabase]);
 
