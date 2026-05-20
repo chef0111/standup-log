@@ -30,7 +30,12 @@ _Avoid_: Risk, issue, bug
 
 **Weekly Summary**:
 A week-level view of a developer's generated **Standup Updates** grouped by work type.
+On the free tier, the preview shows the top **two Work Types** by commit count; remaining types require Pro.
 _Avoid_: Timesheet, productivity report, performance review
+
+**Morning Reminder**:
+A local push notification at the developer's chosen time (default 09:00 local) when the **previous Workday**'s **Standup Update** was not copied or shared.
+_Avoid_: Daily spam, generation reminder, login nudge
 
 **Work Type**:
 A developer-editable category applied to an **Activity Signal** to explain the kind of work represented.
@@ -69,7 +74,8 @@ _Avoid_: Connected repo, tracked repo, watched repo
 - The focusing-on portion of a **Standup Update** may include **Unfinished Notes** carried forward by the developer.
 - The blockers portion includes **Blocker Notes** from that **Workday** or an editable empty default.
 - A **Weekly Summary** summarizes generated **Standup Updates**, not raw work time.
-- A **Weekly Summary** groups **Activity Signals** by **Work Type**.
+- A **Weekly Summary** groups **Activity Signals** by **Work Type**; free tier shows the top two Work Types by commit count.
+- A **Morning Reminder** fires only when the prior **Workday**'s **Standup Update** has no copy timestamp.
 - A **Daily Streak** advances only when the developer copies or shares a **Standup Update**.
 - A **Standup Update** begins with a **Standup Summary**, then structured sections for work done, focus, blockers, and optional metrics.
 - **Standup Summary** prose is produced by **AI Draft** on Generate; without Generate it shows instructional placeholder copy the developer replaces by hand.

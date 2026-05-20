@@ -1,14 +1,17 @@
+import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import {
   FREE_TIER_WORKDAY_HISTORY_DAYS,
-  WorkdayDatePicker,
-} from '@/features/workday';
+  UpgradeSheet,
+} from '@/features/entitlements';
+import { WorkdayDatePicker } from '@/features/workday';
 import * as React from 'react';
 import { View } from 'react-native';
 import { useStandup } from '../context/standup';
 
 export function StandupWorkdaySection() {
   const { workday, pickerBounds, isPro, onWorkdayChange } = useStandup();
+  const [upgradeOpen, setUpgradeOpen] = React.useState(false);
 
   return (
     <View className="relative gap-2">
@@ -22,11 +25,25 @@ export function StandupWorkdaySection() {
         onWorkdayChange={onWorkdayChange}
       />
       {!isPro ? (
-        <Text className="text-muted-foreground text-xs leading-relaxed">
-          Free accounts: last {FREE_TIER_WORKDAY_HISTORY_DAYS} days. Upgrade to
-          Pro for full history.
-        </Text>
+        <View className="flex flex-col gap-2">
+          <Text selectable className="text-muted-foreground text-xs leading-relaxed">
+            Free accounts: last {FREE_TIER_WORKDAY_HISTORY_DAYS} days. Upgrade
+            to Pro for full history.
+          </Text>
+          <Button
+            variant="outline"
+            size="sm"
+            onPress={() => setUpgradeOpen(true)}
+          >
+            <Text>Upgrade to Pro</Text>
+          </Button>
+        </View>
       ) : null}
+      <UpgradeSheet
+        open={upgradeOpen}
+        onOpenChange={setUpgradeOpen}
+        reason="history"
+      />
     </View>
   );
 }

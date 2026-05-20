@@ -8,6 +8,10 @@ import {
 } from '@/features/activity/lib/sync-activity';
 import type { ActivityCommitRow } from '@/features/activity/types/activity-commit';
 import { useAuth } from '@/features/auth';
+import {
+  assertActivitySyncAllowed,
+  HISTORY_CAP_MESSAGE,
+} from '@/features/entitlements';
 import { fetchUserProfile } from '@/features/profile';
 import { parseSelectedRepositories } from '@/features/repositories';
 import type { Workday } from '@/features/workday/types/workday';
@@ -22,7 +26,7 @@ function readCachedError(workday: Workday): string | null {
   return getActivityWorkdayCache(workday)?.error ?? null;
 }
 
-export function useActivitySync(workday: Workday) {
+export function useActivitySync(workday: Workday, isPro: boolean) {
   const { supabase, session } = useAuth();
   const { token, loading: tokenLoading } = useGitHubAccessToken();
   const [commits, setCommits] = React.useState<ActivityCommitRow[]>(() =>
@@ -59,6 +63,20 @@ export function useActivitySync(workday: Workday) {
       }
 
       const repos = parseSelectedRepositories(profile.selected_repositories);
+
+      const guard = assertActivitySyncAllowed(
+        targetWorkday,
+        isPro || Boolean(profile.is_pro)
+      );
+      if (!guard.allowed) {
+        const { commits: stored, error: loadError } =
+          await fetchActivityCommits(supabase, targetWorkday);
+        return {
+          commits: stored,
+          error: loadError ?? HISTORY_CAP_MESSAGE,
+        };
+      }
+
       return syncActivityForWorkday({
         supabase,
         token,
@@ -69,7 +87,7 @@ export function useActivitySync(workday: Workday) {
         githubLogin: profile.github_login,
       });
     },
-    [session, supabase, token, tokenLoading]
+    [isPro, session, supabase, token, tokenLoading]
   );
 
   React.useLayoutEffect(() => {
@@ -175,7 +193,7 @@ export function useActivitySync(workday: Workday) {
     return () => {
       cancelled = true;
     };
-  }, [session, supabase, syncFromGitHub, token, tokenLoading, workday]);
+  }, [isPro, session, supabase, syncFromGitHub, token, tokenLoading, workday]);
 
   const refresh = React.useCallback(async () => {
     setSyncing(true);

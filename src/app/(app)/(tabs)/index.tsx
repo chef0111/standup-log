@@ -1,30 +1,34 @@
 import { GithubIcon, RepositoryIcon } from '@/components/icons';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { useAuth } from '@/features/auth';
+import { StandupWidget } from '@/features/home';
 import { fetchUserProfile, type ProfileHomeRow } from '@/features/profile';
+import { useStandupReminder } from '@/features/reminders';
 import { parseSelectedRepositories } from '@/features/repositories';
-import { MarketingHeader, ScreenFooter } from '@/features/shell';
+import {
+  MarketingHeader,
+  ScreenHeaderActions,
+  useTabBarScrollPadding,
+} from '@/features/shell';
 import { useThemeColor } from '@/features/theme';
-import { defaultTargetWorkday } from '@/features/workday';
 import { useFocusEffect } from '@react-navigation/native';
 import { Image } from 'expo-image';
-import { Redirect, Stack, useRouter } from 'expo-router';
+import { Redirect, Stack } from 'expo-router';
 import { Flame } from 'lucide-react-native';
 import * as React from 'react';
 import { ActivityIndicator, ScrollView, View } from 'react-native';
 
 export default function AppHomeScreen() {
-  const router = useRouter();
   const foreground = useThemeColor('--color-foreground');
   const { supabase, session } = useAuth();
   const [profile, setProfile] = React.useState<ProfileHomeRow | null>(null);
   const [loadingProfile, setLoadingProfile] = React.useState(true);
-  const [busy, setBusy] = React.useState(false);
   const [status, setStatus] = React.useState<string | null>(null);
   const initialLoad = React.useRef(true);
+
+  useStandupReminder();
 
   const loadProfile = React.useCallback(async () => {
     if (!supabase || !session) {
@@ -72,26 +76,17 @@ export default function AppHomeScreen() {
   const selectedCount = profile
     ? parseSelectedRepositories(profile.selected_repositories).length
     : 0;
-
-  const onSignOut = React.useCallback(async () => {
-    if (!supabase) {
-      return;
-    }
-    setBusy(true);
-    setStatus(null);
-    const { error } = await supabase.auth.signOut();
-    setBusy(false);
-    if (error) {
-      setStatus(error.message);
-      return;
-    }
-    router.replace('/(public)/sign-in');
-  }, [router, supabase]);
+  const tabBarPadding = useTabBarScrollPadding();
 
   if (loadingProfile) {
     return (
       <>
-        <Stack.Screen options={{ title: 'Home' }} />
+        <Stack.Screen
+          options={{
+            title: 'Home',
+            headerRight: () => <ScreenHeaderActions />,
+          }}
+        />
         <View className="bg-background flex-1 items-center justify-center">
           <ActivityIndicator size="large" color={foreground} />
         </View>
@@ -102,7 +97,12 @@ export default function AppHomeScreen() {
   if (!profile) {
     return (
       <>
-        <Stack.Screen options={{ title: 'Home' }} />
+        <Stack.Screen
+          options={{
+            title: 'Home',
+            headerRight: () => <ScreenHeaderActions />,
+          }}
+        />
         <View className="bg-background flex-1 justify-center gap-4 p-6">
           <Card className="gap-3 p-6">
             <Text className="text-muted-foreground text-center text-sm leading-relaxed">
@@ -127,11 +127,18 @@ export default function AppHomeScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Home' }} />
+      <Stack.Screen
+        options={{
+          title: 'Home',
+          headerRight: () => <ScreenHeaderActions />,
+        }}
+      />
       <View className="bg-background flex-1">
         <ScrollView
           className="flex-1"
-          contentContainerClassName="mx-auto w-full max-w-lg flex-grow gap-6 px-5 pb-4 pt-2"
+          contentContainerClassName="mx-auto w-full max-w-lg flex-grow gap-6 px-5 pt-2"
+          contentContainerStyle={{ paddingBottom: tabBarPadding }}
+          contentInsetAdjustmentBehavior="automatic"
           showsVerticalScrollIndicator={false}
         >
           <MarketingHeader
@@ -139,6 +146,8 @@ export default function AppHomeScreen() {
             title="StandupLog"
             description="Your workspace for daily standup updates."
           />
+
+          <StandupWidget />
 
           <Card>
             <CardContent className="items-center gap-4 pt-6">
@@ -201,46 +210,12 @@ export default function AppHomeScreen() {
             </Card>
           </View>
 
-          <Card className="gap-3 p-4">
-            <Text className="text-foreground text-sm font-medium">
-              What&apos;s next
-            </Text>
-            <Text className="text-muted-foreground text-sm leading-relaxed">
-              {selectedCount === 0
-                ? 'Generate a standup from manual notes, or select repositories in settings to include commit activity.'
-                : 'Generate your standup from yesterday’s commits and notes.'}
-            </Text>
-          </Card>
-
           {status ? (
             <Text className="text-destructive text-center text-sm">
               {status}
             </Text>
           ) : null}
         </ScrollView>
-
-        <ScreenFooter className="mx-auto w-full max-w-lg">
-          <Button
-            onPress={() =>
-              router.push({
-                pathname: '/standup',
-                params: { workday: defaultTargetWorkday() },
-              })
-            }
-          >
-            <Text>Generate standup</Text>
-          </Button>
-          <Button
-            disabled={busy}
-            onPress={() => router.push('/(app)/settings')}
-          >
-            <RepositoryIcon size={16} className="text-primary-foreground" />
-            <Text>Settings</Text>
-          </Button>
-          <Button variant="outline" disabled={busy} onPress={onSignOut}>
-            <Text>Sign out</Text>
-          </Button>
-        </ScreenFooter>
       </View>
     </>
   );

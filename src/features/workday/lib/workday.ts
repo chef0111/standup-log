@@ -1,3 +1,4 @@
+import { getWorkdayHistoryBounds } from '@/features/entitlements/lib/entitlements';
 import type {
   Workday,
   WorkdayPickerBounds,
@@ -6,7 +7,8 @@ import type {
 
 const WORKDAY_RE = /^\d{4}-\d{2}-\d{2}$/;
 
-export const FREE_TIER_WORKDAY_HISTORY_DAYS = 30;
+/** @deprecated Use FREE_TIER_WORKDAY_HISTORY_DAYS from @/features/entitlements */
+export { FREE_TIER_WORKDAY_HISTORY_DAYS } from '@/features/entitlements/lib/entitlements';
 
 export type { WorkdayPickerBounds };
 
@@ -115,19 +117,7 @@ export function getWorkdayPickerBounds(input: {
   now?: Date;
   timeZone?: string;
 }): WorkdayPickerBounds {
-  const tz = input.timeZone ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const now = input.now ?? new Date();
-  const maximumWorkday = formatWorkdayLocal(now, tz);
-  const minimumWorkday = input.isPro
-    ? addCalendarDays(maximumWorkday, -3650)
-    : addCalendarDays(maximumWorkday, -FREE_TIER_WORKDAY_HISTORY_DAYS);
-
-  return {
-    minimumWorkday,
-    maximumWorkday,
-    minimumDate: workdayToLocalDate(minimumWorkday),
-    maximumDate: workdayToLocalDate(maximumWorkday),
-  };
+  return getWorkdayHistoryBounds(input);
 }
 
 export function clampWorkdayToBounds(

@@ -3,6 +3,11 @@ import {
   useAuth,
   useGitHubAccessToken,
 } from '@/features/auth';
+import {
+  canSelectRepository,
+  formatRepoLimitError,
+  UpgradeSheet,
+} from '@/features/entitlements';
 import { fetchUserProfile } from '@/features/profile';
 import {
   fetchUserRepos,
@@ -19,7 +24,7 @@ import * as React from 'react';
 import { Alert } from 'react-native';
 
 export default function SettingsRepositoriesScreen() {
-  const goBack = useSafeRouterBack('/(app)/settings');
+  const goBack = useSafeRouterBack('/settings');
   const { supabase, session } = useAuth();
   const {
     token,
@@ -38,6 +43,7 @@ export default function SettingsRepositoriesScreen() {
   const [selected, setSelected] = React.useState<SelectedRepository[]>([]);
   const [saving, setSaving] = React.useState(false);
   const [saveError, setSaveError] = React.useState<string | null>(null);
+  const [upgradeOpen, setUpgradeOpen] = React.useState(false);
 
   React.useEffect(() => {
     if (!supabase || !session) {
@@ -127,12 +133,8 @@ export default function SettingsRepositoriesScreen() {
         if (exists) {
           return prev.filter((p) => p.id !== repo.id);
         }
-        if (!isPro && prev.length >= FREE_TIER_REPO_LIMIT) {
-          Alert.alert(
-            'Repository limit',
-            'Free accounts can track up to three repositories. Upgrade to Pro (coming soon) for unlimited repos.',
-            [{ text: 'OK' }]
-          );
+        if (!canSelectRepository(prev.length, isPro)) {
+          setUpgradeOpen(true);
           return prev;
         }
         return [
@@ -158,7 +160,7 @@ export default function SettingsRepositoriesScreen() {
     setSaving(false);
 
     if (error) {
-      setSaveError(error.message);
+      setSaveError(formatRepoLimitError(error.message));
       return;
     }
 
@@ -182,7 +184,7 @@ export default function SettingsRepositoriesScreen() {
       <Stack.Screen options={{ title: 'Repositories', headerShown: true }} />
       <RepositoryPickerScreen
         title="Manage repositories"
-        description={`Free accounts can select up to ${FREE_TIER_REPO_LIMIT} repositories. Pro unlocks unlimited selection (billing stub).`}
+        description={`Free accounts can select up to ${FREE_TIER_REPO_LIMIT} repositories. Pro unlocks unlimited selection.`}
         isPro={isPro}
         query={query}
         onQueryChange={setQuery}
@@ -200,6 +202,11 @@ export default function SettingsRepositoriesScreen() {
         onPrimary={() => void onSave()}
         outlineLabel="Cancel"
         onOutline={goBack}
+      />
+      <UpgradeSheet
+        open={upgradeOpen}
+        onOpenChange={setUpgradeOpen}
+        reason="repos"
       />
     </>
   );

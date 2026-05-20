@@ -75,7 +75,7 @@ export function StandupProvider({ children }: { children: React.ReactNode }) {
     token,
     tokenLoading,
     refresh,
-  } = useActivitySync(workday);
+  } = useActivitySync(workday, isPro);
 
   const {
     notes,
