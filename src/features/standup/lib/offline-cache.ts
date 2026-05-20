@@ -1,6 +1,5 @@
 import type { ActivityCommitRow } from '@/features/activity/types/activity-commit';
 import type { ManualNoteRow } from '@/features/notes/types/manual-note';
-import type { StandupSections } from '@/features/standup/lib/compose-standup';
 import type { Workday } from '@/features/workday/types/workday';
 import { createMMKV } from 'react-native-mmkv';
 
@@ -11,7 +10,7 @@ export type WorkdaySnapshot = {
   commits: ActivityCommitRow[];
   notes: ManualNoteRow[];
   carryForwardNotes: ManualNoteRow[];
-  sections: StandupSections | null;
+  draftMarkdown: string | null;
   cachedAt: string;
 };
 
@@ -29,7 +28,13 @@ export function readWorkdaySnapshot(workday: Workday): WorkdaySnapshot | null {
     return null;
   }
   try {
-    return JSON.parse(raw) as WorkdaySnapshot;
+    const parsed = JSON.parse(raw) as WorkdaySnapshot & {
+      sections?: unknown;
+    };
+    if (parsed.draftMarkdown === undefined && parsed.sections) {
+      return null;
+    }
+    return parsed;
   } catch {
     return null;
   }

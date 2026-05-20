@@ -1,6 +1,5 @@
 import { useActivitySync } from '@/features/activity';
 import type { ManualNoteRow } from '@/features/notes';
-import type { StandupSections } from '@/features/standup/lib/compose-standup';
 import type {
   Workday,
   WorkdayPickerBounds,
@@ -38,12 +37,14 @@ export type StandupContextValue = {
     is_blocker: boolean;
     is_carry_forward: boolean;
   }) => Promise<void>;
-  savedSections: StandupSections | null;
-  draftSections: StandupSections | null;
+  savedMarkdown: string | null;
+  draftMarkdown: string | null;
   aiLoading: boolean;
   aiError: string | null;
+  aiRateLimited: boolean;
+  aiRetryAfterSeconds: number | null;
   regenerateDraft: () => Promise<void>;
-  onStandupSaved: (sections: StandupSections) => void;
+  onStandupSaved: (markdown: string) => void;
   loadingStandup: boolean;
   loading: boolean;
 };
