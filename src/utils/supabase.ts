@@ -1,6 +1,14 @@
-import { getSupabaseAnonKey, getSupabaseUrl, isSupabaseConfigured } from '@/lib/supabase-config';
-import type { SupportedStorage } from '@supabase/supabase-js';
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import {
+  createClient,
+  type SupabaseClient,
+  type SupportedStorage,
+} from '@supabase/supabase-js';
+
+import {
+  getSupabaseAnonKey,
+  getSupabaseUrl,
+  isSupabaseConfigured,
+} from '@/lib/supabase-config';
 import { Platform } from 'react-native';
 
 let browserClient: SupabaseClient | null = null;
