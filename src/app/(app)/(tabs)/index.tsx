@@ -3,7 +3,10 @@ import { Card } from '@/components/ui/card';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { useAuth } from '@/context/auth';
+import { HomeActivitySection } from '@/features/home/components/home-activity-section';
+import { HomeWeekSnapshotCard } from '@/features/home/components/home-week-snapshot-card';
 import { StandupWidget } from '@/features/home/components/standup-widget';
+import { ProfileAvatar } from '@/features/profile/components/profile-avatar';
 import {
   fetchUserProfile,
   type ProfileHomeRow,
@@ -12,40 +15,14 @@ import { parseSelectedRepositories } from '@/features/repositories/types/reposit
 import { useStandupReminder } from '@/features/settings/hooks/use-standup-reminder';
 import {
   AppScreenShell,
-  ScreenHero,
+  ScreenHeader,
 } from '@/features/shell/components/app-screen-shell';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { useFocusEffect } from '@react-navigation/native';
-import { Image } from 'expo-image';
 import { Redirect, Stack } from 'expo-router';
 import { Flame } from 'lucide-react-native';
 import * as React from 'react';
 import { ActivityIndicator, View } from 'react-native';
-
-function ProfileAvatar({
-  avatarUrl,
-  displayName,
-}: {
-  avatarUrl: string | null;
-  displayName: string;
-}) {
-  return (
-    <View className="border-border/60 size-11 overflow-hidden rounded-full border p-0.5">
-      {avatarUrl ? (
-        <Image
-          source={{ uri: avatarUrl }}
-          style={{ width: 40, height: 40, borderRadius: 20 }}
-        />
-      ) : (
-        <View className="bg-muted size-10 items-center justify-center rounded-full">
-          <Text className="text-foreground text-sm font-semibold">
-            {(displayName[0] ?? '?').toUpperCase()}
-          </Text>
-        </View>
-      )}
-    </View>
-  );
-}
 
 function StreakPill({ streak }: { streak: number }) {
   return (
@@ -166,8 +143,8 @@ export default function AppHomeScreen() {
         }}
       />
       <AppScreenShell
-        hero={
-          <ScreenHero
+        header={
+          <ScreenHeader
             eyebrow="Hello"
             title={displayName}
             subtitle="Your workspace for daily standup updates."
@@ -211,6 +188,9 @@ export default function AppHomeScreen() {
             </Text>
           </Card>
         </View>
+
+        <HomeActivitySection />
+        <HomeWeekSnapshotCard />
 
         <View className="bg-muted/50 flex-row items-center justify-center gap-1.5 self-start rounded-full px-3 py-2">
           <GithubIcon size={14} color={foreground} />

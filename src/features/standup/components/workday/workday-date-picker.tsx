@@ -42,9 +42,7 @@ export function WorkdayDatePicker({
           accessibilityLabel={`Workday ${workday}`}
         >
           <Icon as={CalendarDays} className="text-foreground" size={18} />
-          <Text className="text-foreground text-sm font-medium">
-            {workday}
-          </Text>
+          <Text className="text-foreground text-sm font-medium">{workday}</Text>
         </Pressable>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-3" align="center" side="bottom">

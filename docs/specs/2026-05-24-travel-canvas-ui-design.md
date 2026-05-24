@@ -14,14 +14,14 @@ Pivot authenticated screens to a TripGlide-inspired **light canvas**: elevation-
 
 ## Visual language
 
-| Token | Light | Dark |
-|-------|-------|------|
-| Canvas | `#F5F5F5` | `#1C1C1E` |
-| Elevated | `#FFFFFF` | `#2C2C2E` |
-| Text | `#0F172A` | `#FAFAFA` |
-| Muted | `#64748B` | `#A1A1AA` |
+| Token        | Light     | Dark                       |
+| ------------ | --------- | -------------------------- |
+| Canvas       | `#F5F5F5` | `#1C1C1E`                  |
+| Elevated     | `#FFFFFF` | `#2C2C2E`                  |
+| Text         | `#0F172A` | `#FAFAFA`                  |
+| Muted        | `#64748B` | `#A1A1AA`                  |
 | Primary pill | `#18181B` | `#FAFAFA` on dark elevated |
-| Success | `#22C55E` | `#22C55E` |
+| Success      | `#22C55E` | `#22C55E`                  |
 
 **Typography:** Inter. Greeting pattern: "Hello, {name}" — no uppercase editorial titles on tabs.
 

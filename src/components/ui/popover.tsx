@@ -30,7 +30,8 @@ function PopoverContent({
       side={side}
       sideOffset={sideOffset}
       className={cn(
-        'bg-popover text-popover-foreground border-border z-50 rounded-md border p-4 shadow-md shadow-black/5 outline-none',
+        'bg-popover text-popover-foreground border-border z-50 rounded-md border p-4 outline-none',
+        Platform.select({ web: 'shadow-md shadow-black/5' }),
         className
       )}
       {...props}

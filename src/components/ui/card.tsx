@@ -2,15 +2,12 @@ import { Text, TextClassContext } from '@/components/ui/text';
 import { cn } from '@/lib/utils';
 import { cva, type VariantProps } from 'class-variance-authority';
 import * as React from 'react';
-import { Platform, View, type ViewProps } from 'react-native';
+import { View, type ViewProps } from 'react-native';
 
 const cardVariants = cva('rounded-3xl', {
   variants: {
     variant: {
-      default: cn(
-        'border-border bg-card border',
-        Platform.select({ web: 'shadow-sm shadow-black/5' })
-      ),
+      default: cn('border-border bg-card border shadow-sm shadow-black/5'),
       elevated: cn('bg-card border-0'),
       sheet: 'bg-sheet border-0',
       inset: cn('bg-muted/40 border-0'),
@@ -32,10 +29,7 @@ function Card({ className, variant, style, ...props }: CardProps) {
   return (
     <View
       className={cn(cardVariants({ variant }), className)}
-      style={[
-        variant === 'elevated' ? elevatedShadowStyle : undefined,
-        style,
-      ]}
+      style={[variant === 'elevated' ? elevatedShadowStyle : undefined, style]}
       {...props}
     />
   );

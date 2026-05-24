@@ -1,5 +1,7 @@
 import { useAuth } from '@/context/auth';
 import { UpgradeSheet } from '@/features/entitlements/components/upgrade-sheet';
+import { ProfileAvatar } from '@/features/profile/components/profile-avatar';
+import { useProfileHeader } from '@/features/profile/hooks/use-profile-header';
 import { fetchUserProfile } from '@/features/profile/lib/profile';
 import { updateDefaultCopyFormat } from '@/features/profile/lib/update-default-copy-format';
 import { AccountActionsSection } from '@/features/settings/components/account-actions-section';
@@ -11,9 +13,8 @@ import { parseReminderTime } from '@/features/settings/lib/reminder-eligibility'
 import { scheduleStandupReminder } from '@/features/settings/lib/schedule-standup-reminder';
 import {
   AppScreenShell,
-  ScreenHero,
+  ScreenHeader,
 } from '@/features/shell/components/app-screen-shell';
-import { useTabBarScrollPadding } from '@/features/shell/hooks/use-tab-bar-scroll-padding';
 import {
   normalizeCopyFormat,
   type CopyFormat,
@@ -34,7 +35,7 @@ export default function SettingsScreen() {
   );
   const [defaultCopyFormat, setDefaultCopyFormat] =
     React.useState<CopyFormat>('plain');
-  const tabBarPadding = useTabBarScrollPadding();
+  const { displayName: profileName, avatarUrl } = useProfileHeader();
 
   React.useEffect(() => {
     if (!supabase || !session) {
@@ -178,16 +179,21 @@ export default function SettingsScreen() {
         }}
       />
       <AppScreenShell
-        hero={
-          <ScreenHero
+        header={
+          <ScreenHeader
             eyebrow="Settings"
             title={accountLabel}
             subtitle="Repositories, reminders, and account preferences."
+            showThemeToggle={false}
+            trailing={
+              <ProfileAvatar
+                avatarUrl={avatarUrl}
+                displayName={profileName}
+                size="sm"
+              />
+            }
           />
         }
-        scrollProps={{
-          contentContainerStyle: { paddingBottom: tabBarPadding },
-        }}
       >
         <SettingsLinksSection onUpgradePress={() => setUpgradeOpen(true)} />
         <CopyFormatSection

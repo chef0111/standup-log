@@ -126,7 +126,12 @@ export function StandupWidget() {
       </CardContent>
       <CardFooter className="flex-row flex-wrap gap-2">
         {hasStandup ? (
-          <Button variant="outline" onPress={onView} className="min-w-[40%] flex-1">
+          <Button
+            variant="outline"
+            size="pill"
+            onPress={onView}
+            className="min-w-[40%] flex-1"
+          >
             <Text>View</Text>
           </Button>
         ) : null}

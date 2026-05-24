@@ -33,6 +33,15 @@ export const THEME_COLORS = {
   },
 } as const;
 
+/** Fixed dark-terminal palette (matches .terminal-surface in global.css). */
+export const TERMINAL_COLORS = {
+  background: '#1c1c1e',
+  foreground: '#e4e4e7',
+  title: '#27272a',
+  muted: '#a1a1aa',
+  border: '#3f3f46',
+} as const;
+
 export type ThemeColorToken = keyof (typeof THEME_COLORS)['light'];
 
 export type ThemeColorVariable =

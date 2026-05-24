@@ -36,7 +36,7 @@ export function StandupMarkdownEditor({
 
   return (
     <ScrollView
-      className="border-border bg-muted/20 max-h-99 rounded-md border p-3"
+      className="border-border bg-muted/20 max-h-99 rounded-lg border p-3"
       nestedScrollEnabled
     >
       <View className="min-h-48">

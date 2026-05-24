@@ -1,6 +1,12 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { useAuth } from '@/context/auth';
@@ -128,9 +134,15 @@ export function WeeklySummaryView({ onUpgrade }: WeeklySummaryViewProps) {
             <CardHeader>
               <View className="flex-row items-center justify-between gap-2">
                 <View className="flex-row items-center gap-2">
-                  <CardTitle className="capitalize">{bucket.workType}</CardTitle>
+                  <CardTitle className="capitalize">
+                    {bucket.workType}
+                  </CardTitle>
                   {bucket.locked ? (
-                    <Icon as={Lock} size={16} className="text-muted-foreground" />
+                    <Icon
+                      as={Lock}
+                      size={16}
+                      className="text-muted-foreground"
+                    />
                   ) : null}
                 </View>
                 <Badge variant="secondary">

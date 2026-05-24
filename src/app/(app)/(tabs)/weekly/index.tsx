@@ -1,9 +1,10 @@
 import { UpgradeSheet } from '@/features/entitlements/components/upgrade-sheet';
+import { ProfileAvatar } from '@/features/profile/components/profile-avatar';
+import { useProfileHeader } from '@/features/profile/hooks/use-profile-header';
 import {
   AppScreenShell,
-  ScreenHero,
+  ScreenHeader,
 } from '@/features/shell/components/app-screen-shell';
-import { useTabBarScrollPadding } from '@/features/shell/hooks/use-tab-bar-scroll-padding';
 import { WeeklySummaryView } from '@/features/standup/components/weekly/weekly-summary-view';
 import { getCurrentWeekBounds } from '@/features/standup/lib/weekly/week-bounds';
 import { track } from '@/lib/analytics';
@@ -23,7 +24,7 @@ function formatWeekHeroLabel(weekStart: string, weekEnd: string): string {
 
 export default function WeeklyScreen() {
   const [upgradeOpen, setUpgradeOpen] = React.useState(false);
-  const tabBarPadding = useTabBarScrollPadding();
+  const { displayName, avatarUrl } = useProfileHeader();
   const bounds = React.useMemo(() => getCurrentWeekBounds(), []);
 
   useFocusEffect(
@@ -36,16 +37,21 @@ export default function WeeklyScreen() {
     <>
       <Stack.Screen options={{ title: 'Weekly', headerShown: false }} />
       <AppScreenShell
-        hero={
-          <ScreenHero
+        header={
+          <ScreenHeader
             eyebrow="Weekly summary"
             title={formatWeekHeroLabel(bounds.weekStart, bounds.weekEnd)}
             subtitle="Activity grouped by Work Type for the current week."
+            showThemeToggle={false}
+            trailing={
+              <ProfileAvatar
+                avatarUrl={avatarUrl}
+                displayName={displayName}
+                size="sm"
+              />
+            }
           />
         }
-        scrollProps={{
-          contentContainerStyle: { paddingBottom: tabBarPadding },
-        }}
       >
         <WeeklySummaryView onUpgrade={() => setUpgradeOpen(true)} />
       </AppScreenShell>

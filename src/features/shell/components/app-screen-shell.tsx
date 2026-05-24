@@ -1,5 +1,5 @@
 import { ScreenFooter } from '@/features/shell/components/screen-footer';
-import { ScreenHeader } from '@/features/shell/components/screen-hero';
+import { ScreenHeader } from '@/features/shell/components/screen-header';
 import { SheetSurface } from '@/features/shell/components/sheet-surface';
 import { useTabBarScrollPadding } from '@/features/shell/hooks/use-tab-bar-scroll-padding';
 import { cn } from '@/lib/utils';
@@ -15,6 +15,8 @@ type AppScreenShellProps = {
   scroll?: boolean;
   scrollProps?: ScrollViewProps;
   contentClassName?: string;
+  /** Extra scroll bottom padding when a sticky footer is present (default 24). */
+  footerScrollPadding?: number;
 };
 
 /** Light canvas layout: optional header + scrollable content + optional footer. */
@@ -26,39 +28,47 @@ export function AppScreenShell({
   scroll = true,
   scrollProps,
   contentClassName,
+  footerScrollPadding = 24,
 }: AppScreenShellProps) {
   const tabBarPadding = useTabBarScrollPadding();
-  const bottomPad = footer ? 0 : tabBarPadding;
+  const bottomPad = footer ? footerScrollPadding : tabBarPadding;
   const screenHeader = header ?? hero;
+
+  const {
+    contentContainerClassName: scrollContentClassName,
+    contentContainerStyle: scrollContentStyle,
+    ...restScrollProps
+  } = scrollProps ?? {};
+
+  const content = (
+    <View className={cn('min-h-0 gap-5', contentClassName)}>{children}</View>
+  );
 
   const body = scroll ? (
     <ScrollView
       className="flex-1"
       contentContainerClassName={cn(
-        'mx-auto w-full max-w-lg flex-grow gap-5 px-5',
-        contentClassName
+        'mx-auto w-full max-w-lg flex-grow px-5',
+        scrollContentClassName
       )}
-      contentContainerStyle={{ paddingBottom: bottomPad }}
+      contentContainerStyle={[{ paddingBottom: bottomPad }, scrollContentStyle]}
       contentInsetAdjustmentBehavior="automatic"
       showsVerticalScrollIndicator={false}
-      {...scrollProps}
+      {...restScrollProps}
     >
-      {children}
+      {content}
     </ScrollView>
   ) : (
     <View
-      className={cn(
-        'mx-auto w-full max-w-lg flex-1 gap-5 px-5',
-        contentClassName
-      )}
+      className={cn('mx-auto w-full max-w-lg flex-1 px-5', contentClassName)}
       style={{ paddingBottom: bottomPad }}
     >
-      {children}
+      {content}
     </View>
   );
 
   return (
-    <View className="bg-background flex-1">
+    <View className="bg-background flex-1 px-4">
       {screenHeader}
       <View className="min-h-0 flex-1">{body}</View>
       {footer ? <ScreenFooter>{footer}</ScreenFooter> : null}
@@ -66,4 +76,7 @@ export function AppScreenShell({
   );
 }
 
-export { ScreenHeader, ScreenHero, SheetSurface };
+/** @deprecated Use ScreenHeader */
+export const ScreenHero = ScreenHeader;
+
+export { ScreenHeader, SheetSurface };

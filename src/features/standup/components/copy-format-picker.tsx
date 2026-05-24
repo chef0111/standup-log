@@ -39,9 +39,7 @@ export function CopyFormatPicker({
             <Text
               className={cn(
                 'text-sm font-medium',
-                selected
-                  ? 'text-white dark:text-zinc-900'
-                  : 'text-foreground'
+                selected ? 'text-white dark:text-zinc-900' : 'text-foreground'
               )}
             >
               {option.label}

@@ -1,4 +1,6 @@
-import { Icon } from '@/components/ui/icon';
+import { TextClassContext } from '@/components/ui/text';
+import { useAppColorScheme } from '@/context/theme';
+import { THEME_COLORS } from '@/lib/theme-colors';
 import { Loader } from 'lucide-react-native';
 import * as React from 'react';
 import { View } from 'react-native';
@@ -17,8 +19,33 @@ type ButtonSpinnerProps = {
   size?: number;
 };
 
+function useSpinnerColor(explicit?: string): string {
+  const textClass = React.useContext(TextClassContext) ?? '';
+  const { colorScheme } = useAppColorScheme();
+  const scheme = colorScheme === 'dark' ? 'dark' : 'light';
+  const colors = THEME_COLORS[scheme];
+
+  if (explicit) {
+    return explicit;
+  }
+  if (textClass.includes('primary-foreground')) {
+    return colors.primaryForeground;
+  }
+  if (textClass.includes('secondary-foreground')) {
+    return colors.foreground;
+  }
+  if (textClass.includes('dark:text-zinc-900')) {
+    return scheme === 'dark' ? '#18181b' : '#ffffff';
+  }
+  if (textClass.includes('text-white')) {
+    return '#ffffff';
+  }
+  return colors.foreground;
+}
+
 export function ButtonSpinner({ color, size = 20 }: ButtonSpinnerProps) {
   const rotation = useSharedValue(0);
+  const resolvedColor = useSpinnerColor(color);
 
   React.useEffect(() => {
     rotation.value = withRepeat(
@@ -38,7 +65,7 @@ export function ButtonSpinner({ color, size = 20 }: ButtonSpinnerProps) {
       style={{ width: SLOT_SIZE, height: SLOT_SIZE }}
     >
       <Animated.View style={animatedStyle}>
-        <Icon as={Loader} size={size} color={color} />
+        <Loader size={size} color={resolvedColor} />
       </Animated.View>
     </View>
   );

@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { ButtonSpinner } from '@/components/ui/button-spinner';
+import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { useAuth } from '@/context/auth';
 import { AiGenerationQuota } from '@/features/standup/components/ai-generation-quota';
@@ -144,12 +145,13 @@ export function StandupDraftPanel() {
 
       <AiGenerationQuota />
 
-      <Button disabled={saving} variant="charcoal" size="pill" onPress={() => void handleSave()}>
-        {saving ? (
-          <ButtonSpinner />
-        ) : (
-          <SaveIcon className="text-primary-foreground" />
-        )}
+      <Button
+        disabled={saving}
+        variant="charcoal"
+        size="pill"
+        onPress={() => void handleSave()}
+      >
+        {saving ? <ButtonSpinner /> : <Icon as={SaveIcon} />}
         <Text>Save</Text>
       </Button>
 

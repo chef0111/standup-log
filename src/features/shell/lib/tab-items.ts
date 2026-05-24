@@ -1,6 +1,6 @@
 import {
   Calendar,
-  FileText,
+  ClipboardList,
   Home,
   Settings,
   type LucideIcon,
@@ -31,7 +31,7 @@ export const APP_TAB_ITEMS: AppTabItem[] = [
     label: 'Standup',
     sf: 'doc.text',
     md: 'description',
-    icon: FileText,
+    icon: ClipboardList,
   },
   {
     name: 'weekly',

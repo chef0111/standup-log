@@ -52,7 +52,12 @@ function RootLayoutInner() {
   const scheme = colorScheme === 'dark' ? 'dark' : 'light';
 
   return (
-    <View className={cn('bg-background flex-1', scheme === 'dark' && 'dark')}>
+    <View
+      className={cn(
+        'bg-background flex-1 will-change-auto',
+        scheme === 'dark' && 'dark'
+      )}
+    >
       <ThemeProvider value={NAV_THEME[scheme]}>
         <AuthProvider>
           <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />

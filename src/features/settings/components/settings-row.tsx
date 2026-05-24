@@ -29,7 +29,9 @@ export function SettingsRow({
         'active:bg-muted/50 min-h-11 flex-row items-center justify-between rounded-2xl px-1 py-3',
         className
       )}
-      style={({ pressed }) => (pressed && onPress ? { opacity: 0.85 } : undefined)}
+      style={({ pressed }) =>
+        pressed && onPress ? { opacity: 0.85 } : undefined
+      }
     >
       <Text
         className={cn(
@@ -42,7 +44,7 @@ export function SettingsRow({
       {showChevron && onPress ? (
         <Icon as={ChevronRight} size={18} className="text-muted-foreground" />
       ) : (
-        <View className="size-[18px]" />
+        <View className="size-4.5" />
       )}
     </Pressable>
   );

@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { ButtonSpinner } from '@/components/ui/button-spinner';
+import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { CopyFormatPicker } from '@/features/standup/components/copy-format-picker';
 import { CopyToast } from '@/features/standup/components/copy-toast';
@@ -44,6 +45,7 @@ export function StandupStickyActions() {
       <View className="flex-row gap-2">
         <Button
           variant="outline"
+          size="pill"
           disabled={copying || !summaryReady}
           onPress={() => void copySummary()}
           className="min-h-12 flex-1"
@@ -57,15 +59,15 @@ export function StandupStickyActions() {
           onPress={() => void regenerateDraft()}
           className="min-h-12 flex-1"
         >
-          {aiLoading ? <ButtonSpinner /> : <StarsIcon />}
+          {aiLoading ? <ButtonSpinner /> : <Icon as={StarsIcon} />}
           <Text>{hasDraft ? 'Regenerate' : 'Generate'}</Text>
         </Button>
       </View>
-      {aiError ? (
+      {aiError && (
         <Text className="text-muted-foreground text-center text-xs">
           {aiError}
         </Text>
-      ) : null}
+      )}
       <View className="gap-1.5">
         <Text className="text-muted-foreground text-xs">Copy format</Text>
         <CopyFormatPicker

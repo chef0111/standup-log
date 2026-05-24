@@ -28,10 +28,20 @@ import { useFocusEffect } from '@react-navigation/native';
 import * as React from 'react';
 import { StandupContext, type StandupContextValue } from './context';
 
-export function StandupProvider({ children }: { children: React.ReactNode }) {
+type StandupProviderProps = {
+  children: React.ReactNode;
+  initialWorkday?: Workday;
+};
+
+export function StandupProvider({
+  children,
+  initialWorkday,
+}: StandupProviderProps) {
   const { supabase, session } = useAuth();
   const [isPro, setIsPro] = React.useState(false);
-  const [workday, setWorkday] = React.useState(defaultTargetWorkday);
+  const [workday, setWorkday] = React.useState(
+    () => initialWorkday ?? defaultTargetWorkday()
+  );
   const [editorOpen, setEditorOpen] = React.useState(false);
   const [editingNote, setEditingNote] = React.useState<ManualNoteRow | null>(
     null
@@ -72,6 +82,13 @@ export function StandupProvider({ children }: { children: React.ReactNode }) {
   React.useEffect(() => {
     setWorkday((current) => clampWorkdayToBounds(current, pickerBounds));
   }, [pickerBounds]);
+
+  React.useEffect(() => {
+    if (!initialWorkday) {
+      return;
+    }
+    setWorkday(clampWorkdayToBounds(initialWorkday, pickerBounds));
+  }, [initialWorkday, pickerBounds]);
 
   const {
     commits,

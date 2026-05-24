@@ -54,34 +54,34 @@ export function ReminderSection({
           <Switch value={enabled} onValueChange={onEnabledChange} />
         </View>
         {enabled ? (
-        Platform.OS === 'ios' ? (
-          <DateTimePicker
-            value={time}
-            mode="time"
-            display="compact"
-            onChange={onPickerChange}
-          />
-        ) : (
-          <>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={`Reminder time, ${timeLabel}`}
-              onPress={() => setShowAndroidPicker(true)}
-              className="bg-muted/50 active:bg-muted/70 rounded-2xl px-4 py-3"
-            >
-              <Text className="text-foreground text-sm font-medium">
-                {timeLabel}
-              </Text>
-            </Pressable>
-            {showAndroidPicker ? (
-              <DateTimePicker
-                value={time}
-                mode="time"
-                onChange={onPickerChange}
-              />
-            ) : null}
-          </>
-        )
+          Platform.OS === 'ios' ? (
+            <DateTimePicker
+              value={time}
+              mode="time"
+              display="compact"
+              onChange={onPickerChange}
+            />
+          ) : (
+            <>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`Reminder time, ${timeLabel}`}
+                onPress={() => setShowAndroidPicker(true)}
+                className="bg-muted/50 active:bg-muted/70 rounded-2xl px-4 py-3"
+              >
+                <Text className="text-foreground text-sm font-medium">
+                  {timeLabel}
+                </Text>
+              </Pressable>
+              {showAndroidPicker && (
+                <DateTimePicker
+                  value={time}
+                  mode="time"
+                  onChange={onPickerChange}
+                />
+              )}
+            </>
+          )
         ) : null}
       </View>
     </SettingsSection>

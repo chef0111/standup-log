@@ -83,9 +83,12 @@ export function RepositoryPickerScreen() {
           ) : null}
         </View>
       }
-      contentClassName="flex-1 gap-4 pt-2"
+      contentClassName="min-h-0 flex-1 gap-4 pt-2"
     >
-      <Card variant="elevated" className="flex-row items-center justify-between p-4">
+      <Card
+        variant="elevated"
+        className="flex-row items-center justify-between p-4"
+      >
         <Text className="text-muted-foreground text-sm">Selected</Text>
         <Text className="text-foreground text-sm font-medium">
           {selectedCount}
@@ -93,7 +96,7 @@ export function RepositoryPickerScreen() {
         </Text>
       </Card>
 
-      <Card variant="elevated" className="gap-3 p-4">
+      <Card variant="elevated" className="min-h-0 flex-1 gap-3 p-4">
         <View className="relative">
           <View className="pointer-events-none absolute left-3 top-0 z-10 h-full justify-center">
             <Icon as={Search} size={18} className="text-muted-foreground" />
@@ -109,7 +112,7 @@ export function RepositoryPickerScreen() {
           />
         </View>
 
-        <View className="min-h-0 flex-1 overflow-hidden rounded-2xl">
+        <View className="min-h-0 flex-1" style={{ minHeight: 280 }}>
           {loadingRepos ? (
             <View className="flex-1 items-center justify-center gap-3 py-12">
               <ActivityIndicator size="large" color={foreground} />
