@@ -1,4 +1,5 @@
 import { Text } from '@/components/ui/text';
+import { SettingsSection } from '@/features/settings/components/settings-section';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Switch, View } from 'react-native';
 
@@ -16,30 +17,25 @@ export function ReminderSection({
   onTimeChange,
 }: ReminderSectionProps) {
   return (
-    <View className="border-border gap-3 rounded-lg border p-4">
-      <Text className="text-foreground text-sm font-medium">
-        Morning reminder
-      </Text>
-      <Text
-        selectable
-        className="text-muted-foreground text-xs leading-relaxed"
-      >
-        Reminds you at the chosen time if yesterday&apos;s standup was not
-        copied.
-      </Text>
+    <SettingsSection
+      title="Morning reminder"
+      description="Reminds you at the chosen time if yesterday's standup was not copied."
+    >
       <View className="flex-row items-center justify-between">
         <Text className="text-foreground text-sm">Enabled</Text>
         <Switch value={enabled} onValueChange={onEnabledChange} />
       </View>
-      <DateTimePicker
-        value={time}
-        mode="time"
-        onChange={(_, date) => {
-          if (date) {
-            onTimeChange(date);
-          }
-        }}
-      />
-    </View>
+      {enabled ? (
+        <DateTimePicker
+          value={time}
+          mode="time"
+          onChange={(_, date) => {
+            if (date) {
+              onTimeChange(date);
+            }
+          }}
+        />
+      ) : null}
+    </SettingsSection>
   );
 }

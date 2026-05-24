@@ -1,12 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
 import { useAuth } from '@/context/auth';
 import { fetchUserProfile } from '@/features/profile/lib/profile';
@@ -116,8 +110,8 @@ export function WeeklySummaryView({ onUpgrade }: WeeklySummaryViewProps) {
       </Text>
 
       {summary.visibleBuckets.length === 0 ? (
-        <Card>
-          <CardContent className="pt-6">
+        <Card variant="inset">
+          <CardContent className="pt-4">
             <Text selectable className="text-muted-foreground text-sm">
               No activity this week yet. Generate standups to build your Weekly
               Summary.
@@ -128,6 +122,7 @@ export function WeeklySummaryView({ onUpgrade }: WeeklySummaryViewProps) {
         summary.visibleBuckets.map((bucket) => (
           <Card
             key={bucket.workType}
+            variant="inset"
             className={bucket.locked ? 'opacity-60' : undefined}
           >
             <CardHeader>
@@ -144,7 +139,7 @@ export function WeeklySummaryView({ onUpgrade }: WeeklySummaryViewProps) {
             </CardHeader>
             {bucket.locked ? (
               <CardContent>
-                <Button variant="outline" onPress={onUpgrade}>
+                <Button size="pill" onPress={onUpgrade}>
                   <Text>Upgrade to Pro</Text>
                 </Button>
               </CardContent>

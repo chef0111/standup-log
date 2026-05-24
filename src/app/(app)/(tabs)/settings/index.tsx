@@ -9,6 +9,10 @@ import { SettingsLinksSection } from '@/features/settings/components/settings-li
 import { deleteAccount } from '@/features/settings/lib/delete-account';
 import { parseReminderTime } from '@/features/settings/lib/reminder-eligibility';
 import { scheduleStandupReminder } from '@/features/settings/lib/schedule-standup-reminder';
+import {
+  AppScreenShell,
+  ScreenHero,
+} from '@/features/shell/components/app-screen-shell';
 import { ScreenHeaderActions } from '@/features/shell/components/screen-header-actions';
 import { useTabBarScrollPadding } from '@/features/shell/hooks/use-tab-bar-scroll-padding';
 import {
@@ -17,13 +21,14 @@ import {
 } from '@/features/standup/lib/format-standup';
 import { Stack, useRouter } from 'expo-router';
 import * as React from 'react';
-import { Alert, ScrollView } from 'react-native';
+import { Alert } from 'react-native';
 
 export default function SettingsScreen() {
   const router = useRouter();
   const { supabase, session } = useAuth();
   const [upgradeOpen, setUpgradeOpen] = React.useState(false);
   const [busy, setBusy] = React.useState(false);
+  const [accountLabel, setAccountLabel] = React.useState('Account');
   const [reminderEnabled, setReminderEnabled] = React.useState(true);
   const [reminderTime, setReminderTime] = React.useState(() =>
     parseReminderTime('09:00:00')
@@ -40,6 +45,7 @@ export default function SettingsScreen() {
       if (!profile) {
         return;
       }
+      setAccountLabel(profile.github_login ?? session.user.email ?? 'Account');
       setReminderEnabled(profile.reminder_enabled ?? true);
       setReminderTime(
         parseReminderTime(profile.reminder_time_local ?? '09:00:00')
@@ -169,16 +175,23 @@ export default function SettingsScreen() {
       <Stack.Screen
         options={{
           title: 'Settings',
-          headerShown: true,
+          headerTransparent: true,
+          headerStyle: { backgroundColor: 'transparent' },
+          headerTintColor: '#fff',
           headerRight: () => <ScreenHeaderActions />,
         }}
       />
-      <ScrollView
-        className="bg-background flex-1"
-        contentContainerClassName="mx-auto w-full max-w-lg gap-4 px-5 pt-2"
-        contentContainerStyle={{ paddingBottom: tabBarPadding }}
-        contentInsetAdjustmentBehavior="automatic"
-        showsVerticalScrollIndicator={false}
+      <AppScreenShell
+        hero={
+          <ScreenHero
+            eyebrow="Settings"
+            title={accountLabel}
+            subtitle="Repositories, reminders, and account preferences."
+          />
+        }
+        scrollProps={{
+          contentContainerStyle: { paddingBottom: tabBarPadding },
+        }}
       >
         <SettingsLinksSection onUpgradePress={() => setUpgradeOpen(true)} />
         <CopyFormatSection
@@ -197,7 +210,7 @@ export default function SettingsScreen() {
           onSignOut={() => void onSignOut()}
           onDeleteAccount={onDeleteAccount}
         />
-      </ScrollView>
+      </AppScreenShell>
 
       <UpgradeSheet open={upgradeOpen} onOpenChange={setUpgradeOpen} />
     </>

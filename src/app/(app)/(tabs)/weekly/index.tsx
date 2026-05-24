@@ -1,16 +1,31 @@
-import { Text } from '@/components/ui/text';
 import { UpgradeSheet } from '@/features/entitlements/components/upgrade-sheet';
+import {
+  AppScreenShell,
+  ScreenHero,
+} from '@/features/shell/components/app-screen-shell';
 import { ScreenHeaderActions } from '@/features/shell/components/screen-header-actions';
 import { useTabBarScrollPadding } from '@/features/shell/hooks/use-tab-bar-scroll-padding';
 import { WeeklySummaryView } from '@/features/standup/components/weekly/weekly-summary-view';
+import { getCurrentWeekBounds } from '@/features/standup/lib/weekly/week-bounds';
 import { track } from '@/lib/analytics';
 import { Stack, useFocusEffect } from 'expo-router';
 import * as React from 'react';
-import { ScrollView, View } from 'react-native';
+
+function formatWeekHeroLabel(weekStart: string, weekEnd: string): string {
+  const fmt = (iso: string) => {
+    const [y, m, d] = iso.split('-').map(Number);
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+    }).format(new Date(y, m - 1, d));
+  };
+  return `${fmt(weekStart)} – ${fmt(weekEnd)}`;
+}
 
 export default function WeeklyScreen() {
   const [upgradeOpen, setUpgradeOpen] = React.useState(false);
   const tabBarPadding = useTabBarScrollPadding();
+  const bounds = React.useMemo(() => getCurrentWeekBounds(), []);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -23,29 +38,26 @@ export default function WeeklyScreen() {
       <Stack.Screen
         options={{
           title: 'Weekly',
+          headerTransparent: true,
+          headerStyle: { backgroundColor: 'transparent' },
+          headerTintColor: '#fff',
           headerRight: () => <ScreenHeaderActions />,
         }}
       />
-      <ScrollView
-        className="bg-background flex-1"
-        contentContainerClassName="mx-auto w-full max-w-lg flex-grow gap-4 px-5 pt-2"
-        contentContainerStyle={{ paddingBottom: tabBarPadding }}
-        contentInsetAdjustmentBehavior="automatic"
+      <AppScreenShell
+        hero={
+          <ScreenHero
+            eyebrow="Weekly summary"
+            title={formatWeekHeroLabel(bounds.weekStart, bounds.weekEnd)}
+            subtitle="Activity grouped by Work Type for the current week."
+          />
+        }
+        scrollProps={{
+          contentContainerStyle: { paddingBottom: tabBarPadding },
+        }}
       >
-        <View className="gap-2">
-          <Text variant="h3" className="border-0 pb-0">
-            Weekly Summary
-          </Text>
-          <Text
-            selectable
-            className="text-muted-foreground text-sm leading-relaxed"
-          >
-            Activity grouped by Work Type for the current week.
-          </Text>
-        </View>
-
         <WeeklySummaryView onUpgrade={() => setUpgradeOpen(true)} />
-      </ScrollView>
+      </AppScreenShell>
 
       <UpgradeSheet
         open={upgradeOpen}
