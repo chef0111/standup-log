@@ -112,7 +112,7 @@ export function StandupDraftPanel() {
   return (
     <View className="relative gap-4">
       <View className="flex-row items-center justify-end">
-        <Button variant="ghost" size="sm" onPress={onViewStandup}>
+        <Button variant="outline" size="sm" onPress={onViewStandup}>
           <Text>View standup</Text>
         </Button>
       </View>

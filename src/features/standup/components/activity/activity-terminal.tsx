@@ -179,7 +179,7 @@ function TerminalTitleBar({
         onPress={onRefresh}
       >
         {syncing ? (
-          <ButtonSpinner />
+          <ButtonSpinner color="#dddddd" />
         ) : (
           <Icon as={RefreshCw} className="text-terminal-muted" size={14} />
         )}
@@ -287,7 +287,7 @@ export function ActivityTerminal({
   return (
     <TerminalSurface
       className={cn(
-        'border-terminal-border overflow-hidden rounded-lg border',
+        'border-terminal-border overflow-hidden rounded-xl border',
         className
       )}
     >
