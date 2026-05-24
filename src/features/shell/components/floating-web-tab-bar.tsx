@@ -27,8 +27,11 @@ function FloatingTabButton({
   return (
     <Pressable
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityState={{ selected: isFocused }}
+      accessibilityLabel={label}
       className={cn(
-        'min-h-11 flex-1 items-center justify-center gap-0.5 rounded-full px-2 py-2',
+        'min-h-11 min-w-11 flex-1 items-center justify-center gap-0.5 rounded-full px-2 py-2',
         isFocused && 'bg-primary/10'
       )}
       style={({ pressed }) => (pressed ? { opacity: 0.7 } : undefined)}
@@ -62,10 +65,10 @@ export function FloatingWebTabBar({ state, navigation }: BottomTabBarProps) {
       }}
     >
       <View
-        className="border-border bg-popover max-w-105 w-[92%] flex-row rounded-full border px-1.5 py-1"
+        className="border-border bg-sheet/95 max-w-105 w-[92%] flex-row rounded-full border px-1.5 py-1"
         style={{
           minHeight: FLOATING_TAB_BAR_HEIGHT,
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.24)',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.18)',
         }}
       >
         {state.routes.map((route, index) => {

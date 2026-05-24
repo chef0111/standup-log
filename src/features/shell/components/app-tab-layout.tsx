@@ -4,14 +4,14 @@ import { NativeTabs } from 'expo-router/unstable-native-tabs';
 import { Platform } from 'react-native';
 
 export function AppTabLayout() {
-  const popover = useThemeColor('--color-popover');
+  const sheet = useThemeColor('--color-sheet');
   const primary = useThemeColor('--color-primary');
   const foreground = useThemeColor('--color-foreground');
   const mutedForeground = useThemeColor('--color-muted-foreground');
 
   return (
     <NativeTabs
-      backgroundColor={popover}
+      backgroundColor={sheet}
       blurEffect={Platform.OS === 'ios' ? 'systemMaterial' : undefined}
       disableTransparentOnScrollEdge
       indicatorColor={primary}
