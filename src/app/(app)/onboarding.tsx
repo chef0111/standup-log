@@ -8,11 +8,14 @@ export default function OnboardingRepositoriesScreen() {
   return (
     <>
       <Stack.Screen
-        options={{ title: 'Select repositories', headerShown: true }}
+        options={{
+          title: 'Select repositories',
+          headerShown: false,
+        }}
       />
       <RepositoryPickerProvider
         mode="onboarding"
-        onComplete={() => router.replace('/(app)')}
+        onComplete={() => router.replace('/(app)/(tabs)')}
       >
         <RepositoryPickerScreen />
       </RepositoryPickerProvider>

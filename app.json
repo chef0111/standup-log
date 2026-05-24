@@ -9,7 +9,12 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/expo.icon",
-      "bundleIdentifier": "com.standuplog.app"
+      "bundleIdentifier": "com.standuplog.app",
+      "infoPlist": {
+        "NSSpeechRecognitionUsageDescription": "StandupLog uses speech recognition on your device to turn voice notes into text.",
+        "NSMicrophoneUsageDescription": "StandupLog uses the microphone to capture voice notes for your standup.",
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -19,7 +24,10 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.standuplog.app"
+      "package": "com.standuplog.app",
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -50,6 +58,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "6219dc42-449a-41a6-a451-d6580ad80721"
+      }
+    },
+    "owner": "chef0111"
   }
 }

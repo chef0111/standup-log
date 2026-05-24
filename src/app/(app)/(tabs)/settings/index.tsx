@@ -1,5 +1,7 @@
 import { useAuth } from '@/context/auth';
 import { UpgradeSheet } from '@/features/entitlements/components/upgrade-sheet';
+import { ProfileAvatar } from '@/features/profile/components/profile-avatar';
+import { useProfileHeader } from '@/features/profile/hooks/use-profile-header';
 import { fetchUserProfile } from '@/features/profile/lib/profile';
 import { updateDefaultCopyFormat } from '@/features/profile/lib/update-default-copy-format';
 import { AccountActionsSection } from '@/features/settings/components/account-actions-section';
@@ -9,28 +11,31 @@ import { SettingsLinksSection } from '@/features/settings/components/settings-li
 import { deleteAccount } from '@/features/settings/lib/delete-account';
 import { parseReminderTime } from '@/features/settings/lib/reminder-eligibility';
 import { scheduleStandupReminder } from '@/features/settings/lib/schedule-standup-reminder';
-import { ScreenHeaderActions } from '@/features/shell/components/screen-header-actions';
-import { useTabBarScrollPadding } from '@/features/shell/hooks/use-tab-bar-scroll-padding';
+import {
+  AppScreenShell,
+  ScreenHeader,
+} from '@/features/shell/components/app-screen-shell';
 import {
   normalizeCopyFormat,
   type CopyFormat,
 } from '@/features/standup/lib/format-standup';
 import { Stack, useRouter } from 'expo-router';
 import * as React from 'react';
-import { Alert, ScrollView } from 'react-native';
+import { Alert } from 'react-native';
 
 export default function SettingsScreen() {
   const router = useRouter();
   const { supabase, session } = useAuth();
   const [upgradeOpen, setUpgradeOpen] = React.useState(false);
   const [busy, setBusy] = React.useState(false);
+  const [accountLabel, setAccountLabel] = React.useState('Account');
   const [reminderEnabled, setReminderEnabled] = React.useState(true);
   const [reminderTime, setReminderTime] = React.useState(() =>
     parseReminderTime('09:00:00')
   );
   const [defaultCopyFormat, setDefaultCopyFormat] =
     React.useState<CopyFormat>('plain');
-  const tabBarPadding = useTabBarScrollPadding();
+  const { displayName: profileName, avatarUrl } = useProfileHeader();
 
   React.useEffect(() => {
     if (!supabase || !session) {
@@ -40,6 +45,7 @@ export default function SettingsScreen() {
       if (!profile) {
         return;
       }
+      setAccountLabel(profile.github_login ?? session.user.email ?? 'Account');
       setReminderEnabled(profile.reminder_enabled ?? true);
       setReminderTime(
         parseReminderTime(profile.reminder_time_local ?? '09:00:00')
@@ -169,16 +175,25 @@ export default function SettingsScreen() {
       <Stack.Screen
         options={{
           title: 'Settings',
-          headerShown: true,
-          headerRight: () => <ScreenHeaderActions />,
+          headerShown: false,
         }}
       />
-      <ScrollView
-        className="bg-background flex-1"
-        contentContainerClassName="mx-auto w-full max-w-lg gap-4 px-5 pt-2"
-        contentContainerStyle={{ paddingBottom: tabBarPadding }}
-        contentInsetAdjustmentBehavior="automatic"
-        showsVerticalScrollIndicator={false}
+      <AppScreenShell
+        header={
+          <ScreenHeader
+            eyebrow="Settings"
+            title={accountLabel}
+            subtitle="Repositories, reminders, and account preferences."
+            showThemeToggle={false}
+            trailing={
+              <ProfileAvatar
+                avatarUrl={avatarUrl}
+                displayName={profileName}
+                size="sm"
+              />
+            }
+          />
+        }
       >
         <SettingsLinksSection onUpgradePress={() => setUpgradeOpen(true)} />
         <CopyFormatSection
@@ -197,7 +212,7 @@ export default function SettingsScreen() {
           onSignOut={() => void onSignOut()}
           onDeleteAccount={onDeleteAccount}
         />
-      </ScrollView>
+      </AppScreenShell>
 
       <UpgradeSheet open={upgradeOpen} onOpenChange={setUpgradeOpen} />
     </>

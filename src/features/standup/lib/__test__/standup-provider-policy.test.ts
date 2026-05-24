@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 
 const providerPath = join(
   dirname(fileURLToPath(import.meta.url)),
-  '../context/standup/provider.tsx'
+  '../../context/standup/provider.tsx'
 );
 
 function readProviderSource(): string {

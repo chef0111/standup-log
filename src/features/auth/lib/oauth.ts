@@ -1,10 +1,47 @@
 import { persistGitHubProviderToken } from '@/features/auth/lib/github-token';
 import { AppError, categorizeError, userFacingMessage } from '@/lib/errors';
 import { requireSupabase } from '@/utils/supabase';
+import type { Session, SupabaseClient } from '@supabase/supabase-js';
 import { makeRedirectUri } from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
 
 void WebBrowser.maybeCompleteAuthSession();
+
+/** Android often closes the auth session before `result.url` is set; wait for deep-link session. */
+function waitForAuthSession(
+  supabase: SupabaseClient,
+  timeoutMs = 4000
+): Promise<Session | null> {
+  return new Promise((resolve) => {
+    let settled = false;
+
+    const finish = (session: Session | null) => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      subscription.unsubscribe();
+      clearTimeout(timer);
+      resolve(session);
+    };
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) {
+        finish(session);
+      }
+    });
+
+    void supabase.auth.getSession().then(({ data }) => {
+      if (data.session) {
+        finish(data.session);
+      }
+    });
+
+    const timer = setTimeout(() => finish(null), timeoutMs);
+  });
+}
 
 function getOAuthReturnParams(input: string): {
   errorCode: string | null;
@@ -79,7 +116,7 @@ export async function createSessionFromUrl(url: string): Promise<void> {
   }
 }
 
-export async function signInWithGitHub(): Promise<void> {
+export async function signInWithGitHub(): Promise<Session | null> {
   const supabase = requireSupabase();
 
   const { data, error } = await supabase.auth.signInWithOAuth({
@@ -102,21 +139,29 @@ export async function signInWithGitHub(): Promise<void> {
 
   const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectTo);
 
-  if (result.type === 'cancel' || result.type === 'dismiss') {
-    return;
+  if (result.type === 'success' && 'url' in result && result.url) {
+    try {
+      await createSessionFromUrl(result.url);
+    } catch (e) {
+      const cat = categorizeError(e);
+      throw new AppError(
+        cat,
+        e instanceof Error ? e.message : userFacingMessage(cat)
+      );
+    }
+    const { data: sessionData } = await supabase.auth.getSession();
+    return sessionData.session;
   }
 
-  if (result.type !== 'success' || !('url' in result) || !result.url) {
-    throw new AppError('auth', 'Sign-in did not complete');
+  if (result.type === 'cancel') {
+    return null;
   }
 
-  try {
-    await createSessionFromUrl(result.url);
-  } catch (e) {
-    const cat = categorizeError(e);
-    throw new AppError(
-      cat,
-      e instanceof Error ? e.message : userFacingMessage(cat)
-    );
+  if (result.type === 'dismiss') {
+    const session = await waitForAuthSession(supabase);
+    await persistGitHubProviderToken(session?.provider_token);
+    return session;
   }
+
+  throw new AppError('auth', 'Sign-in did not complete');
 }

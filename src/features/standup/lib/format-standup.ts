@@ -1,4 +1,5 @@
 import { parseStandupMarkdown } from '@/features/standup/lib/parse-standup-markdown';
+import { Workday } from '../types/workday';
 
 export const PLAIN_COPY_FORMAT = 'plain' as const;
 
@@ -128,4 +129,24 @@ export function formatStandupSummaryForCopy(
     return summary.length > 0 ? `h2. Summary\n${summary}` : summary;
   }
   return summary.length > 0 ? `## Summary\n${summary}` : summary;
+}
+
+export function formatLogTime(iso: string): string {
+  try {
+    return new Date(iso).toLocaleTimeString(undefined, {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+  } catch {
+    return '--:--';
+  }
+}
+
+export function formatWorkdayTitle(workday: Workday): string {
+  const [year, month, day] = workday.split('-').map(Number);
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+  }).format(new Date(year, month - 1, day));
 }

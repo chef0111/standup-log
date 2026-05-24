@@ -45,6 +45,8 @@ export type StandupContextValue = {
   aiRetryAfterSeconds: number | null;
   regenerateDraft: () => Promise<void>;
   onStandupSaved: (markdown: string) => void;
+  editorMarkdown: string;
+  setEditorMarkdown: (markdown: string) => void;
   loadingStandup: boolean;
   loading: boolean;
 };

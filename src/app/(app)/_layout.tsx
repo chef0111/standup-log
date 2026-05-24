@@ -1,5 +1,5 @@
 import { useAuth } from '@/context/auth';
-import { ScreenHeaderActions } from '@/features/shell/components/screen-header-actions';
+import { ScreenHeaderActions } from '@/features/shell/components/screen-header/screen-header-actions';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { Redirect, Stack } from 'expo-router';
 import * as React from 'react';
@@ -15,7 +15,7 @@ export default function AppGroupLayout() {
 
   if (loading) {
     return (
-      <View className="bg-background flex-1 items-center justify-center">
+      <View className="bg-background flex-1 items-center justify-center will-change-auto">
         <ActivityIndicator size="large" color={foreground} />
         <Text className="text-muted-foreground mt-4">Loading…</Text>
       </View>

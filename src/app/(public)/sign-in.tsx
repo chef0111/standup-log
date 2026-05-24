@@ -6,10 +6,8 @@ import { useAuth } from '@/context/auth';
 import { AuthStatusView } from '@/features/auth/components/auth-status';
 import { SignInLanding } from '@/features/auth/components/sign-in-landing';
 import { signInWithGitHub } from '@/features/auth/lib/oauth';
-import { useThemeColor } from '@/hooks/use-theme-color';
 import { track } from '@/lib/analytics';
 import { AppError, userFacingMessage } from '@/lib/errors';
-import { getSupabase } from '@/utils/supabase';
 import { Redirect, Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as React from 'react';
@@ -22,7 +20,6 @@ const BUTTON_ICON_SLOT = 20;
 export default function SignInScreen() {
   const router = useRouter();
   const { configured, session } = useAuth();
-  const foreground = useThemeColor('--color-foreground');
   const [phase, setPhase] = React.useState<SignInPhase>('idle');
   const [message, setMessage] = React.useState<string | null>(null);
 
@@ -30,18 +27,14 @@ export default function SignInScreen() {
     setMessage(null);
     setPhase('loading');
     try {
-      await signInWithGitHub();
-      const supabase = getSupabase();
-      const { data } = supabase
-        ? await supabase.auth.getSession()
-        : { data: { session: null } };
-      if (!data.session) {
+      const signedInSession = await signInWithGitHub();
+      if (!signedInSession) {
         setPhase('idle');
         return;
       }
       setPhase('success');
       await new Promise((resolve) => setTimeout(resolve, 800));
-      router.replace('/');
+      router.replace('/(app)/(tabs)');
     } catch (e) {
       track('github_oauth_failure', {
         error_code: e instanceof AppError ? e.category : 'unknown',
@@ -54,7 +47,7 @@ export default function SignInScreen() {
   }, [router]);
 
   if (session && phase === 'idle') {
-    return <Redirect href="/" />;
+    return <Redirect href="/(app)/(tabs)" />;
   }
 
   if (phase === 'success') {
@@ -78,22 +71,23 @@ export default function SignInScreen() {
       <StatusBar style="light" />
       <SignInLanding>
         <Button
+          variant="charcoal"
           disabled={busy || !configured}
           onPress={onGitHub}
-          className="bg-background h-14 w-full rounded-full"
-          size="lg"
+          className="h-14 w-full"
+          size="pill"
         >
           <View
             className="items-center justify-center"
             style={{ width: BUTTON_ICON_SLOT, height: BUTTON_ICON_SLOT }}
           >
             {busy ? (
-              <ButtonSpinner color={foreground} size={BUTTON_ICON_SLOT} />
+              <ButtonSpinner color="white" size={BUTTON_ICON_SLOT} />
             ) : (
-              <GithubIcon size={BUTTON_ICON_SLOT} color={foreground} />
+              <GithubIcon size={BUTTON_ICON_SLOT} color="white" />
             )}
           </View>
-          <Text className="text-foreground text-base font-semibold">
+          <Text className="text-base font-semibold text-white">
             {busy ? 'Opening GitHub…' : 'Continue with GitHub'}
           </Text>
         </Button>

@@ -3,21 +3,33 @@ import { Button } from '@/components/ui/button';
 import { ButtonSpinner } from '@/components/ui/button-spinner';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
+import { GithubRateLimitBanner } from '@/features/standup/components/activity/github-rate-limit-banner';
+import { TerminalSurface } from '@/features/standup/components/terminal-surface';
+import {
+  SYMBOL_STYLES,
+  WORK_TYPE_BADGE_CLASS,
+  WORK_TYPE_BADGE_TEXT_CLASS,
+} from '@/features/standup/config/work-type';
+import { groupCommitsByRepo } from '@/features/standup/lib/activity/group-commits-by-repo';
 import { commitFirstLine } from '@/features/standup/lib/activity/parse-commit-work-type';
 import {
   resolveCommitWorkType,
   type WorkTypeDisplay,
 } from '@/features/standup/lib/activity/stored-work-type';
-import { GithubRateLimitBanner } from '@/features/standup/components/activity/github-rate-limit-banner';
+import {
+  formatLogTime,
+  formatWorkdayTitle,
+} from '@/features/standup/lib/format-standup';
 import type { ActivityCommitRow } from '@/features/standup/types/activity-commit';
-import { useThemeColor } from '@/hooks/use-theme-color.web';
 import type { Workday } from '@/features/standup/types/workday';
+import { TERMINAL_COLORS } from '@/lib/theme-colors';
 import { cn } from '@/lib/utils';
 import { RefreshCw } from 'lucide-react-native';
 import * as React from 'react';
-import { ActivityIndicator, Pressable, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, View } from 'react-native';
 
 type ActivityTerminalProps = {
+  className?: string;
   workday: Workday;
   commits: ActivityCommitRow[];
   loading?: boolean;
@@ -32,52 +44,6 @@ type ActivityTerminalProps = {
   onEditWorkType?: (commit: ActivityCommitRow) => void;
   rateLimitResetAt?: number | null;
 };
-
-const WORK_TYPE_BADGE_CLASS: Record<WorkTypeDisplay['type'], string> = {
-  feature: 'border-transparent bg-green-500/20',
-  bug: 'border-transparent bg-destructive/15',
-  refactor: 'border-transparent bg-blue-500/20',
-  test: 'border-transparent bg-purple-500/20',
-  chore: 'border-transparent bg-muted',
-  style: 'border-transparent bg-amber-500/20',
-};
-
-const WORK_TYPE_BADGE_TEXT_CLASS: Record<WorkTypeDisplay['type'], string> = {
-  feature: 'text-green-500',
-  bug: 'text-destructive',
-  refactor: 'text-blue-500',
-  test: 'text-purple-500',
-  chore: 'text-muted-foreground',
-  style: 'text-amber-500',
-};
-
-const SYMBOL_STYLES: Record<WorkTypeDisplay['symbol'], string> = {
-  '+': 'text-green-500',
-  '!': 'text-destructive',
-  '~': 'text-blue-500',
-  $: 'text-amber-500',
-  T: 'text-purple-500',
-};
-
-function formatLogTime(iso: string): string {
-  try {
-    return new Date(iso).toLocaleTimeString(undefined, {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false,
-    });
-  } catch {
-    return '--:--';
-  }
-}
-
-function formatWorkdayTitle(workday: Workday): string {
-  const [year, month, day] = workday.split('-').map(Number);
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric',
-  }).format(new Date(year, month - 1, day));
-}
 
 function WorkTypeBadge({
   display,
@@ -152,9 +118,7 @@ const ActivityLogLine = React.memo(function ActivityLogLine({
         {workType ? (
           <WorkTypeBadge
             display={workType}
-            onPress={
-              onEditWorkType ? () => onEditWorkType(item) : undefined
-            }
+            onPress={onEditWorkType ? () => onEditWorkType(item) : undefined}
           />
         ) : onEditWorkType ? (
           <Pressable
@@ -228,6 +192,76 @@ function TerminalBody({ children }: { children: React.ReactNode }) {
   return <View className="bg-terminal px-3 py-2">{children}</View>;
 }
 
+function RepoSectionHeader({
+  repositoryFullName,
+}: {
+  repositoryFullName: string;
+}) {
+  const shortName = repositoryFullName.split('/').pop() ?? repositoryFullName;
+
+  return (
+    <View className="border-terminal-border bg-terminal-title/80 -mx-3 border-y px-3 py-2 first:border-t-0">
+      <Text
+        selectable
+        className="text-terminal-foreground font-mono text-xs font-semibold"
+        numberOfLines={1}
+      >
+        {shortName}
+      </Text>
+      {shortName !== repositoryFullName ? (
+        <Text
+          selectable
+          className="text-terminal-muted font-mono text-[10px]"
+          numberOfLines={1}
+        >
+          {repositoryFullName}
+        </Text>
+      ) : null}
+    </View>
+  );
+}
+
+function ActivityCommitList({
+  commits,
+  groupByRepo,
+  onEditWorkType,
+}: {
+  commits: ActivityCommitRow[];
+  groupByRepo: boolean;
+  onEditWorkType?: (commit: ActivityCommitRow) => void;
+}) {
+  if (!groupByRepo) {
+    return (
+      <>
+        {commits.map((item) => (
+          <ActivityLogLine
+            key={item.sha}
+            item={item}
+            onEditWorkType={onEditWorkType}
+          />
+        ))}
+      </>
+    );
+  }
+
+  return (
+    <>
+      {groupCommitsByRepo(commits).map((group) => (
+        <View key={group.repositoryFullName}>
+          <RepoSectionHeader repositoryFullName={group.repositoryFullName} />
+          {group.commits.map((item) => (
+            <ActivityLogLine
+              key={item.sha}
+              item={item}
+              onEditWorkType={onEditWorkType}
+            />
+          ))}
+        </View>
+      ))}
+    </>
+  );
+}
+
 export function ActivityTerminal({
   workday,
   commits,
@@ -242,15 +276,21 @@ export function ActivityTerminal({
   onManageRepos,
   onEditWorkType,
   rateLimitResetAt,
+  className,
 }: ActivityTerminalProps) {
-  const rateLimited =
-    rateLimitResetAt != null && rateLimitResetAt > Date.now();
-  const refreshDisabled =
-    syncing || tokenLoading || !hasToken || rateLimited;
-  const foreground = useThemeColor('--color-foreground');
-
+  const rateLimited = rateLimitResetAt != null && rateLimitResetAt > Date.now();
+  const refreshDisabled = syncing || tokenLoading || !hasToken || rateLimited;
+  const uniqueRepoCount = new Set(
+    commits.map((commit) => commit.repository_full_name)
+  ).size;
+  const groupByRepo = uniqueRepoCount > 1;
   return (
-    <View className="border-terminal-border overflow-hidden rounded-lg border">
+    <TerminalSurface
+      className={cn(
+        'border-terminal-border overflow-hidden rounded-lg border',
+        className
+      )}
+    >
       <TerminalTitleBar
         workday={workday}
         syncing={syncing}
@@ -280,7 +320,7 @@ export function ActivityTerminal({
           </View>
         ) : loading || (syncing && commits.length === 0) ? (
           <View className="items-center py-8">
-            <ActivityIndicator color={foreground} />
+            <ActivityIndicator color={TERMINAL_COLORS.muted} />
           </View>
         ) : error ? (
           <Text selectable className="text-destructive py-4 font-mono text-xs">
@@ -296,17 +336,21 @@ export function ActivityTerminal({
             {emptyMessage ?? 'No commits for this Workday yet.'}
           </Text>
         ) : (
-          <View>
-            {commits.map((item) => (
-              <ActivityLogLine
-                key={item.sha}
-                item={item}
+          <ScrollView
+            nestedScrollEnabled
+            style={{ maxHeight: 256 }}
+            showsVerticalScrollIndicator={false}
+          >
+            <View>
+              <ActivityCommitList
+                commits={commits}
+                groupByRepo={groupByRepo}
                 onEditWorkType={onEditWorkType}
               />
-            ))}
-          </View>
+            </View>
+          </ScrollView>
         )}
       </TerminalBody>
-    </View>
+    </TerminalSurface>
   );
 }

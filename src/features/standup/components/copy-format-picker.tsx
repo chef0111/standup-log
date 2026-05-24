@@ -1,11 +1,10 @@
-import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import {
   COPY_FORMAT_OPTIONS,
   type CopyFormat,
 } from '@/features/standup/lib/format-standup';
 import { cn } from '@/lib/utils';
-import { View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 type CopyFormatPickerProps = {
   value: CopyFormat;
@@ -25,17 +24,27 @@ export function CopyFormatPicker({
       {COPY_FORMAT_OPTIONS.map((option) => {
         const selected = value === option.value;
         return (
-          <Button
+          <Pressable
             key={option.value}
-            variant={selected ? 'default' : 'outline'}
-            size="sm"
+            accessibilityRole="button"
+            accessibilityState={{ selected }}
             disabled={disabled}
             onPress={() => onChange(option.value)}
+            className={cn(
+              'min-h-10 items-center justify-center rounded-full px-4 py-2',
+              selected ? 'bg-zinc-900 dark:bg-zinc-100' : 'bg-muted/60',
+              disabled && 'opacity-50'
+            )}
           >
-            <Text className={selected ? 'text-primary-foreground' : undefined}>
+            <Text
+              className={cn(
+                'text-sm font-medium',
+                selected ? 'text-white dark:text-zinc-900' : 'text-foreground'
+              )}
+            >
               {option.label}
             </Text>
-          </Button>
+          </Pressable>
         );
       })}
     </View>
