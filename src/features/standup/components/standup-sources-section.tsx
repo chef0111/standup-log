@@ -1,3 +1,4 @@
+import { Card } from '@/components/ui/card';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { StandupActivitySection } from '@/features/standup/components/standup-activity-section';
@@ -23,15 +24,17 @@ export function StandupSourcesSection() {
   const sourceCount = commits.length + notes.length;
 
   return (
-    <View className="gap-3">
+    <Card variant="elevated" className="gap-3 p-5">
       <Pressable
         accessibilityRole="button"
         accessibilityState={{ expanded: open }}
         onPress={() => setOpen((value) => !value)}
-        className="min-h-11 flex-row items-center justify-between gap-2 py-1"
+        className="min-h-11 flex-row items-center justify-between gap-2"
       >
         <View className="gap-0.5">
-          <Text className="text-foreground text-sm font-medium">Sources</Text>
+          <Text className="text-foreground text-base font-semibold">
+            Sources
+          </Text>
           <Text className="text-muted-foreground text-xs">
             Activity and notes for this Workday
             {sourceCount > 0 ? ` · ${sourceCount}` : ''}
@@ -52,6 +55,6 @@ export function StandupSourcesSection() {
       {loading && !open ? (
         <Text className="text-muted-foreground text-xs">Loading sources…</Text>
       ) : null}
-    </View>
+    </Card>
   );
 }

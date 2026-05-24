@@ -30,15 +30,15 @@ function ProfileAvatar({
   displayName: string;
 }) {
   return (
-    <View className="size-11 overflow-hidden rounded-full border border-white/25 p-0.5">
+    <View className="border-border/60 size-11 overflow-hidden rounded-full border p-0.5">
       {avatarUrl ? (
         <Image
           source={{ uri: avatarUrl }}
           style={{ width: 40, height: 40, borderRadius: 20 }}
         />
       ) : (
-        <View className="size-10 items-center justify-center rounded-full bg-white/10">
-          <Text className="text-sm font-semibold text-white">
+        <View className="bg-muted size-10 items-center justify-center rounded-full">
+          <Text className="text-foreground text-sm font-semibold">
             {(displayName[0] ?? '?').toUpperCase()}
           </Text>
         </View>
@@ -49,9 +49,9 @@ function ProfileAvatar({
 
 function StreakPill({ streak }: { streak: number }) {
   return (
-    <View className="flex-row items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5">
+    <View className="bg-muted flex-row items-center gap-1.5 rounded-full px-3 py-1.5">
       <Icon as={Flame} size={16} className="text-success" />
-      <Text className="text-xs font-medium text-white">
+      <Text className="text-foreground text-xs font-medium">
         {streak} day{streak === 1 ? '' : 's'}
       </Text>
     </View>
@@ -134,14 +134,9 @@ export default function AppHomeScreen() {
   if (!profile) {
     return (
       <>
-        <Stack.Screen
-          options={{
-            title: 'Home',
-            headerRight: () => <ScreenHeaderActions />,
-          }}
-        />
+        <Stack.Screen options={{ title: 'Home', headerShown: false }} />
         <View className="bg-background flex-1 justify-center gap-4 p-6 will-change-auto">
-          <Card className="gap-3 p-6">
+          <Card variant="elevated" className="gap-3 p-5">
             <Text className="text-muted-foreground text-center text-sm leading-relaxed">
               We could not load your profile. Confirm both migrations in
               `supabase/migrations` are applied to this project, then sign out
@@ -176,6 +171,7 @@ export default function AppHomeScreen() {
             eyebrow="Hello"
             title={displayName}
             subtitle="Your workspace for daily standup updates."
+            showThemeToggle={false}
             trailing={
               <View className="items-end gap-2">
                 <ProfileAvatar
@@ -191,7 +187,7 @@ export default function AppHomeScreen() {
         <StandupWidget />
 
         <View className="flex-row gap-3">
-          <Card variant="inset" className="flex-1 gap-2 p-4">
+          <Card variant="elevated" className="flex-1 gap-2 p-5">
             <View className="flex-row items-center gap-2">
               <View className="bg-muted/80 size-8 items-center justify-center rounded-md">
                 <RepositoryIcon size={16} color={foreground} />
@@ -204,7 +200,7 @@ export default function AppHomeScreen() {
               {selectedCount === 1 ? 'Repository' : 'Repositories'}
             </Text>
           </Card>
-          <Card variant="inset" className="flex-1 gap-2 p-4">
+          <Card variant="elevated" className="flex-1 gap-2 p-5">
             <Icon as={Flame} size={22} className="text-success" />
             <Text className="text-foreground text-sm font-medium">
               Best streak
@@ -216,7 +212,7 @@ export default function AppHomeScreen() {
           </Card>
         </View>
 
-        <View className="border-border/60 bg-muted/20 flex-row items-center justify-center gap-1.5 rounded-full border px-3 py-2">
+        <View className="bg-muted/50 flex-row items-center justify-center gap-1.5 self-start rounded-full px-3 py-2">
           <GithubIcon size={14} color={foreground} />
           <Text className="text-muted-foreground text-xs">
             Connected via GitHub

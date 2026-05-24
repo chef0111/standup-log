@@ -27,21 +27,21 @@ function StandupHero() {
         eyebrow="Standup"
         title={formatWorkdayHeading(workday)}
         subtitle="Draft first, then pull from activity and notes."
+        showThemeToggle={false}
         trailing={
           <WorkdayDatePicker
             key={workday}
             workday={workday}
             bounds={pickerBounds}
             onWorkdayChange={onWorkdayChange}
-            tone="hero"
           />
         }
       >
         {!isPro ? (
-          <Text className="text-xs leading-relaxed text-white/60">
+          <Text className="text-muted-foreground text-xs leading-relaxed">
             Free: last {FREE_TIER_WORKDAY_HISTORY_DAYS} days.{' '}
             <Text
-              className="text-xs text-white underline"
+              className="text-foreground text-xs underline"
               onPress={() => setUpgradeOpen(true)}
             >
               Upgrade to Pro

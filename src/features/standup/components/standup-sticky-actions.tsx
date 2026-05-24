@@ -51,6 +51,7 @@ export function StandupStickyActions() {
           <Text>Copy summary</Text>
         </Button>
         <Button
+          variant="charcoal"
           size="pill"
           disabled={aiLoading || aiRateLimited}
           onPress={() => void regenerateDraft()}

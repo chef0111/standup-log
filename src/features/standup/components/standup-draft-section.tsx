@@ -1,8 +1,9 @@
+import { Card } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
 import { StandupDraftPanel } from '@/features/standup/components/standup-draft-panel';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import * as React from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator } from 'react-native';
 import { useStandup } from '../context/standup';
 
 export function StandupDraftSection() {
@@ -10,15 +11,15 @@ export function StandupDraftSection() {
   const foreground = useThemeColor('--color-foreground');
 
   return (
-    <View className="gap-3">
-      <View className="flex-row items-center justify-between gap-2">
-        <Text className="text-foreground text-sm font-medium">Standup draft</Text>
-      </View>
+    <Card variant="elevated" className="gap-3 p-5">
+      <Text className="text-foreground text-base font-semibold">
+        Standup draft
+      </Text>
       {loading ? (
         <ActivityIndicator color={foreground} />
       ) : (
         <StandupDraftPanel />
       )}
-    </View>
+    </Card>
   );
 }

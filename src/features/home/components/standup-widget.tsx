@@ -85,8 +85,8 @@ export function StandupWidget() {
   }, [toast]);
 
   return (
-    <Card variant="inset" className="gap-0 overflow-hidden p-0">
-      <CardHeader className="gap-2 p-5 pb-3">
+    <Card variant="elevated" className="gap-0 overflow-hidden p-0">
+      <CardHeader className="gap-2 pb-3">
         <View className="flex-row items-center justify-between gap-2">
           <CardTitle>Today&apos;s standup</CardTitle>
           {copied ? (
@@ -99,7 +99,7 @@ export function StandupWidget() {
           {formatWorkdayHeading(workday)}
         </CardDescription>
       </CardHeader>
-      <CardContent className="gap-2 px-5 pb-3">
+      <CardContent className="gap-2 pb-3">
         {loading ? (
           <ActivityIndicator />
         ) : error ? (
@@ -124,20 +124,19 @@ export function StandupWidget() {
           </Text>
         ) : null}
       </CardContent>
-      <CardFooter className="flex-row flex-wrap gap-2 p-5 pt-0">
+      <CardFooter className="flex-row flex-wrap gap-2">
         {hasStandup ? (
           <Button variant="outline" onPress={onView} className="min-w-[40%] flex-1">
             <Text>View</Text>
           </Button>
         ) : null}
         <Button
+          variant="charcoal"
           size="pill"
           onPress={onGenerate}
-          className="min-w-[40%] flex-1 bg-zinc-950 dark:bg-zinc-100"
+          className="min-w-[40%] flex-1"
         >
-          <Text className="text-white dark:text-zinc-950">
-            {hasStandup ? 'Edit' : 'Generate'}
-          </Text>
+          <Text>{hasStandup ? 'Edit' : 'Generate'}</Text>
         </Button>
         {summaryReady ? (
           <Button

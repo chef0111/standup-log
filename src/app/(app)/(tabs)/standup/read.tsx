@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
 import { useAuth } from '@/context/auth';
 import {
@@ -116,6 +117,7 @@ export default function StandupReadScreen() {
                 <Text>Copy summary</Text>
               </Button>
               <Button
+                variant="charcoal"
                 size="pill"
                 disabled={copying}
                 onPress={copyFull}
@@ -146,7 +148,9 @@ export default function StandupReadScreen() {
             {error}
           </Text>
         ) : (
-          <StandupMarkdownView markdown={markdown} />
+          <Card variant="elevated" className="p-5">
+            <StandupMarkdownView markdown={markdown} />
+          </Card>
         )}
       </AppScreenShell>
 

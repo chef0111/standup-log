@@ -144,7 +144,7 @@ export function StandupDraftPanel() {
 
       <AiGenerationQuota />
 
-      <Button disabled={saving} onPress={() => void handleSave()}>
+      <Button disabled={saving} variant="charcoal" size="pill" onPress={() => void handleSave()}>
         {saving ? (
           <ButtonSpinner />
         ) : (

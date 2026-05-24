@@ -33,25 +33,16 @@ export function WorkdayDatePicker({
           className={cn(
             'flex-row items-center gap-2 rounded-full px-3 py-2',
             tone === 'hero'
-              ? 'border border-white/25 bg-white/10'
-              : 'border-border rounded-md border',
+              ? 'bg-muted/60 border-border/60 border'
+              : 'border-border bg-background border',
             open && tone === 'default' && 'border-ring ring-ring/50 ring-[3px]'
           )}
           accessibilityRole="button"
           accessibilityState={{ expanded: open }}
           accessibilityLabel={`Workday ${workday}`}
         >
-          <Icon
-            as={CalendarDays}
-            className={tone === 'hero' ? 'text-white' : 'text-foreground'}
-            size={18}
-          />
-          <Text
-            className={cn(
-              'text-sm font-medium',
-              tone === 'hero' ? 'text-white' : 'text-foreground'
-            )}
-          >
+          <Icon as={CalendarDays} className="text-foreground" size={18} />
+          <Text className="text-foreground text-sm font-medium">
             {workday}
           </Text>
         </Pressable>
