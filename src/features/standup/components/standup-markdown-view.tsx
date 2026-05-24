@@ -1,9 +1,4 @@
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
 import {
   isStandupSummaryReady,
@@ -30,15 +25,13 @@ const SectionCard = React.memo(function SectionCard({
     return null;
   }
 
-  const sectionMarkdown = `## ${title}\n\n${body}`;
-
   return (
     <Card>
       <CardHeader className="pb-2">
         <CardTitle>{title}</CardTitle>
       </CardHeader>
       <CardContent>
-        <Markdown markdown={sectionMarkdown} theme={theme} />
+        <Markdown markdown={body} theme={theme} />
       </CardContent>
     </Card>
   );
@@ -88,12 +81,7 @@ export function StandupMarkdownView({ markdown }: StandupMarkdownViewProps) {
       </Card>
 
       {SECTIONS.map(({ key, title }) => (
-        <SectionCard
-          key={key}
-          title={title}
-          body={parsed[key]}
-          theme={theme}
-        />
+        <SectionCard key={key} title={title} body={parsed[key]} theme={theme} />
       ))}
     </View>
   );

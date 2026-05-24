@@ -1,6 +1,15 @@
 import { Text } from '@/components/ui/text';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { Switch, View } from 'react-native';
+import { SettingsSection } from '@/features/settings/components/settings-section';
+import DateTimePicker, {
+  type DateTimePickerEvent,
+} from '@react-native-community/datetimepicker';
+import * as React from 'react';
+import { Platform, Pressable, Switch, View } from 'react-native';
+
+const reminderTimeFormatter = new Intl.DateTimeFormat(undefined, {
+  hour: 'numeric',
+  minute: '2-digit',
+});
 
 type ReminderSectionProps = {
   enabled: boolean;
@@ -15,31 +24,66 @@ export function ReminderSection({
   onEnabledChange,
   onTimeChange,
 }: ReminderSectionProps) {
+  const [showAndroidPicker, setShowAndroidPicker] = React.useState(false);
+  const timeLabel = reminderTimeFormatter.format(time);
+
+  const onPickerChange = React.useCallback(
+    (event: DateTimePickerEvent, date?: Date) => {
+      if (Platform.OS === 'android') {
+        setShowAndroidPicker(false);
+        if (event.type !== 'set' || !date) {
+          return;
+        }
+      } else if (!date) {
+        return;
+      }
+
+      onTimeChange(date);
+    },
+    [onTimeChange]
+  );
+
   return (
-    <View className="border-border gap-3 rounded-lg border p-4">
-      <Text className="text-foreground text-sm font-medium">
-        Morning reminder
-      </Text>
-      <Text
-        selectable
-        className="text-muted-foreground text-xs leading-relaxed"
-      >
-        Reminds you at the chosen time if yesterday&apos;s standup was not
-        copied.
-      </Text>
-      <View className="flex-row items-center justify-between">
-        <Text className="text-foreground text-sm">Enabled</Text>
-        <Switch value={enabled} onValueChange={onEnabledChange} />
+    <SettingsSection
+      title="Morning reminder"
+      description="Reminds you at the chosen time if yesterday's standup was not copied."
+    >
+      <View className="gap-3">
+        <View className="flex-row items-center justify-between">
+          <Text className="text-foreground text-sm">Enabled</Text>
+          <Switch value={enabled} onValueChange={onEnabledChange} />
+        </View>
+        {enabled ? (
+          Platform.OS === 'ios' ? (
+            <DateTimePicker
+              value={time}
+              mode="time"
+              display="compact"
+              onChange={onPickerChange}
+            />
+          ) : (
+            <>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`Reminder time, ${timeLabel}`}
+                onPress={() => setShowAndroidPicker(true)}
+                className="bg-muted/50 active:bg-muted/70 rounded-2xl px-4 py-3"
+              >
+                <Text className="text-foreground text-sm font-medium">
+                  {timeLabel}
+                </Text>
+              </Pressable>
+              {showAndroidPicker && (
+                <DateTimePicker
+                  value={time}
+                  mode="time"
+                  onChange={onPickerChange}
+                />
+              )}
+            </>
+          )
+        ) : null}
       </View>
-      <DateTimePicker
-        value={time}
-        mode="time"
-        onChange={(_, date) => {
-          if (date) {
-            onTimeChange(date);
-          }
-        }}
-      />
-    </View>
+    </SettingsSection>
   );
 }

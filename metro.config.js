@@ -4,7 +4,6 @@ const { withNativewind } = require('nativewind/metro');
 /** @type {import('expo/metro-config').MetroConfig} */
 const config = getDefaultConfig(__dirname);
 
-// Reduce parallel file reads on Windows (avoids EMFILE during large bundles).
 config.maxWorkers = 2;
 
 module.exports = withNativewind(config, {

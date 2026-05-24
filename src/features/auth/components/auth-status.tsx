@@ -19,7 +19,7 @@ export function AuthStatusView({
 }: AuthStatusProps) {
   if (variant === 'loading') {
     return (
-      <View className="bg-background flex-1 items-center justify-center gap-4 p-6">
+      <View className="bg-background flex-1 items-center justify-center gap-4 p-6 will-change-auto">
         <ActivityIndicator size="large" className="text-primary" />
         <Text className="text-muted-foreground text-center text-sm">
           {loadingMessage}
@@ -29,7 +29,7 @@ export function AuthStatusView({
   }
 
   return (
-    <View className="bg-background flex-1 items-center justify-center gap-4 p-6">
+    <View className="bg-background flex-1 items-center justify-center gap-4 p-6 will-change-auto">
       <View className="border-border size-14 items-center justify-center rounded-full border">
         <Icon as={CircleCheck} size={32} className="text-foreground" />
       </View>

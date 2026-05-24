@@ -1,9 +1,14 @@
 import { useAppColorScheme } from '@/context/theme';
 import { themes } from 'react-native-remark';
 
-export function useRemarkTheme() {
+type RemarkThemeOptions = {
+  /** Keep markdown preview on the dark terminal palette even when the app is in light mode. */
+  forceDark?: boolean;
+};
+
+export function useRemarkTheme(options?: RemarkThemeOptions) {
   const colorScheme = useAppColorScheme();
-  return colorScheme.colorScheme === 'dark'
-    ? themes.defaultTheme
-    : themes.githubTheme;
+  const useDark =
+    options?.forceDark === true || colorScheme.colorScheme === 'dark';
+  return useDark ? themes.defaultTheme : themes.githubTheme;
 }

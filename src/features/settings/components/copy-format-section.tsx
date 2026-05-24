@@ -1,7 +1,6 @@
-import { Text } from '@/components/ui/text';
 import { CopyFormatPicker } from '@/features/standup/components/copy-format-picker';
+import { SettingsSection } from '@/features/settings/components/settings-section';
 import type { CopyFormat } from '@/features/standup/lib/format-standup';
-import { View } from 'react-native';
 
 type CopyFormatSectionProps = {
   value: CopyFormat;
@@ -10,18 +9,11 @@ type CopyFormatSectionProps = {
 
 export function CopyFormatSection({ value, onChange }: CopyFormatSectionProps) {
   return (
-    <View className="border-border gap-3 rounded-lg border p-4">
-      <Text className="text-foreground text-sm font-medium">
-        Default copy format
-      </Text>
-      <Text
-        selectable
-        className="text-muted-foreground text-xs leading-relaxed"
-      >
-        Used when you copy a standup unless you pick another format on the
-        Generate or Read screen.
-      </Text>
+    <SettingsSection
+      title="Default copy format"
+      description="Used when you copy a standup unless you pick another format on the Generate or Read screen."
+    >
       <CopyFormatPicker value={value} onChange={onChange} />
-    </View>
+    </SettingsSection>
   );
 }

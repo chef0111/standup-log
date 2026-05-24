@@ -1,4 +1,4 @@
-import { ScreenHeaderActions } from '@/features/shell/components/screen-header-actions';
+import { ScreenHeaderActions } from '@/features/shell/components/screen-header/screen-header-actions';
 import { Stack } from 'expo-router';
 
 export default function StandupLayout() {

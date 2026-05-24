@@ -4,7 +4,7 @@ Expo (SDK 55) + Expo Router + Supabase. See [CONTEXT.md](CONTEXT.md) and [PRD.md
 
 ## Prerequisites
 
-- [Node.js](https://nodejs.org/) and [pnpm](https://pnpm.io/)
+- [Node.js](https://nodejs.org/) and [bun](https://bun.sh/)
 - iOS Simulator / Android emulator / device for native runs
 
 ## Environment variables
@@ -48,12 +48,12 @@ If variables are missing, the app opens a **setup** screen with instructions ins
 ## Scripts
 
 ```bash
-pnpm install
-pnpm start          # expo start
-pnpm android        # expo start --android
-pnpm ios            # expo start --ios
-pnpm web            # expo start --web
-pnpm lint           # expo lint
+bun install
+bun run start          # expo start
+bun run android        # expo start --android
+bun run ios            # expo start --ios
+bun run web            # expo start --web
+bun run lint           # expo lint
 ```
 
 ## Project layout
@@ -67,7 +67,7 @@ pnpm lint           # expo lint
 If Metro fails with `failed to deserialize; expected an object-like struct named Specifier` while bundling CSS:
 
 1. `bun install` — runs `postinstall` to remove a nested `lightningcss` copy under `@expo/metro-config` (must stay on **1.30.1**).
-2. Restart with a clean cache: `bun run start -- -c`, then open Android again.
+2. Restart with a clean cache: `bun run start:clean`, then open Android again.
 
 Smoke-test the CSS pipeline: `node scripts/verify-css-compile.js`.
 

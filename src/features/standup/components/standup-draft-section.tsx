@@ -11,8 +11,10 @@ export function StandupDraftSection() {
   const foreground = useThemeColor('--color-foreground');
 
   return (
-    <Card className="gap-3 p-4">
-      <Text className="text-foreground text-sm font-medium">Standup draft</Text>
+    <Card variant="elevated" className="gap-3 p-5">
+      <Text className="text-foreground text-base font-semibold">
+        Standup draft
+      </Text>
       {loading ? (
         <ActivityIndicator color={foreground} />
       ) : (

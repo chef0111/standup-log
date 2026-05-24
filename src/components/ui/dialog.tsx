@@ -1,7 +1,13 @@
 import { Text } from '@/components/ui/text';
 import { cn } from '@/lib/utils';
 import * as React from 'react';
-import { Modal, Pressable, View, type ModalProps } from 'react-native';
+import {
+  Modal,
+  Platform,
+  Pressable,
+  View,
+  type ModalProps,
+} from 'react-native';
 
 type DialogProps = ModalProps & {
   open: boolean;
@@ -23,7 +29,10 @@ function Dialog({ open, onOpenChange, children, ...props }: DialogProps) {
         onPress={() => onOpenChange(false)}
       >
         <Pressable
-          className="bg-background border-border w-full max-w-md rounded-xl border p-4 shadow-lg"
+          className={cn(
+            'bg-background border-border w-full max-w-md rounded-xl border p-4',
+            Platform.select({ web: 'shadow-lg' })
+          )}
           onPress={(e) => e.stopPropagation()}
         >
           {children}

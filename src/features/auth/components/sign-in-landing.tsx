@@ -1,7 +1,9 @@
 import { Text } from '@/components/ui/text';
+import { BrandLockup } from '@/features/shell/components/brand-lockup';
+import { SheetSurface } from '@/features/shell/components/sheet-surface';
 import { Image, type ImageSource } from 'expo-image';
 import * as React from 'react';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HeroImageMask } from './hero-image-mask';
 
@@ -48,9 +50,10 @@ export function SignInLanding({
       <View className="relative min-h-[60%] flex-1 overflow-hidden">
         <Image
           source={SIGN_IN_HERO_IMAGE}
-          className="absolute inset-0 h-full w-full"
+          style={StyleSheet.absoluteFill}
           contentFit="cover"
           transition={200}
+          accessibilityLabel="Developer at a desk with monitors"
         />
         <HeroImageMask />
 
@@ -59,14 +62,7 @@ export function SignInLanding({
           style={{ paddingTop: insets.top + 24 }}
         >
           <View className="items-center gap-6">
-            <View className="flex-row items-center gap-2.5">
-              <View className="size-9 items-center justify-center rounded-full border border-white/25 bg-white/10">
-                <Text className="text-base font-bold text-white">S</Text>
-              </View>
-              <Text className="text-xl font-semibold tracking-tight text-white">
-                StandupLog
-              </Text>
-            </View>
+            <BrandLockup />
 
             <View className="items-center gap-0.5">
               <Text className="text-center text-[28px] font-black uppercase leading-tight tracking-wide text-white">
@@ -82,15 +78,14 @@ export function SignInLanding({
         </View>
       </View>
 
-      <View
-        className="-mt-5 gap-10 rounded-t-[40px] bg-white px-6 pt-9"
-        style={{
-          paddingBottom: Math.max(insets.bottom, 28),
-          borderCurve: 'continuous',
-        }}
+      <SheetSurface
+        className="gap-10 bg-white px-6 pt-9 dark:bg-white"
+        overlap
+        padded={false}
+        style={{ paddingBottom: Math.max(insets.bottom, 28) }}
       >
         {children}
-      </View>
+      </SheetSurface>
     </View>
   );
 }
