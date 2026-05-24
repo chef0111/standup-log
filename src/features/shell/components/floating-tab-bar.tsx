@@ -31,29 +31,26 @@ function FloatingTabButton({
       accessibilityState={{ selected: isFocused }}
       accessibilityLabel={label}
       className={cn(
-        'min-h-11 min-w-11 flex-1 items-center justify-center gap-0.5 rounded-full px-2 py-2',
-        isFocused && 'bg-primary/10'
+        'min-h-11 min-w-11 flex-1 items-center justify-center rounded-full px-3 py-2',
+        isFocused && 'bg-white/15 dark:bg-zinc-900/10'
       )}
-      style={({ pressed }) => (pressed ? { opacity: 0.7 } : undefined)}
+      style={({ pressed }) => (pressed ? { opacity: 0.75 } : undefined)}
     >
       <Icon
         as={icon}
-        size={20}
-        className={isFocused ? 'text-primary' : 'text-muted-foreground'}
+        size={22}
+        className={isFocused ? 'text-white dark:text-zinc-900' : 'text-white/45 dark:text-zinc-400'}
       />
-      <Text
-        className={cn(
-          'text-[11px] font-medium',
-          isFocused ? 'text-foreground' : 'text-muted-foreground'
-        )}
-      >
-        {label}
-      </Text>
+      {isFocused ? (
+        <Text className="mt-0.5 text-[10px] font-medium text-white dark:text-zinc-900">
+          {label}
+        </Text>
+      ) : null}
     </Pressable>
   );
 }
 
-export function FloatingWebTabBar({ state, navigation }: BottomTabBarProps) {
+export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
 
   return (
@@ -65,10 +62,10 @@ export function FloatingWebTabBar({ state, navigation }: BottomTabBarProps) {
       }}
     >
       <View
-        className="border-border bg-sheet/95 max-w-105 w-[92%] flex-row rounded-full border px-1.5 py-1"
+        className="max-w-105 w-[92%] flex-row rounded-full bg-zinc-900 px-2 py-1.5 dark:bg-zinc-100"
         style={{
           minHeight: FLOATING_TAB_BAR_HEIGHT,
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.18)',
+          boxShadow: 'var(--shadow-floating)',
         }}
       >
         {state.routes.map((route, index) => {
@@ -103,3 +100,6 @@ export function FloatingWebTabBar({ state, navigation }: BottomTabBarProps) {
     </View>
   );
 }
+
+/** @deprecated Use FloatingTabBar */
+export const FloatingWebTabBar = FloatingTabBar;
