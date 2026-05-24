@@ -47,7 +47,7 @@ export default function AuthCallbackScreen() {
         await new Promise((resolve) => setTimeout(resolve, 1200));
 
         if (!cancelled) {
-          router.replace('/');
+          router.replace('/(app)/(tabs)');
         }
       } catch {
         if (!cancelled) {

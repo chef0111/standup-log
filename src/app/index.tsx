@@ -1,6 +1,6 @@
 import { Text } from '@/components/ui/text';
 import { useAuth } from '@/context/auth';
-import { useThemeColor } from '@/hooks/use-theme-color.web';
+import { useThemeColor } from '@/hooks/use-theme-color';
 import { Redirect } from 'expo-router';
 import * as React from 'react';
 import { ActivityIndicator, View } from 'react-native';
@@ -11,7 +11,7 @@ export default function Index() {
 
   if (loading) {
     return (
-      <View className="bg-background flex-1 items-center justify-center">
+      <View className="bg-background flex-1 items-center justify-center will-change-auto">
         <ActivityIndicator color={foreground} />
         <Text className="text-muted-foreground mt-4">Loading…</Text>
       </View>
@@ -26,5 +26,5 @@ export default function Index() {
     return <Redirect href="/(public)/sign-in" />;
   }
 
-  return <Redirect href="/(app)" />;
+  return <Redirect href="/(app)/(tabs)" />;
 }

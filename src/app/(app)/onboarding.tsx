@@ -17,7 +17,7 @@ export default function OnboardingRepositoriesScreen() {
       />
       <RepositoryPickerProvider
         mode="onboarding"
-        onComplete={() => router.replace('/(app)')}
+        onComplete={() => router.replace('/(app)/(tabs)')}
       >
         <RepositoryPickerScreen />
       </RepositoryPickerProvider>

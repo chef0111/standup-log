@@ -3,21 +3,14 @@ import { Text } from '@/components/ui/text';
 import { StandupActivitySection } from '@/features/standup/components/standup-activity-section';
 import { StandupNotesSection } from '@/features/standup/components/standup-notes-section';
 import { isStandupMarkdownEmpty } from '@/features/standup/lib/compose-standup-markdown';
-import { cn } from '@/lib/utils';
 import { ChevronDown } from 'lucide-react-native';
 import * as React from 'react';
 import { Pressable, View } from 'react-native';
 import { useStandup } from '../context/standup';
 
 export function StandupSourcesSection() {
-  const {
-    workday,
-    commits,
-    notes,
-    draftMarkdown,
-    savedMarkdown,
-    loading,
-  } = useStandup();
+  const { workday, commits, notes, draftMarkdown, savedMarkdown, loading } =
+    useStandup();
 
   const baseline = draftMarkdown ?? savedMarkdown ?? '';
   const emptyDraft = isStandupMarkdownEmpty(baseline);
@@ -44,14 +37,9 @@ export function StandupSourcesSection() {
             {sourceCount > 0 ? ` · ${sourceCount}` : ''}
           </Text>
         </View>
-        <Icon
-          as={ChevronDown}
-          size={18}
-          className={cn(
-            'text-muted-foreground transition-transform',
-            open && 'rotate-180'
-          )}
-        />
+        <View style={{ transform: [{ rotate: open ? '180deg' : '0deg' }] }}>
+          <Icon as={ChevronDown} size={18} className="text-muted-foreground" />
+        </View>
       </Pressable>
 
       {open ? (

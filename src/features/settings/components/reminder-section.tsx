@@ -1,7 +1,15 @@
 import { Text } from '@/components/ui/text';
 import { SettingsSection } from '@/features/settings/components/settings-section';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { Switch, View } from 'react-native';
+import DateTimePicker, {
+  type DateTimePickerEvent,
+} from '@react-native-community/datetimepicker';
+import * as React from 'react';
+import { Platform, Pressable, Switch, View } from 'react-native';
+
+const reminderTimeFormatter = new Intl.DateTimeFormat(undefined, {
+  hour: 'numeric',
+  minute: '2-digit',
+});
 
 type ReminderSectionProps = {
   enabled: boolean;
@@ -16,6 +24,25 @@ export function ReminderSection({
   onEnabledChange,
   onTimeChange,
 }: ReminderSectionProps) {
+  const [showAndroidPicker, setShowAndroidPicker] = React.useState(false);
+  const timeLabel = reminderTimeFormatter.format(time);
+
+  const onPickerChange = React.useCallback(
+    (event: DateTimePickerEvent, date?: Date) => {
+      if (Platform.OS === 'android') {
+        setShowAndroidPicker(false);
+        if (event.type !== 'set' || !date) {
+          return;
+        }
+      } else if (!date) {
+        return;
+      }
+
+      onTimeChange(date);
+    },
+    [onTimeChange]
+  );
+
   return (
     <SettingsSection
       title="Morning reminder"
@@ -26,15 +53,34 @@ export function ReminderSection({
         <Switch value={enabled} onValueChange={onEnabledChange} />
       </View>
       {enabled ? (
-        <DateTimePicker
-          value={time}
-          mode="time"
-          onChange={(_, date) => {
-            if (date) {
-              onTimeChange(date);
-            }
-          }}
-        />
+        Platform.OS === 'ios' ? (
+          <DateTimePicker
+            value={time}
+            mode="time"
+            display="compact"
+            onChange={onPickerChange}
+          />
+        ) : (
+          <>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`Reminder time, ${timeLabel}`}
+              onPress={() => setShowAndroidPicker(true)}
+              className="border-border/60 bg-muted/30 active:bg-muted/50 rounded-xl border px-4 py-3"
+            >
+              <Text className="text-foreground text-sm font-medium">
+                {timeLabel}
+              </Text>
+            </Pressable>
+            {showAndroidPicker ? (
+              <DateTimePicker
+                value={time}
+                mode="time"
+                onChange={onPickerChange}
+              />
+            ) : null}
+          </>
+        )
       ) : null}
     </SettingsSection>
   );

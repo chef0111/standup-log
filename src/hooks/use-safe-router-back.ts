@@ -3,7 +3,7 @@ import { useNavigation, useRouter } from 'expo-router';
 import * as React from 'react';
 
 /** `router.back()` when possible; otherwise `router.replace(fallback)` (avoids GO_BACK errors on web). */
-export function useSafeRouterBack(fallback: Href = '/(app)') {
+export function useSafeRouterBack(fallback: Href = '/(app)/(tabs)') {
   const router = useRouter();
   const navigation = useNavigation();
 
