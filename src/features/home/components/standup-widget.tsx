@@ -85,8 +85,8 @@ export function StandupWidget() {
   }, [toast]);
 
   return (
-    <Card>
-      <CardHeader>
+    <Card variant="inset" className="gap-0 overflow-hidden p-0">
+      <CardHeader className="gap-2 p-5 pb-3">
         <View className="flex-row items-center justify-between gap-2">
           <CardTitle>Today&apos;s standup</CardTitle>
           {copied ? (
@@ -97,10 +97,9 @@ export function StandupWidget() {
         </View>
         <CardDescription selectable>
           {formatWorkdayHeading(workday)}
-          {profile ? ` · ${profile.current_streak} day streak` : ''}
         </CardDescription>
       </CardHeader>
-      <CardContent className="gap-2">
+      <CardContent className="gap-2 px-5 pb-3">
         {loading ? (
           <ActivityIndicator />
         ) : error ? (
@@ -120,26 +119,33 @@ export function StandupWidget() {
           </Text>
         )}
         {toast ? (
-          <Text selectable className="text-muted-foreground text-xs">
+          <Text selectable className="text-success text-xs">
             {toast}
           </Text>
         ) : null}
       </CardContent>
-      <CardFooter className="flex-row flex-wrap gap-2">
+      <CardFooter className="flex-row flex-wrap gap-2 p-5 pt-0">
         {hasStandup ? (
-          <Button variant="outline" onPress={onView} className="flex-1">
+          <Button variant="outline" onPress={onView} className="min-w-[40%] flex-1">
             <Text>View</Text>
           </Button>
         ) : null}
-        <Button onPress={onGenerate} className="flex-1">
-          <Text>{hasStandup ? 'Edit' : 'Generate'}</Text>
+        <Button
+          size="pill"
+          onPress={onGenerate}
+          className="min-w-[40%] flex-1 bg-zinc-950 dark:bg-zinc-100"
+        >
+          <Text className="text-white dark:text-zinc-950">
+            {hasStandup ? 'Edit' : 'Generate'}
+          </Text>
         </Button>
         {summaryReady ? (
           <Button
-            variant="secondary"
+            variant="outline"
+            size="pill"
             disabled={copying}
             onPress={() => void onCopySummary()}
-            className="flex-1"
+            className="w-full"
           >
             <Text>Copy summary</Text>
           </Button>

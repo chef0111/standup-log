@@ -1,5 +1,5 @@
 import { GithubIcon, RepositoryIcon } from '@/components/icons';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { useAuth } from '@/context/auth';
@@ -10,16 +10,54 @@ import {
 } from '@/features/profile/lib/profile';
 import { parseSelectedRepositories } from '@/features/repositories/types/repository';
 import { useStandupReminder } from '@/features/settings/hooks/use-standup-reminder';
-import { MarketingHeader } from '@/features/shell/components/marketing-header';
+import {
+  AppScreenShell,
+  ScreenHero,
+} from '@/features/shell/components/app-screen-shell';
 import { ScreenHeaderActions } from '@/features/shell/components/screen-header-actions';
-import { useTabBarScrollPadding } from '@/features/shell/hooks/use-tab-bar-scroll-padding';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { useFocusEffect } from '@react-navigation/native';
 import { Image } from 'expo-image';
 import { Redirect, Stack } from 'expo-router';
 import { Flame } from 'lucide-react-native';
 import * as React from 'react';
-import { ActivityIndicator, ScrollView, View } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
+
+function ProfileAvatar({
+  avatarUrl,
+  displayName,
+}: {
+  avatarUrl: string | null;
+  displayName: string;
+}) {
+  return (
+    <View className="border-white/25 size-11 overflow-hidden rounded-full border p-0.5">
+      {avatarUrl ? (
+        <Image
+          source={{ uri: avatarUrl }}
+          style={{ width: 40, height: 40, borderRadius: 20 }}
+        />
+      ) : (
+        <View className="bg-white/10 size-10 items-center justify-center rounded-full">
+          <Text className="font-semibold text-sm text-white">
+            {(displayName[0] ?? '?').toUpperCase()}
+          </Text>
+        </View>
+      )}
+    </View>
+  );
+}
+
+function StreakPill({ streak }: { streak: number }) {
+  return (
+    <View className="flex-row items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5">
+      <Icon as={Flame} size={16} className="text-success" />
+      <Text className="text-xs font-medium text-white">
+        {streak} day{streak === 1 ? '' : 's'}
+      </Text>
+    </View>
+  );
+}
 
 export default function AppHomeScreen() {
   const foreground = useThemeColor('--color-foreground');
@@ -77,7 +115,6 @@ export default function AppHomeScreen() {
   const selectedCount = profile
     ? parseSelectedRepositories(profile.selected_repositories).length
     : 0;
-  const tabBarPadding = useTabBarScrollPadding();
 
   if (loadingProfile) {
     return (
@@ -85,10 +122,13 @@ export default function AppHomeScreen() {
         <Stack.Screen
           options={{
             title: 'Home',
+            headerTransparent: true,
+            headerStyle: { backgroundColor: 'transparent' },
+            headerTintColor: '#fff',
             headerRight: () => <ScreenHeaderActions />,
           }}
         />
-        <View className="bg-background flex-1 items-center justify-center">
+        <View className="bg-hero flex-1 items-center justify-center">
           <ActivityIndicator size="large" color={foreground} />
         </View>
       </>
@@ -131,93 +171,65 @@ export default function AppHomeScreen() {
       <Stack.Screen
         options={{
           title: 'Home',
+          headerTransparent: true,
+          headerStyle: { backgroundColor: 'transparent' },
+          headerTintColor: '#fff',
           headerRight: () => <ScreenHeaderActions />,
         }}
       />
-      <View className="bg-background flex-1">
-        <ScrollView
-          className="flex-1"
-          contentContainerClassName="mx-auto w-full max-w-lg flex-grow gap-6 px-5 pt-2"
-          contentContainerStyle={{ paddingBottom: tabBarPadding }}
-          contentInsetAdjustmentBehavior="automatic"
-          showsVerticalScrollIndicator={false}
-        >
-          <MarketingHeader
+      <AppScreenShell
+        hero={
+          <ScreenHero
             eyebrow="Welcome back"
-            title="StandupLog"
-            description="Your workspace for daily standup updates."
+            title={displayName}
+            subtitle="Your workspace for daily standup updates."
+            trailing={
+              <View className="items-end gap-2">
+                <ProfileAvatar avatarUrl={avatarUrl} displayName={displayName} />
+                <StreakPill streak={profile.current_streak} />
+              </View>
+            }
           />
+        }
+      >
+        <StandupWidget />
 
-          <StandupWidget />
-
-          <Card>
-            <CardContent className="items-center gap-4 pt-6">
-              <View className="border-border rounded-full border p-0.5">
-                {avatarUrl ? (
-                  <Image
-                    source={{ uri: avatarUrl }}
-                    style={{ width: 72, height: 72, borderRadius: 36 }}
-                  />
-                ) : (
-                  <View className="bg-muted size-18 items-center justify-center rounded-full">
-                    <Text
-                      variant="h3"
-                      className="text-muted-foreground border-0 pb-0"
-                    >
-                      {(displayName[0] ?? '?').toUpperCase()}
-                    </Text>
-                  </View>
-                )}
+        <View className="flex-row gap-3">
+          <Card variant="inset" className="flex-1 gap-2 p-4">
+            <View className="flex-row items-center gap-2">
+              <View className="bg-muted/80 size-8 items-center justify-center rounded-md">
+                <RepositoryIcon size={16} color={foreground} />
               </View>
-              <View className="items-center gap-2">
-                <Text
-                  variant="h3"
-                  className="text-foreground border-0 pb-0 text-center"
-                >
-                  {displayName}
-                </Text>
-                <View className="border-border bg-muted/50 flex-row items-center gap-1.5 rounded-full border px-3 py-1">
-                  <GithubIcon size={14} color={foreground} />
-                  <Text className="text-muted-foreground text-xs">
-                    Connected via GitHub
-                  </Text>
-                </View>
-              </View>
-            </CardContent>
-          </Card>
-
-          <View className="flex-row gap-3">
-            <Card className="flex-1 p-4">
-              <View className="flex-row items-center gap-2">
-                <View className="bg-muted/80 size-8 items-center justify-center rounded-md">
-                  <RepositoryIcon size={16} color={foreground} />
-                </View>
-                <Text className="text-foreground text-2xl font-semibold tracking-tight">
-                  {selectedCount}
-                </Text>
-              </View>
-              <Text className="text-muted-foreground mt-2 text-sm">
-                {selectedCount === 1 ? 'Repository' : 'Repositories'}
+              <Text className="text-foreground text-2xl font-semibold tracking-tight">
+                {selectedCount}
               </Text>
-            </Card>
-            <Card className="flex-1 gap-2 p-4">
-              <Icon as={Flame} size={22} className="text-foreground" />
-              <Text className="text-foreground text-sm font-medium">
-                Daily streak
-              </Text>
-              <Text className="text-muted-foreground text-xs">
-                {profile.current_streak} current · best {profile.longest_streak}
-              </Text>
-            </Card>
-          </View>
-
-          {status ? (
-            <Text className="text-destructive text-center text-sm">
-              {status}
+            </View>
+            <Text className="text-muted-foreground text-sm">
+              {selectedCount === 1 ? 'Repository' : 'Repositories'}
             </Text>
-          ) : null}
-        </ScrollView>
-      </View>
+          </Card>
+          <Card variant="inset" className="flex-1 gap-2 p-4">
+            <Icon as={Flame} size={22} className="text-success" />
+            <Text className="text-foreground text-sm font-medium">
+              Best streak
+            </Text>
+            <Text className="text-muted-foreground text-xs">
+              {profile.longest_streak} day{profile.longest_streak === 1 ? '' : 's'}
+            </Text>
+          </Card>
+        </View>
+
+        <View className="border-border/60 bg-muted/20 flex-row items-center justify-center gap-1.5 rounded-full border px-3 py-2">
+          <GithubIcon size={14} color={foreground} />
+          <Text className="text-muted-foreground text-xs">
+            Connected via GitHub
+          </Text>
+        </View>
+
+        {status ? (
+          <Text className="text-destructive text-center text-sm">{status}</Text>
+        ) : null}
+      </AppScreenShell>
     </>
   );
 }
