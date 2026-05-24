@@ -40,6 +40,7 @@ export function StandupProvider({ children }: { children: React.ReactNode }) {
   const [noteError, setNoteError] = React.useState<string | null>(null);
   const [savedMarkdown, setSavedMarkdown] = React.useState<string | null>(null);
   const [draftMarkdown, setDraftMarkdown] = React.useState<string | null>(null);
+  const [editorMarkdown, setEditorMarkdown] = React.useState('');
   const [aiLoading, setAiLoading] = React.useState(false);
   const [aiError, setAiError] = React.useState<string | null>(null);
   const [aiRateLimited, setAiRateLimited] = React.useState(false);
@@ -360,6 +361,8 @@ export function StandupProvider({ children }: { children: React.ReactNode }) {
       aiRetryAfterSeconds,
       regenerateDraft,
       onStandupSaved,
+      editorMarkdown,
+      setEditorMarkdown,
       loadingStandup,
       loading,
     }),
@@ -397,6 +400,7 @@ export function StandupProvider({ children }: { children: React.ReactNode }) {
       aiRetryAfterSeconds,
       regenerateDraft,
       onStandupSaved,
+      editorMarkdown,
       loadingStandup,
       loading,
     ]

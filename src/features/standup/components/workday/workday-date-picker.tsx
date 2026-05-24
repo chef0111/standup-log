@@ -20,7 +20,8 @@ export function WorkdayDatePicker({
   workday,
   bounds,
   onWorkdayChange,
-}: WorkdayDatePickerProps) {
+  tone = 'default',
+}: WorkdayDatePickerProps & { tone?: 'default' | 'hero' }) {
   const triggerRef =
     React.useRef<React.ComponentRef<typeof PopoverPrimitive.Trigger>>(null);
   const [open, setOpen] = React.useState(false);
@@ -30,15 +31,29 @@ export function WorkdayDatePicker({
       <PopoverTrigger ref={triggerRef} asChild>
         <Pressable
           className={cn(
-            'border-border flex-row items-center gap-2 rounded-md border px-3 py-2',
-            open && 'border-ring ring-ring/50 ring-[3px]'
+            'flex-row items-center gap-2 rounded-full px-3 py-2',
+            tone === 'hero'
+              ? 'border border-white/25 bg-white/10'
+              : 'border-border rounded-md border',
+            open && tone === 'default' && 'border-ring ring-ring/50 ring-[3px]'
           )}
           accessibilityRole="button"
           accessibilityState={{ expanded: open }}
           accessibilityLabel={`Workday ${workday}`}
         >
-          <Icon as={CalendarDays} className="text-foreground" size={18} />
-          <Text className="text-foreground text-sm font-medium">{workday}</Text>
+          <Icon
+            as={CalendarDays}
+            className={tone === 'hero' ? 'text-white' : 'text-foreground'}
+            size={18}
+          />
+          <Text
+            className={cn(
+              'text-sm font-medium',
+              tone === 'hero' ? 'text-white' : 'text-foreground'
+            )}
+          >
+            {workday}
+          </Text>
         </Pressable>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-3" align="center" side="bottom">

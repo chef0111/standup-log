@@ -1,13 +1,17 @@
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { useAuth } from '@/context/auth';
+import {
+  AppScreenShell,
+  ScreenHero,
+} from '@/features/shell/components/app-screen-shell';
 import { useTabBarScrollPadding } from '@/features/shell/hooks/use-tab-bar-scroll-padding';
 import { CopyFormatPicker } from '@/features/standup/components/copy-format-picker';
 import { CopyToast } from '@/features/standup/components/copy-toast';
 import { StandupMarkdownView } from '@/features/standup/components/standup-markdown-view';
 import { StandupQuickEditSheet } from '@/features/standup/components/standup-quick-edit-sheet';
 import { useStandupCopy } from '@/features/standup/hooks/use-standup-copy';
-import { isStandupSummaryReady } from '@/features/standup/lib/compose-standup-markdown';
+import { isStandupSummaryReady, formatWorkdayHeading } from '@/features/standup/lib/compose-standup-markdown';
 import type { CopyFormat } from '@/features/standup/lib/format-standup';
 import { fetchStandupUpdate } from '@/features/standup/lib/standup-api';
 import {
@@ -16,7 +20,7 @@ import {
 } from '@/features/standup/lib/workday/workday';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import * as React from 'react';
-import { ActivityIndicator, ScrollView, View } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 
 export default function StandupReadScreen() {
   const { workday: workdayParam } = useLocalSearchParams<{
@@ -77,40 +81,64 @@ export default function StandupReadScreen() {
       <Stack.Screen
         options={{
           title: 'Standup',
+          headerTransparent: true,
+          headerStyle: { backgroundColor: 'transparent' },
+          headerTintColor: '#fff',
           headerRight: () => (
-            <View className="flex-row items-center gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                disabled={copying || !summaryReady}
-                onPress={() => void copySummary()}
-              >
-                <Text className="text-sm">Summary</Text>
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                disabled={copying}
-                onPress={copyFull}
-              >
-                <Text className="text-sm">Copy</Text>
-              </Button>
+            <View className="flex-row items-center gap-1">
               <Button
                 variant="ghost"
                 size="sm"
                 onPress={() => setEditOpen(true)}
               >
-                <Text className="text-sm">Edit</Text>
+                <Text className="text-sm text-white">Edit</Text>
               </Button>
             </View>
           ),
         }}
       />
-      <ScrollView
-        className="bg-background flex-1"
-        contentContainerClassName="mx-auto w-full max-w-lg gap-4 px-5 pt-2"
-        contentContainerStyle={{ paddingBottom: tabBarPadding }}
-        contentInsetAdjustmentBehavior="automatic"
+      <AppScreenShell
+        hero={
+          <ScreenHero
+            eyebrow="Standup"
+            title={formatWorkdayHeading(workday)}
+            subtitle="Read-only view of your saved draft."
+          />
+        }
+        footer={
+          <View className="gap-2">
+            <View className="flex-row gap-2">
+              <Button
+                variant="outline"
+                disabled={copying || !summaryReady}
+                onPress={() => void copySummary()}
+                className="min-h-12 flex-1"
+              >
+                <Text>Copy summary</Text>
+              </Button>
+              <Button
+                size="pill"
+                disabled={copying}
+                onPress={copyFull}
+                className="min-h-12 flex-1"
+              >
+                <Text>Copy full</Text>
+              </Button>
+            </View>
+            <View className="gap-1.5">
+              <Text className="text-muted-foreground text-xs">Copy format</Text>
+              <CopyFormatPicker
+                value={copyFormat}
+                onChange={setSessionCopyFormat}
+                disabled={copying}
+              />
+            </View>
+            <CopyToast message={toastMessage} />
+          </View>
+        }
+        scrollProps={{
+          contentContainerStyle: { paddingBottom: tabBarPadding + 24 },
+        }}
       >
         {loading ? (
           <ActivityIndicator />
@@ -119,19 +147,9 @@ export default function StandupReadScreen() {
             {error}
           </Text>
         ) : (
-          <>
-            <View className="gap-2">
-              <Text className="text-muted-foreground text-xs">Copy format</Text>
-              <CopyFormatPicker
-                value={copyFormat}
-                onChange={setSessionCopyFormat}
-                disabled={copying}
-              />
-            </View>
-            <StandupMarkdownView markdown={markdown} />
-          </>
+          <StandupMarkdownView markdown={markdown} />
         )}
-      </ScrollView>
+      </AppScreenShell>
 
       {supabase && session ? (
         <StandupQuickEditSheet
@@ -147,8 +165,6 @@ export default function StandupReadScreen() {
           }}
         />
       ) : null}
-
-      <CopyToast message={toastMessage} />
     </>
   );
 }

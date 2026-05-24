@@ -3,23 +3,18 @@ import { ButtonSpinner } from '@/components/ui/button-spinner';
 import { Text } from '@/components/ui/text';
 import { useAuth } from '@/context/auth';
 import { AiGenerationQuota } from '@/features/standup/components/ai-generation-quota';
-import { CopyFormatPicker } from '@/features/standup/components/copy-format-picker';
-import { CopyToast } from '@/features/standup/components/copy-toast';
 import { EmptyWorkdayGuide } from '@/features/standup/components/empty-workday-guide';
 import { StandupMarkdownEditor } from '@/features/standup/components/standup-markdown-editor';
-import { useStandupCopy } from '@/features/standup/hooks/use-standup-copy';
 import { isWorkdayInputEmpty } from '@/features/standup/lib/build-no-update-standup';
 import {
   buildEmptyStandupTemplate,
   composeManualMarkdown,
   isStandupMarkdownEmpty,
-  isStandupSummaryReady,
 } from '@/features/standup/lib/compose-standup-markdown';
-import type { CopyFormat } from '@/features/standup/lib/format-standup';
 import { saveStandupUpdate } from '@/features/standup/lib/standup-api';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { useRouter } from 'expo-router';
-import { SaveIcon, StarsIcon } from 'lucide-react-native';
+import { SaveIcon } from 'lucide-react-native';
 import * as React from 'react';
 import { View } from 'react-native';
 import { useStandup } from '../context/standup';
@@ -49,10 +44,7 @@ export function StandupDraftPanel() {
     carryForwardNotes,
     savedMarkdown: initialSaved,
     draftMarkdown: providerDraft,
-    aiLoading,
-    aiError,
-    aiRateLimited,
-    regenerateDraft,
+    setEditorMarkdown,
     onStandupSaved: onSaved,
     openAddNote,
   } = useStandup();
@@ -82,21 +74,14 @@ export function StandupDraftPanel() {
   const [saving, setSaving] = React.useState(false);
   const [status, setStatus] = React.useState<string | null>(null);
 
-  const summaryReady = React.useMemo(
-    () => isStandupSummaryReady(markdown),
-    [markdown]
-  );
-
-  const [sessionCopyFormat, setSessionCopyFormat] =
-    React.useState<CopyFormat | null>(null);
-
-  const { copying, toastMessage, copySummary, copyFull, copyFormat } =
-    useStandupCopy(workday, markdown, { formatOverride: sessionCopyFormat });
-
   React.useEffect(() => {
     setMarkdown(baselineMarkdown);
     setGuideDismissed(false);
   }, [baselineMarkdown, workday]);
+
+  React.useEffect(() => {
+    setEditorMarkdown(markdown);
+  }, [markdown, setEditorMarkdown]);
 
   const handleSave = async () => {
     if (!supabase || !session) {
@@ -125,10 +110,7 @@ export function StandupDraftPanel() {
 
   return (
     <View className="relative gap-4">
-      <View className="flex-row items-center justify-between gap-2">
-        <Text className="text-foreground text-sm font-medium">
-          Standup draft
-        </Text>
+      <View className="flex-row items-center justify-end">
         <Button variant="ghost" size="sm" onPress={onViewStandup}>
           <Text>View standup</Text>
         </Button>
@@ -171,62 +153,11 @@ export function StandupDraftPanel() {
         <Text>Save</Text>
       </Button>
 
-      <View className="gap-2">
-        <Text className="text-muted-foreground text-xs">Copy format</Text>
-        <CopyFormatPicker
-          value={copyFormat}
-          onChange={setSessionCopyFormat}
-          disabled={copying}
-        />
-      </View>
-
-      <View className="flex-row flex-wrap gap-2">
-        <Button
-          variant="outline"
-          disabled={copying || !summaryReady}
-          onPress={() => void copySummary()}
-          className="flex-1"
-        >
-          <Text>Copy summary</Text>
-        </Button>
-        <Button
-          variant="outline"
-          disabled={copying}
-          onPress={copyFull}
-          className="flex-1"
-        >
-          <Text>Copy full</Text>
-        </Button>
-      </View>
-
-      {!summaryReady ? (
-        <Text className="text-muted-foreground text-xs leading-relaxed">
-          Generate or write the Summary section to enable Copy summary.
-        </Text>
-      ) : null}
-
-      <Button
-        variant="secondary"
-        disabled={aiLoading || aiRateLimited}
-        onPress={() => void regenerateDraft()}
-      >
-        {aiLoading ? <ButtonSpinner /> : <StarsIcon />}
-        <Text>{providerDraft || initialSaved ? 'Regenerate' : 'Generate'}</Text>
-      </Button>
-
-      {aiError ? (
-        <Text className="text-muted-foreground text-center text-sm">
-          {aiError}
-        </Text>
-      ) : null}
-
       {status ? (
         <Text className="text-muted-foreground text-center text-sm">
           {status}
         </Text>
       ) : null}
-
-      <CopyToast message={toastMessage} />
     </View>
   );
 }

@@ -3,19 +3,28 @@ import { Button } from '@/components/ui/button';
 import { ButtonSpinner } from '@/components/ui/button-spinner';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
+import { GithubRateLimitBanner } from '@/features/standup/components/activity/github-rate-limit-banner';
+import {
+  SYMBOL_STYLES,
+  WORK_TYPE_BADGE_CLASS,
+  WORK_TYPE_BADGE_TEXT_CLASS,
+} from '@/features/standup/config/work-type';
 import { commitFirstLine } from '@/features/standup/lib/activity/parse-commit-work-type';
 import {
   resolveCommitWorkType,
   type WorkTypeDisplay,
 } from '@/features/standup/lib/activity/stored-work-type';
-import { GithubRateLimitBanner } from '@/features/standup/components/activity/github-rate-limit-banner';
+import {
+  formatLogTime,
+  formatWorkdayTitle,
+} from '@/features/standup/lib/format-standup';
 import type { ActivityCommitRow } from '@/features/standup/types/activity-commit';
-import { useThemeColor } from '@/hooks/use-theme-color.web';
 import type { Workday } from '@/features/standup/types/workday';
+import { useThemeColor } from '@/hooks/use-theme-color';
 import { cn } from '@/lib/utils';
 import { RefreshCw } from 'lucide-react-native';
 import * as React from 'react';
-import { ActivityIndicator, Pressable, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, View } from 'react-native';
 
 type ActivityTerminalProps = {
   workday: Workday;
@@ -32,52 +41,6 @@ type ActivityTerminalProps = {
   onEditWorkType?: (commit: ActivityCommitRow) => void;
   rateLimitResetAt?: number | null;
 };
-
-const WORK_TYPE_BADGE_CLASS: Record<WorkTypeDisplay['type'], string> = {
-  feature: 'border-transparent bg-green-500/20',
-  bug: 'border-transparent bg-destructive/15',
-  refactor: 'border-transparent bg-blue-500/20',
-  test: 'border-transparent bg-purple-500/20',
-  chore: 'border-transparent bg-muted',
-  style: 'border-transparent bg-amber-500/20',
-};
-
-const WORK_TYPE_BADGE_TEXT_CLASS: Record<WorkTypeDisplay['type'], string> = {
-  feature: 'text-green-500',
-  bug: 'text-destructive',
-  refactor: 'text-blue-500',
-  test: 'text-purple-500',
-  chore: 'text-muted-foreground',
-  style: 'text-amber-500',
-};
-
-const SYMBOL_STYLES: Record<WorkTypeDisplay['symbol'], string> = {
-  '+': 'text-green-500',
-  '!': 'text-destructive',
-  '~': 'text-blue-500',
-  $: 'text-amber-500',
-  T: 'text-purple-500',
-};
-
-function formatLogTime(iso: string): string {
-  try {
-    return new Date(iso).toLocaleTimeString(undefined, {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false,
-    });
-  } catch {
-    return '--:--';
-  }
-}
-
-function formatWorkdayTitle(workday: Workday): string {
-  const [year, month, day] = workday.split('-').map(Number);
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric',
-  }).format(new Date(year, month - 1, day));
-}
 
 function WorkTypeBadge({
   display,
@@ -152,9 +115,7 @@ const ActivityLogLine = React.memo(function ActivityLogLine({
         {workType ? (
           <WorkTypeBadge
             display={workType}
-            onPress={
-              onEditWorkType ? () => onEditWorkType(item) : undefined
-            }
+            onPress={onEditWorkType ? () => onEditWorkType(item) : undefined}
           />
         ) : onEditWorkType ? (
           <Pressable
@@ -243,10 +204,8 @@ export function ActivityTerminal({
   onEditWorkType,
   rateLimitResetAt,
 }: ActivityTerminalProps) {
-  const rateLimited =
-    rateLimitResetAt != null && rateLimitResetAt > Date.now();
-  const refreshDisabled =
-    syncing || tokenLoading || !hasToken || rateLimited;
+  const rateLimited = rateLimitResetAt != null && rateLimitResetAt > Date.now();
+  const refreshDisabled = syncing || tokenLoading || !hasToken || rateLimited;
   const foreground = useThemeColor('--color-foreground');
 
   return (
@@ -296,15 +255,21 @@ export function ActivityTerminal({
             {emptyMessage ?? 'No commits for this Workday yet.'}
           </Text>
         ) : (
-          <View>
-            {commits.map((item) => (
-              <ActivityLogLine
-                key={item.sha}
-                item={item}
-                onEditWorkType={onEditWorkType}
-              />
-            ))}
-          </View>
+          <ScrollView
+            nestedScrollEnabled
+            style={{ maxHeight: 256 }}
+            showsVerticalScrollIndicator={false}
+          >
+            <View>
+              {commits.map((item) => (
+                <ActivityLogLine
+                  key={item.sha}
+                  item={item}
+                  onEditWorkType={onEditWorkType}
+                />
+              ))}
+            </View>
+          </ScrollView>
         )}
       </TerminalBody>
     </View>
