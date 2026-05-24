@@ -7,24 +7,42 @@
 ---
 
 **Project:** StandupLog  
-**Visual direction:** Hero Continuity (extends sign-in screen)
+**Visual direction:** Travel Canvas (TripGlide-inspired premium mobile)
 
 ---
 
-## Hero Continuity (authoritative overrides)
+## Travel Canvas (authoritative overrides)
 
 These rules **override** generic ui-ux-pro-max suggestions below.
 
-| Element | Spec |
-|---------|------|
-| Hero zone | `#000` light / `#09090b` dark — compact per tab |
-| Sheet | `#FFF` light / `#18181b` dark — 40px radius, continuous curve |
-| Hero type | Uppercase, font-black, tracking-wide, white |
-| Body type | Inter, sentence case |
-| Primary CTA | Pill `h-14 rounded-full` |
-| Success accent | `#22C55E` — streak, copy confirmation only |
+| Element | Light | Dark | Usage |
+|---------|-------|------|-------|
+| Canvas | `#F5F5F5` | `#1C1C1E` | Screen background |
+| Elevated surface | `#FFFFFF` | `#2C2C2E` | Cards, sheets |
+| Text primary | `#0F172A` | `#FAFAFA` | Headings, body |
+| Text muted | `#64748B` | `#A1A1AA` | Subtitles, labels |
+| Primary CTA | `#18181B` pill | `#FAFAFA` pill on dark | h-14, rounded-full |
+| Success accent | `#22C55E` | `#22C55E` | Streak, copy confirmation only |
+| Card radius | `24px` continuous | same | `borderCurve: 'continuous'` |
+| Shadow elevated | `0 4px 24px rgba(0,0,0,0.08)` | softer | Cards |
+| Shadow floating | `0 8px 32px rgba(0,0,0,0.12)` | softer | Tab bar, footers |
+| Tab bar | `#18181B` floating pill | `#FAFAFA` icons active | Inset from edges |
 
-**Anti-patterns:** emoji icons, neon cyberpunk, generic card stacks, unbounded Standup scroll.
+**Typography:** Inter. Greeting: small muted label + bold name (sentence case). Section titles: `text-base font-semibold`. No uppercase editorial hero titles on tab screens.
+
+**Spacing rhythm:**
+
+| Token | Value | Usage |
+|-------|-------|-------|
+| screen-x | 20px (`px-5`) | Horizontal inset |
+| section-gap | 20px (`gap-5`) | Between blocks |
+| card-pad | 20px (`p-5`) | Inside cards |
+| card-gap | 12px (`gap-3`) | Inside card sections |
+| row-gap | 8px (`gap-2`) | List rows only |
+
+**Anti-patterns:** thin borders on every card, emoji icons, neon gradients, uppercase hero titles on tabs, docked full-width tab bar, unbounded Standup scroll.
+
+**Sign-in exception:** Full-bleed hero image on sign-in only; authenticated app uses light canvas.
 
 ---
 
@@ -34,38 +52,20 @@ These rules **override** generic ui-ux-pro-max suggestions below.
 
 | Role | Hex | CSS Variable |
 |------|-----|--------------|
-| Primary | `#2563EB` | `--color-primary` |
-| Secondary | `#3B82F6` | `--color-secondary` |
-| CTA/Accent | `#F97316` | `--color-cta` |
-| Background | `#F8FAFC` | `--color-background` |
-| Text | `#1E293B` | `--color-text` |
-
-### Typography
-
-- **Heading Font:** Inter
-- **Body Font:** Inter
-- **Mood:** Professional + Trustworthy typography
-
-### Spacing Variables
-
-| Token | Value | Usage |
-|-------|-------|-------|
-| `--space-xs` | `4px` / `0.25rem` | Tight gaps |
-| `--space-sm` | `8px` / `0.5rem` | Icon gaps, inline spacing |
-| `--space-md` | `16px` / `1rem` | Standard padding |
-| `--space-lg` | `24px` / `1.5rem` | Section padding |
-| `--space-xl` | `32px` / `2rem` | Large gaps |
-| `--space-2xl` | `48px` / `3rem` | Section margins |
-| `--space-3xl` | `64px` / `4rem` | Hero padding |
+| Canvas | `#F5F5F5` | `--background` |
+| Elevated | `#FFFFFF` | `--card`, `--sheet` |
+| Primary CTA | `#18181B` | `--primary` |
+| Text | `#0F172A` | `--foreground` |
+| Muted | `#64748B` | `--muted-foreground` |
+| Success | `#22C55E` | `--success` |
 
 ### Shadow Depths
 
-| Level | Value | Usage |
+| Token | Value | Usage |
 |-------|-------|-------|
-| `--shadow-sm` | `0 1px 2px rgba(0,0,0,0.05)` | Subtle lift |
-| `--shadow-md` | `0 4px 6px rgba(0,0,0,0.1)` | Cards, buttons |
-| `--shadow-lg` | `0 10px 15px rgba(0,0,0,0.1)` | Modals, dropdowns |
-| `--shadow-xl` | `0 20px 25px rgba(0,0,0,0.15)` | Hero images, featured cards |
+| `--shadow-elevated` | `0 4px 24px rgba(0,0,0,0.08)` | Cards |
+| `--shadow-floating` | `0 8px 32px rgba(0,0,0,0.12)` | Tab bar, sticky footer |
+| `--radius-card` | `1.5rem` | Card corners |
 
 ---
 
@@ -73,139 +73,27 @@ These rules **override** generic ui-ux-pro-max suggestions below.
 
 ### Buttons
 
-```css
-/* Primary Button */
-.btn-primary {
-  background: #F97316;
-  color: white;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-weight: 600;
-  transition: all 200ms ease;
-  cursor: pointer;
-}
-
-.btn-primary:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
-}
-
-/* Secondary Button */
-.btn-secondary {
-  background: transparent;
-  color: #2563EB;
-  border: 2px solid #2563EB;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-weight: 600;
-  transition: all 200ms ease;
-  cursor: pointer;
-}
-```
+- **Primary:** `h-14 rounded-full bg-zinc-900 text-white` (light) / inverted in dark
+- **Secondary:** muted fill, no heavy border
+- **Settings rows:** pressable list row with chevron, not stacked outline buttons
 
 ### Cards
 
-```css
-.card {
-  background: #F8FAFC;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: var(--shadow-md);
-  transition: all 200ms ease;
-  cursor: pointer;
-}
+- **Elevated:** white bg, `rounded-3xl`, `boxShadow: var(--shadow-elevated)`, no border
+- **Inset:** `bg-muted/40`, no visible border
 
-.card:hover {
-  box-shadow: var(--shadow-lg);
-  transform: translateY(-2px);
-}
-```
+### Navigation
 
-### Inputs
-
-```css
-.input {
-  padding: 12px 16px;
-  border: 1px solid #E2E8F0;
-  border-radius: 8px;
-  font-size: 16px;
-  transition: border-color 200ms ease;
-}
-
-.input:focus {
-  border-color: #2563EB;
-  outline: none;
-  box-shadow: 0 0 0 3px #2563EB20;
-}
-```
-
-### Modals
-
-```css
-.modal-overlay {
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
-}
-
-.modal {
-  background: white;
-  border-radius: 16px;
-  padding: 32px;
-  box-shadow: var(--shadow-xl);
-  max-width: 500px;
-  width: 90%;
-}
-```
-
----
-
-## Style Guidelines
-
-**Style:** Exaggerated Minimalism
-
-**Keywords:** Bold minimalism, oversized typography, high contrast, negative space, loud minimal, statement design
-
-**Best For:** Fashion, architecture, portfolios, agency landing pages, luxury brands, editorial
-
-**Key Effects:** font-size: clamp(3rem 10vw 12rem), font-weight: 900, letter-spacing: -0.05em, massive whitespace
-
-### Page Pattern
-
-**Pattern Name:** Trust & Authority + Feature
-
-- **CTA Placement:** Above fold
-- **Section Order:** Hero > Features > CTA
-
----
-
-## Anti-Patterns (Do NOT Use)
-
-- ❌ Playful design
-- ❌ Poor security UX
-- ❌ AI purple/pink gradients
-
-### Additional Forbidden Patterns
-
-- ❌ **Emojis as icons** — Use SVG icons (Heroicons, Lucide, Simple Icons)
-- ❌ **Missing cursor:pointer** — All clickable elements must have cursor:pointer
-- ❌ **Layout-shifting hovers** — Avoid scale transforms that shift layout
-- ❌ **Low contrast text** — Maintain 4.5:1 minimum contrast ratio
-- ❌ **Instant state changes** — Always use transitions (150-300ms)
-- ❌ **Invisible focus states** — Focus states must be visible for a11y
+- Floating dark pill tab bar on all platforms
+- Scroll content clears tab inset via `useTabBarScrollPadding`
 
 ---
 
 ## Pre-Delivery Checklist
 
-Before delivering any UI code, verify:
-
-- [ ] No emojis used as icons (use SVG instead)
-- [ ] All icons from consistent icon set (Heroicons/Lucide)
-- [ ] `cursor-pointer` on all clickable elements
-- [ ] Hover states with smooth transitions (150-300ms)
-- [ ] Light mode: text contrast 4.5:1 minimum
-- [ ] Focus states visible for keyboard navigation
+- [ ] No emojis as icons (Lucide only)
+- [ ] Touch targets ≥ 44pt
+- [ ] Light mode text contrast ≥ 4.5:1
 - [ ] `prefers-reduced-motion` respected
-- [ ] Responsive: 375px, 768px, 1024px, 1440px
-- [ ] No content hidden behind fixed navbars
-- [ ] No horizontal scroll on mobile
+- [ ] No Tailwind `rotate-*` on Lucide `Icon` (wrap in `View`)
+- [ ] Single padding layer in shell (no double `pt-6`)

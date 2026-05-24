@@ -9,18 +9,21 @@
 
 @layer base {
   :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.141 0.005 285.823);
+    --background: oklch(0.97 0.002 286);
+    --foreground: oklch(0.208 0.042 265.755);
     --card: oklch(1 0 0);
     --card-foreground: oklch(0.141 0.005 285.823);
     --popover: oklch(1 0 0);
     --popover-foreground: oklch(0.141 0.005 285.823);
     --primary: oklch(0.21 0.006 285.885);
     --primary-foreground: oklch(0.985 0 0);
+    --shadow-elevated: 0 4px 24px rgba(0, 0, 0, 0.08);
+    --shadow-floating: 0 8px 32px rgba(0, 0, 0, 0.12);
+    --radius-card: 1.5rem;
     --secondary: oklch(0.967 0.001 286.375);
     --secondary-foreground: oklch(0.21 0.006 285.885);
     --muted: oklch(0.967 0.001 286.375);
-    --muted-foreground: oklch(0.552 0.016 285.938);
+    --muted-foreground: oklch(0.554 0.046 257.417);
     --accent: oklch(0.967 0.001 286.375);
     --accent-foreground: oklch(0.21 0.006 285.885);
     --destructive: oklch(0.577 0.245 27.325);
@@ -46,8 +49,8 @@
     --terminal-title: oklch(0.945 0.002 286.32);
     --terminal-muted: oklch(0.552 0.016 285.938);
     --terminal-border: oklch(0.88 0.004 286.32);
-    --hero: oklch(0 0 0);
-    --hero-foreground: oklch(0.985 0 0);
+    --hero: oklch(0.97 0.002 286);
+    --hero-foreground: oklch(0.208 0.042 265.755);
     --sheet: oklch(1 0 0);
     --sheet-foreground: oklch(0.141 0.005 285.823);
     --success: oklch(0.723 0.219 149.579);
@@ -63,9 +66,9 @@
   }
 
   .dark {
-    --background: oklch(0.141 0.005 285.823);
+    --background: oklch(0.22 0.006 285.823);
     --foreground: oklch(0.985 0 0);
-    --card: oklch(0.21 0.006 285.885);
+    --card: oklch(0.27 0.006 286.033);
     --card-foreground: oklch(0.985 0 0);
     --popover: oklch(0.21 0.006 285.885);
     --popover-foreground: oklch(0.985 0 0);
@@ -99,9 +102,11 @@
     --terminal-title: oklch(0.21 0.006 285.885);
     --terminal-muted: oklch(0.705 0.015 286.067);
     --terminal-border: oklch(0.274 0.006 286.033);
-    --hero: oklch(0.09 0.005 285.823);
+    --hero: oklch(0.22 0.006 285.823);
     --hero-foreground: oklch(0.985 0 0);
-    --sheet: oklch(0.15 0.006 285.885);
+    --sheet: oklch(0.27 0.006 286.033);
+    --shadow-elevated: 0 4px 24px rgba(0, 0, 0, 0.24);
+    --shadow-floating: 0 8px 32px rgba(0, 0, 0, 0.32);
     --sheet-foreground: oklch(0.985 0 0);
     --success: oklch(0.723 0.219 149.579);
     --success-foreground: oklch(0.985 0 0);
@@ -158,6 +163,10 @@
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
   --radius-sheet: var(--radius-sheet);
+
+  --shadow-elevated: var(--shadow-elevated);
+  --shadow-floating: var(--shadow-floating);
+  --radius-card: var(--radius-card);
 
   --color-sidebar: var(--sidebar);
   --color-sidebar-ring: var(--sidebar-ring);
