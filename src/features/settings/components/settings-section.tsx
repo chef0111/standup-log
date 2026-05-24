@@ -18,13 +18,13 @@ export function SettingsSection({
   className,
 }: SettingsSectionProps) {
   return (
-    <Card variant="inset" className={cn('gap-3 p-4', className)}>
+    <Card variant="elevated" className={cn('gap-3 p-5', className)}>
       <View className="gap-1">
-        <Text className="text-foreground text-sm font-medium">{title}</Text>
+        <Text className="text-foreground text-base font-semibold">{title}</Text>
         {description ? (
           <Text
             selectable
-            className="text-muted-foreground text-xs leading-relaxed"
+            className="text-muted-foreground text-sm leading-relaxed"
           >
             {description}
           </Text>

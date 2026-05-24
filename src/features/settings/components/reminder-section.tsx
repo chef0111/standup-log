@@ -48,11 +48,12 @@ export function ReminderSection({
       title="Morning reminder"
       description="Reminds you at the chosen time if yesterday's standup was not copied."
     >
-      <View className="flex-row items-center justify-between">
-        <Text className="text-foreground text-sm">Enabled</Text>
-        <Switch value={enabled} onValueChange={onEnabledChange} />
-      </View>
-      {enabled ? (
+      <View className="gap-3">
+        <View className="flex-row items-center justify-between">
+          <Text className="text-foreground text-sm">Enabled</Text>
+          <Switch value={enabled} onValueChange={onEnabledChange} />
+        </View>
+        {enabled ? (
         Platform.OS === 'ios' ? (
           <DateTimePicker
             value={time}
@@ -66,7 +67,7 @@ export function ReminderSection({
               accessibilityRole="button"
               accessibilityLabel={`Reminder time, ${timeLabel}`}
               onPress={() => setShowAndroidPicker(true)}
-              className="border-border/60 bg-muted/30 active:bg-muted/50 rounded-xl border px-4 py-3"
+              className="bg-muted/50 active:bg-muted/70 rounded-2xl px-4 py-3"
             >
               <Text className="text-foreground text-sm font-medium">
                 {timeLabel}
@@ -81,7 +82,8 @@ export function ReminderSection({
             ) : null}
           </>
         )
-      ) : null}
+        ) : null}
+      </View>
     </SettingsSection>
   );
 }

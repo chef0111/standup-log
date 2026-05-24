@@ -1,6 +1,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { useAuth } from '@/context/auth';
 import { fetchUserProfile } from '@/features/profile/lib/profile';
@@ -13,6 +14,7 @@ import {
   fetchStandupsForWeek,
 } from '@/features/standup/lib/weekly/fetch-standups-for-week';
 import { getCurrentWeekBounds } from '@/features/standup/lib/weekly/week-bounds';
+import { Lock } from 'lucide-react-native';
 import * as React from 'react';
 import { ActivityIndicator, View } from 'react-native';
 
@@ -102,7 +104,7 @@ export function WeeklySummaryView({ onUpgrade }: WeeklySummaryViewProps) {
   }
 
   return (
-    <View className="flex flex-col gap-4">
+    <View className="flex flex-col gap-5">
       <Text selectable className="text-muted-foreground text-sm">
         {formatWeekLabel(bounds.weekStart, bounds.weekEnd)} ·{' '}
         {summary.totalCommits} commits · {summary.copiedWorkdays.length} copied
@@ -110,24 +112,27 @@ export function WeeklySummaryView({ onUpgrade }: WeeklySummaryViewProps) {
       </Text>
 
       {summary.visibleBuckets.length === 0 ? (
-        <Card variant="inset">
-          <CardContent className="pt-4">
-            <Text selectable className="text-muted-foreground text-sm">
-              No activity this week yet. Generate standups to build your Weekly
-              Summary.
-            </Text>
-          </CardContent>
+        <Card variant="elevated" className="p-5">
+          <Text selectable className="text-muted-foreground text-sm">
+            No activity this week yet. Generate standups to build your Weekly
+            Summary.
+          </Text>
         </Card>
       ) : (
         summary.visibleBuckets.map((bucket) => (
           <Card
             key={bucket.workType}
-            variant="inset"
+            variant="elevated"
             className={bucket.locked ? 'opacity-60' : undefined}
           >
             <CardHeader>
               <View className="flex-row items-center justify-between gap-2">
-                <CardTitle className="capitalize">{bucket.workType}</CardTitle>
+                <View className="flex-row items-center gap-2">
+                  <CardTitle className="capitalize">{bucket.workType}</CardTitle>
+                  {bucket.locked ? (
+                    <Icon as={Lock} size={16} className="text-muted-foreground" />
+                  ) : null}
+                </View>
                 <Badge variant="secondary">
                   <Text>{bucket.commitCount}</Text>
                 </Badge>
@@ -139,7 +144,7 @@ export function WeeklySummaryView({ onUpgrade }: WeeklySummaryViewProps) {
             </CardHeader>
             {bucket.locked ? (
               <CardContent>
-                <Button size="pill" onPress={onUpgrade}>
+                <Button variant="charcoal" size="pill" onPress={onUpgrade}>
                   <Text>Upgrade to Pro</Text>
                 </Button>
               </CardContent>
