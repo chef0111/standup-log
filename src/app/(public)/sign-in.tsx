@@ -71,11 +71,11 @@ export default function SignInScreen() {
       <StatusBar style="light" />
       <SignInLanding>
         <Button
-          variant="ghost"
+          variant="charcoal"
           disabled={busy || !configured}
           onPress={onGitHub}
-          className="h-14 w-full rounded-full bg-zinc-950"
-          size="lg"
+          className="h-14 w-full"
+          size="pill"
         >
           <View
             className="items-center justify-center"

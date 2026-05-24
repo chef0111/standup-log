@@ -10,9 +10,7 @@ export default function OnboardingRepositoriesScreen() {
       <Stack.Screen
         options={{
           title: 'Select repositories',
-          headerTransparent: true,
-          headerStyle: { backgroundColor: 'transparent' },
-          headerTintColor: '#fff',
+          headerShown: false,
         }}
       />
       <RepositoryPickerProvider
