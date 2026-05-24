@@ -4,18 +4,16 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import * as React from 'react';
 import { Platform, View, type ViewProps } from 'react-native';
 
-const cardVariants = cva('rounded-lg', {
+const cardVariants = cva('rounded-3xl', {
   variants: {
     variant: {
       default: cn(
         'border-border bg-card border',
         Platform.select({ web: 'shadow-sm shadow-black/5' })
       ),
+      elevated: cn('bg-card border-0'),
       sheet: 'bg-sheet border-0',
-      inset: cn(
-        'border-border/60 bg-muted/30 border',
-        Platform.select({ web: 'shadow-none' })
-      ),
+      inset: cn('bg-muted/40 border-0'),
     },
   },
   defaultVariants: {
@@ -23,16 +21,28 @@ const cardVariants = cva('rounded-lg', {
   },
 });
 
+const elevatedShadowStyle = {
+  boxShadow: 'var(--shadow-elevated)',
+  borderCurve: 'continuous' as const,
+};
+
 type CardProps = ViewProps & VariantProps<typeof cardVariants>;
 
-function Card({ className, variant, ...props }: CardProps) {
+function Card({ className, variant, style, ...props }: CardProps) {
   return (
-    <View className={cn(cardVariants({ variant }), className)} {...props} />
+    <View
+      className={cn(cardVariants({ variant }), className)}
+      style={[
+        variant === 'elevated' ? elevatedShadowStyle : undefined,
+        style,
+      ]}
+      {...props}
+    />
   );
 }
 
 function CardHeader({ className, ...props }: ViewProps) {
-  return <View className={cn('gap-1.5 p-6', className)} {...props} />;
+  return <View className={cn('gap-1.5 p-5', className)} {...props} />;
 }
 
 function CardTitle({
@@ -65,7 +75,7 @@ function CardDescription({
 function CardContent({ className, ...props }: ViewProps) {
   return (
     <TextClassContext.Provider value="text-card-foreground">
-      <View className={cn('p-6 pt-0', className)} {...props} />
+      <View className={cn('p-5 pt-0', className)} {...props} />
     </TextClassContext.Provider>
   );
 }
@@ -73,7 +83,7 @@ function CardContent({ className, ...props }: ViewProps) {
 function CardFooter({ className, ...props }: ViewProps) {
   return (
     <View
-      className={cn('flex-row items-center p-6 pt-0', className)}
+      className={cn('flex-row items-center p-5 pt-0', className)}
       {...props}
     />
   );

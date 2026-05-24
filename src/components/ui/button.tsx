@@ -23,6 +23,12 @@ const buttonVariants = cva(
             web: 'active:bg-primary/90 active:scale-97 shadow-sm shadow-black/5 hover:bg-primary/90 transition-colors',
           })
         ),
+        charcoal: cn(
+          'bg-zinc-900 dark:bg-zinc-100',
+          Platform.select({
+            web: 'active:opacity-90 transition-opacity',
+          })
+        ),
         destructive: cn(
           'bg-destructive dark:bg-destructive/60',
           Platform.select({
@@ -81,6 +87,7 @@ const buttonTextVariants = cva(
     variants: {
       variant: {
         default: 'text-primary-foreground',
+        charcoal: 'text-white dark:text-zinc-900',
         destructive: 'text-white',
         outline: cn(
           'group-active:text-accent-foreground',
