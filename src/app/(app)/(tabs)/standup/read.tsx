@@ -81,9 +81,8 @@ export default function StandupReadScreen() {
       <Stack.Screen
         options={{
           title: 'Standup',
-          headerTransparent: true,
-          headerStyle: { backgroundColor: 'transparent' },
-          headerTintColor: '#fff',
+          headerShown: true,
+          headerShadowVisible: false,
           headerRight: () => (
             <View className="flex-row items-center gap-1">
               <Button
@@ -91,7 +90,7 @@ export default function StandupReadScreen() {
                 size="sm"
                 onPress={() => setEditOpen(true)}
               >
-                <Text className="text-sm text-white">Edit</Text>
+                <Text className="text-sm">Edit</Text>
               </Button>
             </View>
           ),

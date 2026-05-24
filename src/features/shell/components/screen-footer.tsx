@@ -7,10 +7,11 @@ type ScreenFooterProps = ViewProps & {
   children: React.ReactNode;
 };
 
-/** Bottom action area with safe-area padding and consistent spacing. */
+/** Bottom action area with safe-area padding and top shadow. */
 export function ScreenFooter({
   children,
   className,
+  style,
   ...props
 }: ScreenFooterProps) {
   const insets = useSafeAreaInsets();
@@ -18,11 +19,14 @@ export function ScreenFooter({
 
   return (
     <View
-      className={cn(
-        'border-border bg-background/95 gap-3 border-t px-5 pt-4',
-        className
-      )}
-      style={{ paddingBottom: bottomPad }}
+      className={cn('bg-background gap-3 px-5 pt-4', className)}
+      style={[
+        {
+          paddingBottom: bottomPad,
+          boxShadow: '0 -4px 24px rgba(0, 0, 0, 0.06)',
+        },
+        style,
+      ]}
       {...props}
     >
       {children}

@@ -3,7 +3,6 @@ import {
   AppScreenShell,
   ScreenHero,
 } from '@/features/shell/components/app-screen-shell';
-import { ScreenHeaderActions } from '@/features/shell/components/screen-header-actions';
 import { useTabBarScrollPadding } from '@/features/shell/hooks/use-tab-bar-scroll-padding';
 import { WeeklySummaryView } from '@/features/standup/components/weekly/weekly-summary-view';
 import { getCurrentWeekBounds } from '@/features/standup/lib/weekly/week-bounds';
@@ -35,15 +34,7 @@ export default function WeeklyScreen() {
 
   return (
     <>
-      <Stack.Screen
-        options={{
-          title: 'Weekly',
-          headerTransparent: true,
-          headerStyle: { backgroundColor: 'transparent' },
-          headerTintColor: '#fff',
-          headerRight: () => <ScreenHeaderActions />,
-        }}
-      />
+      <Stack.Screen options={{ title: 'Weekly', headerShown: false }} />
       <AppScreenShell
         hero={
           <ScreenHero

@@ -14,7 +14,6 @@ import {
   AppScreenShell,
   ScreenHero,
 } from '@/features/shell/components/app-screen-shell';
-import { ScreenHeaderActions } from '@/features/shell/components/screen-header-actions';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { useFocusEffect } from '@react-navigation/native';
 import { Image } from 'expo-image';
@@ -31,15 +30,15 @@ function ProfileAvatar({
   displayName: string;
 }) {
   return (
-    <View className="border-white/25 size-11 overflow-hidden rounded-full border p-0.5">
+    <View className="size-11 overflow-hidden rounded-full border border-white/25 p-0.5">
       {avatarUrl ? (
         <Image
           source={{ uri: avatarUrl }}
           style={{ width: 40, height: 40, borderRadius: 20 }}
         />
       ) : (
-        <View className="bg-white/10 size-10 items-center justify-center rounded-full">
-          <Text className="font-semibold text-sm text-white">
+        <View className="size-10 items-center justify-center rounded-full bg-white/10">
+          <Text className="text-sm font-semibold text-white">
             {(displayName[0] ?? '?').toUpperCase()}
           </Text>
         </View>
@@ -122,13 +121,10 @@ export default function AppHomeScreen() {
         <Stack.Screen
           options={{
             title: 'Home',
-            headerTransparent: true,
-            headerStyle: { backgroundColor: 'transparent' },
-            headerTintColor: '#fff',
-            headerRight: () => <ScreenHeaderActions />,
+            headerShown: false,
           }}
         />
-        <View className="bg-hero flex-1 items-center justify-center">
+        <View className="bg-background flex-1 items-center justify-center">
           <ActivityIndicator size="large" color={foreground} />
         </View>
       </>
@@ -144,7 +140,7 @@ export default function AppHomeScreen() {
             headerRight: () => <ScreenHeaderActions />,
           }}
         />
-        <View className="bg-background flex-1 justify-center gap-4 p-6">
+        <View className="bg-background flex-1 justify-center gap-4 p-6 will-change-auto">
           <Card className="gap-3 p-6">
             <Text className="text-muted-foreground text-center text-sm leading-relaxed">
               We could not load your profile. Confirm both migrations in
@@ -171,21 +167,21 @@ export default function AppHomeScreen() {
       <Stack.Screen
         options={{
           title: 'Home',
-          headerTransparent: true,
-          headerStyle: { backgroundColor: 'transparent' },
-          headerTintColor: '#fff',
-          headerRight: () => <ScreenHeaderActions />,
+          headerShown: false,
         }}
       />
       <AppScreenShell
         hero={
           <ScreenHero
-            eyebrow="Welcome back"
+            eyebrow="Hello"
             title={displayName}
             subtitle="Your workspace for daily standup updates."
             trailing={
               <View className="items-end gap-2">
-                <ProfileAvatar avatarUrl={avatarUrl} displayName={displayName} />
+                <ProfileAvatar
+                  avatarUrl={avatarUrl}
+                  displayName={displayName}
+                />
                 <StreakPill streak={profile.current_streak} />
               </View>
             }
@@ -214,7 +210,8 @@ export default function AppHomeScreen() {
               Best streak
             </Text>
             <Text className="text-muted-foreground text-xs">
-              {profile.longest_streak} day{profile.longest_streak === 1 ? '' : 's'}
+              {profile.longest_streak} day
+              {profile.longest_streak === 1 ? '' : 's'}
             </Text>
           </Card>
         </View>

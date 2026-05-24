@@ -1,35 +1,36 @@
 import { Text } from '@/components/ui/text';
+import { ScreenHeaderActions } from '@/features/shell/components/screen-header-actions';
 import { cn } from '@/lib/utils';
 import { View, type ViewProps } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-type ScreenHeroProps = ViewProps & {
+type ScreenHeaderProps = ViewProps & {
   eyebrow?: string;
   title?: string;
   subtitle?: string;
   editorialTitle?: string;
   trailing?: React.ReactNode;
-  compact?: boolean;
+  showThemeToggle?: boolean;
   children?: React.ReactNode;
 };
 
-/** Compact dark hero zone for authenticated screens. */
-export function ScreenHero({
+/** Light greeting header for authenticated screens. */
+export function ScreenHeader({
   eyebrow,
   title,
   subtitle,
   editorialTitle,
   trailing,
-  compact = true,
+  showThemeToggle = true,
   children,
   className,
   ...props
-}: ScreenHeroProps) {
+}: ScreenHeaderProps) {
   const insets = useSafeAreaInsets();
 
   return (
     <View
-      className={cn('bg-hero', compact ? 'pb-8' : 'pb-10', className)}
+      className={cn('bg-background pb-5', className)}
       style={{ paddingTop: insets.top + 12 }}
       {...props}
     >
@@ -37,29 +38,33 @@ export function ScreenHero({
         <View className="flex-row items-start justify-between gap-3">
           <View className="min-w-0 flex-1 gap-1">
             {eyebrow ? (
-              <Text className="text-xs font-medium uppercase tracking-widest text-white/70">
-                {eyebrow}
-              </Text>
+              <Text className="text-muted-foreground text-sm">{eyebrow}</Text>
             ) : null}
             {editorialTitle ? (
-              <Text className="font-black text-2xl uppercase leading-tight tracking-wide text-hero-foreground">
+              <Text className="text-foreground text-2xl font-bold leading-tight tracking-tight">
                 {editorialTitle}
               </Text>
             ) : title ? (
-              <Text className="font-bold text-2xl tracking-tight text-hero-foreground">
+              <Text className="text-foreground text-2xl font-bold tracking-tight">
                 {title}
               </Text>
             ) : null}
             {subtitle ? (
-              <Text className="text-sm leading-relaxed text-white/70">
+              <Text className="text-muted-foreground text-sm leading-relaxed">
                 {subtitle}
               </Text>
             ) : null}
           </View>
-          {trailing ? <View className="shrink-0">{trailing}</View> : null}
+          <View className="shrink-0 items-end gap-2">
+            {trailing}
+            {showThemeToggle ? <ScreenHeaderActions /> : null}
+          </View>
         </View>
         {children}
       </View>
     </View>
   );
 }
+
+/** @deprecated Use ScreenHeader */
+export const ScreenHero = ScreenHeader;

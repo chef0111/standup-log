@@ -5,7 +5,6 @@ import {
   AppScreenShell,
   ScreenHero,
 } from '@/features/shell/components/app-screen-shell';
-import { ScreenHeaderActions } from '@/features/shell/components/screen-header-actions';
 import { useTabBarScrollPadding } from '@/features/shell/hooks/use-tab-bar-scroll-padding';
 import { StandupDraftSection } from '@/features/standup/components/standup-draft-section';
 import { StandupNoteEditor } from '@/features/standup/components/standup-note-editor';
@@ -86,10 +85,7 @@ export default function StandupScreen() {
       <Stack.Screen
         options={{
           title: 'Generate standup',
-          headerTransparent: true,
-          headerStyle: { backgroundColor: 'transparent' },
-          headerTintColor: '#fff',
-          headerRight: () => <ScreenHeaderActions />,
+          headerShown: false,
         }}
       />
       <StandupProvider>

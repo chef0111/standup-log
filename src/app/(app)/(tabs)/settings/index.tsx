@@ -13,7 +13,6 @@ import {
   AppScreenShell,
   ScreenHero,
 } from '@/features/shell/components/app-screen-shell';
-import { ScreenHeaderActions } from '@/features/shell/components/screen-header-actions';
 import { useTabBarScrollPadding } from '@/features/shell/hooks/use-tab-bar-scroll-padding';
 import {
   normalizeCopyFormat,
@@ -175,10 +174,7 @@ export default function SettingsScreen() {
       <Stack.Screen
         options={{
           title: 'Settings',
-          headerTransparent: true,
-          headerStyle: { backgroundColor: 'transparent' },
-          headerTintColor: '#fff',
-          headerRight: () => <ScreenHeaderActions />,
+          headerShown: false,
         }}
       />
       <AppScreenShell
