@@ -17,7 +17,7 @@ export const WORK_TYPE_BADGE_TEXT_CLASS: Record<
   bug: 'text-destructive',
   refactor: 'text-blue-500',
   test: 'text-purple-500',
-  chore: 'text-muted-foreground',
+  chore: 'text-foreground',
   style: 'text-amber-500',
 };
 

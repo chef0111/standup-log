@@ -76,8 +76,53 @@ StandupLog is not:
 - Minimal friction: default path must work without configuring workflows, teams, boards, or calendars.
 - Privacy by default: store activity metadata and standups, not source code diffs.
 - Utility before team features: solo developer value must be proven before shared feeds or team lead views.
+- Draft-first editing: the developer can write and save a **Standup Update** manually before or without running **Generate**.
 
-## 7. Key Decisions
+## 7. Information Architecture and UI (as implemented)
+
+### Navigation
+
+Four primary tabs via a floating dark pill tab bar:
+
+| Tab          | Purpose                                                                                                        |
+| ------------ | -------------------------------------------------------------------------------------------------------------- |
+| **Home**     | Greeting, **Daily Streak**, standup widget for the default **Workday**, recent activity preview, week snapshot |
+| **Standup**  | **Generate standup** (default route) and **Read view** (stack screen)                                          |
+| **Weekly**   | **Weekly Summary** for the current calendar week                                                               |
+| **Settings** | Repositories, copy format, reminder, account actions, privacy                                                  |
+
+Unauthenticated flow: sign-in (hero landing) → onboarding repository picker → app tabs.
+
+### Visual design (Travel Canvas)
+
+- Light canvas background with elevated white cards and soft shadows (dark mode supported).
+- Sentence-case screen headers (eyebrow + title + subtitle); profile avatar in header trailing on main tabs.
+- Primary actions use charcoal pill buttons; secondary actions use outline pills.
+- Activity log and draft markdown editor use an always-dark terminal surface regardless of app theme.
+- Sign-in retains a full-bleed hero image; authenticated screens use the light canvas.
+
+### Standup screens
+
+**Generate standup** (`/standup`):
+
+- **Workday** date chip in header; defaults to previous local day on mount.
+- Terminal-styled markdown editor with explicit **Save**.
+- Collapsible **Sources** panel: activity terminal + manual notes.
+- Sticky footer: **Copy summary**, **Generate** / **Regenerate**, session copy-format picker.
+- Empty **Workday** guided flow when no activity and no notes.
+
+**Read view** (`/standup/read`):
+
+- Read-only elevated cards: **Summary** plus section cards (**What I did**, **Focusing on**, **Blockers**, **Metrics / Notes**).
+- Header **Edit** navigates to **Generate standup** for the same **Workday** (no quick-edit overlay).
+- Sticky footer: **Copy summary**, **Copy full**, copy-format picker.
+
+### Activity display
+
+- Commits shown in a terminal-style log with timestamps, work-type badges, and PR lines.
+- When **Sources** span more than one **Selected Repository**, commits are grouped under highlighted repository headings.
+
+## 8. Key Decisions
 
 ### Product Scope
 
@@ -91,7 +136,8 @@ StandupLog is not:
 - When the user opens **Generate standup**, the default target is the **previous local calendar day** (yesterday), regardless of time of day.
 - The user can override the target **Workday** with a **calendar date picker** (native platform control) before generating, reviewing, or copying a **Standup Update**.
 - **Selectable range:** today and past calendar days only — not future dates.
-- **On reopen:** each visit to **Generate standup** resets the default to yesterday; a calendar override applies only for that session unless the user changes it again.
+- **Default on mount:** opening **Generate standup** without a workday parameter defaults to the previous local calendar day.
+- **While mounted:** the chosen **Workday** persists while **Generate standup** remains mounted; deep links (Home, **Read view**) may set an explicit workday.
 - **Tier history cap (free):** the calendar picker must not allow selecting a **Workday** older than the free-tier history window (30 days). Pro users may select any past day within stored history. Dates outside the entitlement show an upgrade path rather than a silent empty sync.
 - Activity fetch, **Manual Notes**, and saved **Standup Updates** are all scoped to the selected **Workday**.
 
@@ -105,9 +151,9 @@ StandupLog is not:
 
 ### AI Drafting
 
-- AI generates an editable draft in Yesterday / Today / Blockers format.
-- Yesterday is generated from activity metadata and manual notes.
-- Today is not predicted from commits. It uses an editable placeholder and carry-forward notes.
+- AI generates an editable markdown draft with **Standup Summary**, **What I did**, **Focusing on**, **Blockers**, and optional **Metrics / Notes**.
+- **What I did** is generated from activity metadata and manual notes for the selected **Workday**.
+- **Focusing on** is not predicted from commits. It uses an editable placeholder and carry-forward notes.
 - Blockers are not inferred from commits. They come from blocker-marked notes, or default to editable "No blockers."
 - Draft generation uses **operator-hosted** inference (Anthropic Claude via a secured server proxy). Users do **not** sign into a separate AI vendor account as part of the product flow.
 - If AI is unavailable, the app should offer a manual draft path rather than block copying.
@@ -135,7 +181,7 @@ StandupLog is not:
 - Team tier is post-MVP and tied to team workspace, team lead view, and Slack bot.
 - **Operator AI cost:** standup **draft** inference (Anthropic) is paid by the product operator (API keys server-side only). **Voice** uses device-local STT—no operator spend on transcription. Pricing tiers should cover expected **draft** model usage or enforce limits (see Open Questions).
 
-## 8. MVP Scope
+## 9. MVP Scope
 
 ### Must Have
 
@@ -144,9 +190,9 @@ StandupLog is not:
 - Fetch commits from selected repositories for chosen Workday.
 - Fetch PR metadata where possible.
 - Store commit metadata, PR metadata, notes, generated drafts, edited standups, copy/share status, and user settings.
-- Generate AI draft in Yesterday / Today / Blockers format.
-- Let user review and edit draft before copying.
-- Copy output to clipboard.
+- Generate AI draft in markdown format (**Standup Summary** + **What I did** / **Focusing on** / **Blockers** / **Metrics / Notes**).
+- Let user review and edit draft in a markdown editor before saving or copying.
+- Copy **Standup Summary** or full standup to clipboard (context-dependent screen).
 - Support plain text, Slack Markdown, Jira format, and Notion-style Markdown.
 - Manual text notes.
 - Manual note toggles: Blocker and Carry forward.
@@ -163,7 +209,11 @@ StandupLog is not:
 - Editable commit work-type classification.
 - Full Weekly Summary for Pro.
 - Settings for default copy format.
-- Empty activity state that guides user to add notes or confirm a no-update standup.
+- **Read view** for saved standups with section cards.
+- Home standup widget with quick **Copy summary** and navigation to generate/read.
+- Collapsible **Sources** panel on **Generate standup**.
+- Activity terminal with multi-repository grouping.
+- Empty **Workday** guided no-update flow.
 
 ### Could Have
 
@@ -184,7 +234,7 @@ StandupLog is not:
 - Task creation.
 - Code diff analysis or code review summaries.
 
-## 9. Core User Journey
+## 10. Core User Journey
 
 ### First Launch and Onboarding
 
@@ -205,27 +255,29 @@ Acceptance criteria:
 
 ### Generate Standup Update
 
-1. User opens the Generate screen.
-2. App defaults the **Workday** to the previous local calendar day (yesterday).
+1. User opens **Generate standup** (tab, Home widget, or **Edit** from **Read view**).
+2. App defaults the **Workday** to the previous local calendar day unless a workday deep link is provided.
 3. User may change the **Workday** via the calendar date picker (today or any allowed past day).
-4. App fetches activity metadata from selected repositories for the chosen **Workday**.
-5. App combines commit metadata, PR metadata, and manual notes for that **Workday**.
-6. AI generates an editable draft.
-7. User reviews sections: Yesterday, Today, Blockers.
+4. User edits markdown directly (draft-first) and may **Save** at any time.
+5. User expands **Sources** to review activity terminal and manual notes; may add notes or edit work types.
+6. App fetches activity metadata from selected repositories for the chosen **Workday** (background sync).
+7. User taps **Generate** or **Regenerate** to produce an **AI Draft** from current **Sources**.
+8. User reviews and edits the markdown, then **Copy summary** from the sticky footer (or opens **Read view** for **Copy full**).
 
 Acceptance criteria:
 
 - **Workday** control shows the selected date and opens a native calendar/date picker on tap.
-- Default **Workday** on each open is yesterday; user override persists only for the current session on that screen.
+- Default **Workday** on mount is yesterday unless a workday parameter is passed.
 - Calendar does not offer future dates.
 - Free tier: calendar minimum date is 30 days ago; attempting to select an older date is blocked with upgrade messaging.
-- Draft clearly separates Yesterday, Today, and Blockers.
-- Yesterday includes a concise natural-language summary of actual activity.
-- Today uses editable placeholder text and carry-forward notes, not inferred plans.
-- Blockers uses blocker-marked notes or editable "No blockers."
+- Draft uses **Standup Summary**, **What I did**, **Focusing on**, **Blockers**, and optional **Metrics / Notes**—wording is relative to the selected **Workday**, not clock-relative "yesterday/today."
+- **What I did** includes a concise natural-language summary of actual activity.
+- **Focusing on** uses editable placeholder text and carry-forward notes, not inferred plans.
+- **Blockers** uses blocker-marked notes or editable "No blockers."
 - User can regenerate draft.
-- User can manually edit any section.
-- Draft generation failure does not prevent manual editing and copying.
+- User can manually edit any section in the markdown editor.
+- Draft generation failure does not prevent manual editing, saving, or copying summary.
+- **Edit** from **Read view** opens **Generate standup** for the same **Workday**—no quick-edit sheet.
 
 ### Add Manual Note
 
@@ -240,7 +292,7 @@ Acceptance criteria:
 - Text note can be saved in under 10 seconds.
 - Note can be edited or deleted.
 - Blocker notes appear in Blockers section.
-- Carry-forward notes appear as Today candidates until cleared or used.
+- Carry-forward notes appear as **Focusing on** candidates until cleared or used.
 - Notes are tied to user-local Workday by default.
 
 ### Add Voice Note
@@ -262,37 +314,38 @@ Acceptance criteria:
 
 ### Review and Copy
 
-1. User reviews generated draft.
-2. User edits text and classifications if needed.
-3. User chooses output format.
-4. User taps Copy.
-5. App copies formatted standup to clipboard.
-6. App shows confirmation toast.
-7. Daily Streak updates if this Workday was not already counted.
+1. User reviews generated or manually written markdown on **Generate standup** or **Read view**.
+2. User edits text and classifications on **Generate standup** if needed.
+3. User chooses output format (session override or settings default).
+4. On **Generate standup**, user taps **Copy summary** (when summary is ready).
+5. On **Read view** (or Home widget), user may **Copy summary** or **Copy full**.
+6. App copies formatted output to clipboard and shows confirmation toast.
+7. **Daily Streak** updates if this **Workday** was not already counted.
 
 Acceptance criteria:
 
 - Copy action works for all MVP formats.
-- Copied output preserves Yesterday / Today / Blockers structure.
-- User can change default copy format in settings.
-- Daily Streak increments only once per Workday.
+- **Copy summary** copies only the **Standup Summary** section; **Copy full** copies the entire markdown document.
+- **Copy summary** on **Generate standup** is disabled until summary contains real prose.
+- User can change default copy format in settings; session picker overrides on standup screens.
+- **Daily Streak** increments only once per **Workday**.
 - Copy confirmation is visible but non-blocking.
 
 ### Weekly Summary
 
-1. User opens Weekly Summary.
-2. App summarizes generated standups by work type.
-3. Free users see limited preview.
-4. Pro users see full history-backed summary.
+1. User opens **Weekly** tab.
+2. App summarizes **Activity Signals** and copied **Standup Updates** for the **current calendar week**, grouped by **Work Type**.
+3. Free users see the top two work-type buckets; additional buckets are locked with upgrade prompt.
+4. Pro users see all buckets.
 
 Acceptance criteria:
 
-- Summary is based on standups and classified activity metadata, not tracked time.
-- Work type categories include feature, bug fix, refactor, test, and chore.
-- User can edit work type classifications that affect future summary accuracy.
+- Summary is based on standups and classified activity metadata for the current week, not tracked time.
+- **Work Type** categories include feature, bug fix, refactor, test, chore, and style.
+- User can edit work type classifications on **Generate standup** that affect future summary accuracy.
 - Free preview communicates Pro value without blocking core standup generation.
 
-## 10. Functional Requirements
+## 11. Functional Requirements
 
 ### Authentication
 
@@ -314,7 +367,8 @@ Acceptance criteria:
 
 - Show the active **Workday** on the Generate screen.
 - Open a native platform calendar/date picker when the user changes the **Workday**.
-- Default to the previous local calendar day on each open of Generate standup.
+- Default to the previous local calendar day on mount of **Generate standup** (unless a workday deep link is provided).
+- Persist the selected **Workday** while **Generate standup** remains mounted.
 - Allow today and past dates only.
 - Enforce free-tier minimum selectable date (30-day history window) in the picker; Pro has no artificial minimum beyond stored data.
 - Changing **Workday** reloads activity, notes, and any saved standup draft for that day.
@@ -333,7 +387,7 @@ Acceptance criteria:
 - Send only needed activity metadata and note content to AI proxy.
 - Generate concise, non-boastful team-facing language.
 - Classify activity by work type.
-- Produce Yesterday / Today / Blockers sections.
+- Produce **Standup Summary**, **What I did**, **Focusing on**, **Blockers**, and optional **Metrics / Notes** sections.
 - Avoid hallucinated future plans and blockers.
 - Let user regenerate or edit.
 
@@ -355,7 +409,8 @@ Acceptance criteria:
 
 ### Clipboard and Formats
 
-- Copy standup update to clipboard.
+- Copy **Standup Summary** or full **Standup Update** to clipboard.
+- **Generate standup** and Home widget expose **Copy summary**; **Read view** exposes **Copy summary** and **Copy full**.
 - Support all MVP formats for free users:
   - Plain text.
   - Slack Markdown.
@@ -386,7 +441,7 @@ Acceptance criteria:
 - Unlock full weekly summary for Pro.
 - Avoid representing summary as precise time tracking.
 
-## 11. Edge Cases and Error States
+## 12. Edge Cases and Error States
 
 ### GitHub
 
@@ -464,7 +519,7 @@ Expected behavior:
 - Preserve edited content across format changes.
 - Warn before copying a mostly empty update.
 
-## 12. Data and Privacy Requirements
+## 13. Data and Privacy Requirements
 
 ### Store
 
@@ -491,7 +546,7 @@ Expected behavior:
 - User can disconnect GitHub.
 - User can delete account and associated retained data.
 
-## 13. Analytics
+## 14. Analytics
 
 Track product events without storing source code:
 
@@ -515,7 +570,7 @@ Primary funnel:
 
 Install -> GitHub connect -> repository selection -> first draft generated -> first standup copied.
 
-## 14. Success Metrics
+## 15. Success Metrics
 
 ### MVP Metrics
 
@@ -535,7 +590,7 @@ Install -> GitHub connect -> repository selection -> first draft generated -> fi
 - Weekly Summary view rate.
 - Free-to-Pro conversion rate.
 
-## 15. Release Plan
+## 16. Release Plan
 
 ### Alpha
 
@@ -580,17 +635,22 @@ Goals:
 - Launch solo workflow with clear free and Pro tiers.
 - Keep team features explicitly post-MVP.
 
-## 16. Open Questions
+## 17. Open Questions
 
-- Empty Workday behavior: should a no-commit, no-note day allow copying "No update / no blockers" after confirmation, or should the app ask guided questions first?
 - GitHub permission model: should implementation use OAuth repo scopes, GitHub App installation, or a hybrid path to achieve selected-repository read-only access?
-- Pro packaging: should voice notes remain free if they drive retention, or become Pro later for other reasons (device STT has no operator transcription cost)?
+- Pro packaging: should voice notes remain free if they drive retention, or become Pro later?
 - Abuse and cost caps: per-user or per-day generation limits, model choice, and alerting when Anthropic usage spikes?
 - Data deletion SLA: how quickly must account deletion remove retained metadata and generated standups?
-- Weekly Summary preview: what is the exact free preview limit after 3 copied standups?
 - PR metadata: which GitHub PR fields are safe and useful enough to include by default?
 
-## 17. Post-MVP Direction
+### Resolved since initial PRD
+
+- **Empty Workday:** guided flow produces an explicit no-update **Standup Update** the developer edits before copying.
+- **Weekly Summary preview (free):** top **two Work Types** by commit count; remaining buckets locked.
+- **Section labels:** markdown template uses **What I did** / **Focusing on** / **Blockers** (not clock-relative Yesterday/Today).
+- **Edit from Read view:** routes to **Generate standup** for the same **Workday**; no quick-edit sheet.
+
+## 18. Post-MVP Direction
 
 ### Team Workspace
 
@@ -608,21 +668,22 @@ Optional automatic posting after developer approval and configured schedule.
 
 Jira, Linear, Notion, and Slack write integrations should only ship after clipboard workflow proves repeat usage.
 
-## 18. Implementation Decisions
+## 19. Implementation Decisions
 
-- Build mobile app with Expo React Native and Expo Router.
+- Build mobile app with Expo SDK 55, Expo Router, and React Native.
 - Use Supabase for backend, database, auth/session support, storage, and Edge Functions.
 - Route **AI summarization (standup draft)** through **Supabase Edge Functions** as a **secured HTTP proxy**: the mobile app never holds Anthropic API keys.
-- **Voice notes:** **on-device OS speech-to-text only**—no Edge Function for transcription, no cloud STT API, no voice audio sent to operator servers for STT (budget: $0 STT).
-- Use **Anthropic Claude** (operator API key in Edge Function secrets) for standup draft generation. **Vercel AI SDK** is optional and fits a **Node** server (e.g. Next.js on Vercel); it is **not required** for this stack—Deno Edge Functions can call Anthropic’s Messages API directly (or via a small Node service if the team prefers AI SDK ergonomics there).
-- Keep mobile client thin; **never** embed operator AI API keys in the app. On-device OS STT uses platform speech APIs only—no paid cloud STT in MVP.
-- Use GitHub REST API v3 for repository, commit, and PR metadata.
-- Use Zustand for lightweight client state.
+- **Voice notes:** **on-device OS speech-to-text only**—no Edge Function for transcription, no cloud STT API, no voice audio sent to operator servers for STT.
+- Use **Anthropic Claude** (operator API key in Edge Function secrets) for standup draft generation.
+- Keep mobile client thin; **never** embed operator AI API keys in the app.
+- Use GitHub REST API v3 for repository, commit, and PR metadata; persist GitHub provider token locally for repo list and sync.
+- Use React context for standup session state; module-level cache for per-workday activity.
 - Use Expo Notifications for local reminder behavior.
 - Use expo-clipboard for MVP sharing.
-- Use React Native Reusables-style owned UI components and NativeWind v4 styling.
-- Store activity metadata and standup artifacts; do not store code diffs.
-- Model work type as editable categories: feature, bug fix, refactor, test, chore.
+- Use owned UI components with NativeWind v5 / Tailwind v4 styling (Travel Canvas design system).
+- Store activity metadata and standup artifacts as markdown; do not store code diffs.
+- Model work type as editable categories: feature, bug fix, refactor, test, chore, style.
 - Model notes with explicit Blocker and Carry forward flags.
 - Model streaks from copied/shared standup updates, not generated drafts.
+- Activity terminal and draft editor use scoped dark terminal tokens regardless of app theme.
 - Keep team workspace, team lead view, and Slack bot outside MVP.

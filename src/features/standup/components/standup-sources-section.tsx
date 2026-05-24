@@ -45,16 +45,16 @@ export function StandupSourcesSection() {
         </View>
       </Pressable>
 
-      {open ? (
+      {open && (
         <View className="gap-4">
           <StandupActivitySection />
           <StandupNotesSection embedded />
         </View>
-      ) : null}
+      )}
 
-      {loading && !open ? (
+      {loading && !open && (
         <Text className="text-muted-foreground text-xs">Loading sources…</Text>
-      ) : null}
+      )}
     </Card>
   );
 }

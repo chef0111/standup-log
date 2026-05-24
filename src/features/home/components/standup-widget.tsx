@@ -1,5 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { ButtonSpinner } from '@/components/ui/button-spinner';
 import {
   Card,
   CardContent,
@@ -8,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { useAuth } from '@/context/auth';
 import { useStandupWidgetData } from '@/features/home/hooks/use-standup-widget-data';
@@ -18,8 +20,10 @@ import {
 } from '@/features/standup/lib/format-standup';
 import { recordStandupCopy } from '@/features/standup/lib/record-standup-copy';
 import { fetchStandupUpdate } from '@/features/standup/lib/standup-api';
+import { cn } from '@/lib/utils';
 import * as Clipboard from 'expo-clipboard';
 import { useRouter } from 'expo-router';
+import { CopyIcon } from 'lucide-react-native';
 import * as React from 'react';
 import { ActivityIndicator, View } from 'react-native';
 
@@ -89,11 +93,11 @@ export function StandupWidget() {
       <CardHeader className="gap-2 pb-3">
         <View className="flex-row items-center justify-between gap-2">
           <CardTitle>Today&apos;s standup</CardTitle>
-          {copied ? (
+          {copied && (
             <Badge variant="secondary">
               <Text>Copied</Text>
             </Badge>
-          ) : null}
+          )}
         </View>
         <CardDescription selectable>
           {formatWorkdayHeading(workday)}
@@ -118,14 +122,14 @@ export function StandupWidget() {
             No standup yet for this Workday. Generate from commits and notes.
           </Text>
         )}
-        {toast ? (
+        {toast && (
           <Text selectable className="text-success text-xs">
             {toast}
           </Text>
-        ) : null}
+        )}
       </CardContent>
       <CardFooter className="flex-row flex-wrap gap-2">
-        {hasStandup ? (
+        {hasStandup && (
           <Button
             variant="outline"
             size="pill"
@@ -134,16 +138,16 @@ export function StandupWidget() {
           >
             <Text>View</Text>
           </Button>
-        ) : null}
+        )}
         <Button
           variant="charcoal"
           size="pill"
           onPress={onGenerate}
-          className="min-w-[40%] flex-1"
+          className={cn('min-w-[40%] flex-1', !hasStandup && 'h-14')}
         >
           <Text>{hasStandup ? 'Edit' : 'Generate'}</Text>
         </Button>
-        {summaryReady ? (
+        {summaryReady && (
           <Button
             variant="outline"
             size="pill"
@@ -151,9 +155,10 @@ export function StandupWidget() {
             onPress={() => void onCopySummary()}
             className="w-full"
           >
+            {copying ? <ButtonSpinner /> : <Icon as={CopyIcon} />}
             <Text>Copy summary</Text>
           </Button>
-        ) : null}
+        )}
       </CardFooter>
     </Card>
   );
