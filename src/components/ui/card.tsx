@@ -1,17 +1,33 @@
 import { Text, TextClassContext } from '@/components/ui/text';
 import { cn } from '@/lib/utils';
+import { cva, type VariantProps } from 'class-variance-authority';
 import * as React from 'react';
-import { View, type ViewProps } from 'react-native';
+import { Platform, View, type ViewProps } from 'react-native';
 
-function Card({ className, ...props }: ViewProps) {
+const cardVariants = cva('rounded-lg', {
+  variants: {
+    variant: {
+      default: cn(
+        'border-border bg-card border',
+        Platform.select({ web: 'shadow-sm shadow-black/5' })
+      ),
+      sheet: 'bg-sheet border-0',
+      inset: cn(
+        'border-border/60 bg-muted/30 border',
+        Platform.select({ web: 'shadow-none' })
+      ),
+    },
+  },
+  defaultVariants: {
+    variant: 'default',
+  },
+});
+
+type CardProps = ViewProps & VariantProps<typeof cardVariants>;
+
+function Card({ className, variant, ...props }: CardProps) {
   return (
-    <View
-      className={cn(
-        'border-border bg-card rounded-lg border shadow-sm shadow-black/5',
-        className
-      )}
-      {...props}
-    />
+    <View className={cn(cardVariants({ variant }), className)} {...props} />
   );
 }
 
@@ -70,4 +86,5 @@ export {
   CardFooter,
   CardHeader,
   CardTitle,
+  cardVariants,
 };

@@ -6,39 +6,45 @@ import { Platform, Pressable } from 'react-native';
 
 const buttonVariants = cva(
   cn(
-    'group shrink-0 flex-row items-center justify-center gap-2 rounded-md shadow-none transition-all',
+    'group shrink-0 flex-row items-center justify-center gap-2 rounded-md',
     Platform.select({
-      web: "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive whitespace-nowrap outline-none focus-visible:ring-[3px] disabled:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+      web: 'shadow-none transition-all',
+    }),
+    Platform.select({
+      web: "focus-visible:border-ring active:scale-97 focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive whitespace-nowrap outline-none focus-visible:ring-[3px] disabled:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
     })
   ),
   {
     variants: {
       variant: {
         default: cn(
-          'bg-primary active:bg-primary/90 active:scale-97 shadow-sm shadow-black/5',
+          'bg-primary',
           Platform.select({
-            web: 'hover:bg-primary/90 transition-colors',
+            web: 'active:bg-primary/90 active:scale-97 shadow-sm shadow-black/5 hover:bg-primary/90 transition-colors',
           })
         ),
         destructive: cn(
-          'bg-destructive active:bg-destructive/90 dark:bg-destructive/60 shadow-sm shadow-black/5',
+          'bg-destructive dark:bg-destructive/60',
           Platform.select({
-            web: 'hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40',
+            web: 'active:bg-destructive/90 shadow-sm shadow-black/5 hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40',
           })
         ),
         outline: cn(
-          'border-border bg-background dark:bg-input/30 active:bg-accent dark:bg-background dark:active:bg-muted border shadow-sm shadow-black/5',
+          'border-border bg-background dark:bg-input/30 dark:bg-background border',
           Platform.select({
-            web: 'hover:bg-muted dark:hover:bg-muted dark:hover:bg-input/50 transition-colors',
+            web: 'active:bg-accent dark:active:bg-muted shadow-sm shadow-black/5 hover:bg-muted dark:hover:bg-muted dark:hover:bg-input/50 transition-colors',
           })
         ),
         secondary: cn(
-          'bg-secondary active:bg-secondary/80 shadow-sm shadow-black/5',
-          Platform.select({ web: 'hover:bg-secondary/80' })
+          'bg-secondary',
+          Platform.select({
+            web: 'active:bg-secondary/80 shadow-sm shadow-black/5 hover:bg-secondary/80',
+          })
         ),
         ghost: cn(
-          'active:bg-accent dark:active:bg-accent/50',
-          Platform.select({ web: 'hover:bg-accent dark:hover:bg-accent/50' })
+          Platform.select({
+            web: 'active:bg-accent dark:active:bg-accent/50 hover:bg-accent dark:hover:bg-accent/50',
+          })
         ),
         link: '',
       },
@@ -56,6 +62,7 @@ const buttonVariants = cva(
           Platform.select({ web: 'has-[>svg]:px-4' })
         ),
         icon: 'h-10 w-10 sm:h-9 sm:w-9',
+        pill: 'h-14 rounded-full px-6',
       },
     },
     defaultVariants: {
@@ -80,11 +87,13 @@ const buttonTextVariants = cva(
           Platform.select({ web: 'group-hover:text-accent-foreground' })
         ),
         secondary: 'text-secondary-foreground',
-        ghost: 'group-active:text-accent-foreground',
+        ghost: cn(
+          Platform.select({ web: 'group-active:text-accent-foreground' })
+        ),
         link: cn(
-          'text-primary group-active:underline',
+          'text-primary',
           Platform.select({
-            web: 'underline-offset-4 hover:underline group-hover:underline',
+            web: 'group-active:underline underline-offset-4 hover:underline group-hover:underline',
           })
         ),
       },
@@ -93,6 +102,7 @@ const buttonTextVariants = cva(
         sm: '',
         lg: '',
         icon: '',
+        pill: 'text-base font-semibold',
       },
     },
     defaultVariants: {
