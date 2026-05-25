@@ -80,6 +80,35 @@ function WorkTypeBadge({
   );
 }
 
+function SignalDispositionBadge({
+  disposition,
+}: {
+  disposition: ActivityCommitRow['signal_disposition'];
+}) {
+  const isInProgress = disposition === 'in_progress';
+  return (
+    <Badge
+      variant="outline"
+      className={cn(
+        'px-2 py-0.5',
+        isInProgress
+          ? 'border-amber-500/50 bg-amber-500/15'
+          : 'border-emerald-500/50 bg-emerald-500/15'
+      )}
+    >
+      <Text
+        selectable
+        className={cn(
+          'font-mono text-[10px] leading-none',
+          isInProgress ? 'text-amber-200' : 'text-emerald-200'
+        )}
+      >
+        {isInProgress ? 'In progress' : 'Shipped'}
+      </Text>
+    </Badge>
+  );
+}
+
 const ActivityLogLine = React.memo(function ActivityLogLine({
   item,
   onEditWorkType,
@@ -130,6 +159,7 @@ const ActivityLogLine = React.memo(function ActivityLogLine({
             </Text>
           </Pressable>
         ) : null}
+        <SignalDispositionBadge disposition={item.signal_disposition} />
       </View>
       {item.pr_number != null ? (
         <Text

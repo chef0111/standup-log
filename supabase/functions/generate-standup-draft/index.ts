@@ -9,6 +9,7 @@ const corsHeaders: Record<string, string> = {
 };
 
 const FREE_TIER_GENERATIONS_PER_MINUTE = 5;
+const FREE_TIER_GENERATIONS_PER_DAY = 20;
 
 const WORK_TYPES = [
   'feature',
@@ -50,6 +51,8 @@ type GenerateDraftRequest = {
     pr_number: number | null;
     pr_title: string | null;
     pr_state?: string | null;
+    pr_merged_at?: string | null;
+    signal_disposition?: 'shipped' | 'in_progress';
   }[];
   notes: {
     body: string;
@@ -84,7 +87,9 @@ function buildUserPrompt(input: GenerateDraftRequest): string {
         ? ` (PR #${c.pr_number}: ${c.pr_title})`
         : '';
     const state = c.pr_state ? ` [${c.pr_state}]` : '';
-    return `- sha:${c.sha} | ${repo}: ${line}${pr}${state}`;
+    const disposition =
+      c.signal_disposition === 'in_progress' ? ' [in progress]' : '';
+    return `- sha:${c.sha} | ${repo}: ${line}${pr}${state}${disposition}`;
   });
 
   const contextNotes = input.notes
@@ -102,10 +107,13 @@ function buildUserPrompt(input: GenerateDraftRequest): string {
     .map((n) => `- ${n.body.trim()}`);
 
   const openPrs = input.commits.filter(
-    (c) => c.pr_number != null && c.pr_state?.toLowerCase() !== 'merged'
+    (c) =>
+      c.pr_number != null &&
+      c.signal_disposition === 'in_progress' &&
+      !c.pr_merged_at
   ).length;
   const mergedPrs = input.commits.filter(
-    (c) => c.pr_state?.toLowerCase() === 'merged'
+    (c) => c.pr_merged_at != null || c.pr_state?.toLowerCase() === 'merged'
   ).length;
 
   return [
@@ -135,7 +143,8 @@ function buildUserPrompt(input: GenerateDraftRequest): string {
     'Summary states the main theme or outcome for the Workday (e.g. "Merged PR #174 to staging with data-table and tournament UI fixes").',
     'Do NOT enumerate individual commits, file names, or bullet items in Summary — those belong only under What I did.',
     'If Focusing on or Blockers are "-", omit "what is next" / blockers from Summary unless carry-forward notes say otherwise.',
-    'Populate What I did from commits and non-blocker notes. Populate Focusing on from carry-forward notes only.',
+    'Populate What I did from commits and non-blocker notes. Commits marked [in progress] are work done on a feature branch or open PR — describe in past tense but do NOT say merged or shipped.',
+    'Populate Focusing on from carry-forward notes only.',
     'Populate Blockers from blocker notes only (use "-" if none). Do not invent tickets or metrics.',
     'Classify each commit sha by work_type.',
   ].join('\n');
@@ -150,6 +159,7 @@ Rules:
 - This standup describes work ON the given Workday only.
 - Do NOT invent future plans beyond carry-forward notes.
 - Do NOT include code diffs, surveillance language, speculation, invented PII, or judgmental language about the developer.
+- Do NOT say a commit was merged or shipped unless it is not marked in progress and PR state indicates merge.
 - Use only the provided commit messages and notes.
 - Output valid JSON matching the requested schema exactly.
 - work_type must be one of: feature, bug, refactor, test, chore, style.`;

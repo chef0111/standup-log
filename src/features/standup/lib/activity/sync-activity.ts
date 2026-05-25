@@ -28,6 +28,77 @@ export async function fetchActivityCommits(
   return { commits: (data ?? []) as ActivityCommitRow[], error: null };
 }
 
+async function replaceWorkdayCommits(
+  supabase: SupabaseClient,
+  userId: string,
+  workday: Workday,
+  rows: ParsedCommit[]
+): Promise<{ error: string | null }> {
+  const incomingShas = rows.map((row) => row.sha);
+
+  if (incomingShas.length === 0) {
+    const { error } = await supabase
+      .from('activity_commits')
+      .delete()
+      .eq('user_id', userId)
+      .eq('workday', workday);
+    return { error: error?.message ?? null };
+  }
+
+  const { data: existing, error: selectError } = await supabase
+    .from('activity_commits')
+    .select('sha')
+    .eq('user_id', userId)
+    .eq('workday', workday);
+
+  if (selectError) {
+    return { error: selectError.message };
+  }
+
+  const staleShas = (existing ?? [])
+    .map((row) => row.sha as string)
+    .filter((sha) => !incomingShas.includes(sha));
+
+  if (staleShas.length > 0) {
+    const { error: deleteError } = await supabase
+      .from('activity_commits')
+      .delete()
+      .eq('user_id', userId)
+      .eq('workday', workday)
+      .in('sha', staleShas);
+
+    if (deleteError) {
+      return { error: deleteError.message };
+    }
+  }
+
+  const now = new Date().toISOString();
+  const upsertRows = rows.map((c) => ({
+    user_id: userId,
+    workday,
+    repository_full_name: c.repository_full_name,
+    sha: c.sha,
+    message: c.message,
+    committed_at: c.committed_at,
+    html_url: c.html_url,
+    author_login: c.author_login,
+    pr_number: c.pr_number,
+    pr_title: c.pr_title,
+    pr_url: c.pr_url,
+    pr_state: c.pr_state,
+    pr_merged_at: c.pr_merged_at,
+    signal_disposition: c.signal_disposition,
+    work_type: c.work_type,
+    synced_at: now,
+  }));
+
+  const { error: upsertError } = await supabase
+    .from('activity_commits')
+    .upsert(upsertRows, { onConflict: 'user_id,sha' });
+
+  return { error: upsertError?.message ?? null };
+}
+
 export async function syncActivityForWorkday(input: {
   supabase: SupabaseClient;
   token: string;
@@ -52,6 +123,7 @@ export async function syncActivityForWorkday(input: {
       repositoryFullNames: repoNames,
       since,
       until,
+      workday: input.workday,
       githubUserId: input.githubUserId,
       githubLogin: input.githubLogin,
       enrichPulls: true,
@@ -65,34 +137,15 @@ export async function syncActivityForWorkday(input: {
     };
   }
 
-  if (parsed.length === 0) {
-    const existing = await fetchActivityCommits(input.supabase, input.workday);
-    return existing;
-  }
+  const { error: replaceError } = await replaceWorkdayCommits(
+    input.supabase,
+    input.userId,
+    input.workday,
+    parsed
+  );
 
-  const now = new Date().toISOString();
-  const rows = parsed.map((c) => ({
-    user_id: input.userId,
-    workday: input.workday,
-    repository_full_name: c.repository_full_name,
-    sha: c.sha,
-    message: c.message,
-    committed_at: c.committed_at,
-    html_url: c.html_url,
-    author_login: c.author_login,
-    pr_number: c.pr_number,
-    pr_title: c.pr_title,
-    pr_url: c.pr_url,
-    pr_state: c.pr_state,
-    synced_at: now,
-  }));
-
-  const { error: upsertError } = await input.supabase
-    .from('activity_commits')
-    .upsert(rows, { onConflict: 'user_id,sha' });
-
-  if (upsertError) {
-    return { commits: [], error: upsertError.message };
+  if (replaceError) {
+    return { commits: [], error: replaceError };
   }
 
   return fetchActivityCommits(input.supabase, input.workday);
