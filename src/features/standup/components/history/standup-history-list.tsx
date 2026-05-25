@@ -10,12 +10,16 @@ import { View } from 'react-native';
 
 type StandupHistoryListProps = {
   items: StandupHistoryItem[];
+  totalCount: number;
   onItemPress: (workday: Workday) => void;
+  onClearFilters?: () => void;
 };
 
 export function StandupHistoryList({
   items,
+  totalCount,
   onItemPress,
+  onClearFilters,
 }: StandupHistoryListProps) {
   const router = useRouter();
 
@@ -28,7 +32,7 @@ export function StandupHistoryList({
 
   const ItemSeparator = React.useCallback(() => <View className="h-3" />, []);
 
-  if (items.length === 0) {
+  if (totalCount === 0) {
     return (
       <View className="flex-1 items-center justify-center gap-4 p-8">
         <Text className="text-muted-foreground text-center text-sm leading-relaxed">
@@ -44,6 +48,21 @@ export function StandupHistoryList({
         >
           <Text>Generate standup</Text>
         </Button>
+      </View>
+    );
+  }
+
+  if (items.length === 0) {
+    return (
+      <View className="flex-1 items-center justify-center gap-4 p-8">
+        <Text className="text-muted-foreground text-center text-sm leading-relaxed">
+          No standups match your filters.
+        </Text>
+        {onClearFilters ? (
+          <Button variant="outline" size="pill" onPress={onClearFilters}>
+            <Text>Clear filters</Text>
+          </Button>
+        ) : null}
       </View>
     );
   }

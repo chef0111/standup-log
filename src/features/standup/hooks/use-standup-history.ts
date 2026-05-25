@@ -6,12 +6,14 @@ import {
   type StandupHistoryItem,
 } from '@/features/standup/lib/history/standup-history-item';
 import { fetchStandupsInHistory } from '@/features/standup/lib/standup-api';
+import type { WorkdayPickerBounds } from '@/features/standup/lib/workday/workday';
 import { categorizeError, userFacingMessage } from '@/lib/errors';
 import { useFocusEffect } from '@react-navigation/native';
 import * as React from 'react';
 
 export type StandupHistoryData = {
   items: StandupHistoryItem[];
+  pickerBounds: WorkdayPickerBounds | null;
   isPro: boolean;
   loading: boolean;
   error: string | null;
@@ -20,6 +22,8 @@ export type StandupHistoryData = {
 export function useStandupHistory(): StandupHistoryData {
   const { supabase, session } = useAuth();
   const [isPro, setIsPro] = React.useState(false);
+  const [pickerBounds, setPickerBounds] =
+    React.useState<WorkdayPickerBounds | null>(null);
   const [items, setItems] = React.useState<StandupHistoryItem[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
@@ -41,6 +45,7 @@ export function useStandupHistory(): StandupHistoryData {
     setIsPro(pro);
 
     const bounds = getWorkdayHistoryBounds({ isPro: pro });
+    setPickerBounds(bounds);
     const { standups, error: standupsError } = await fetchStandupsInHistory(
       supabase,
       bounds.minimumWorkday,
@@ -68,5 +73,5 @@ export function useStandupHistory(): StandupHistoryData {
     }, [load])
   );
 
-  return { items, isPro, loading, error };
+  return { items, pickerBounds, isPro, loading, error };
 }

@@ -19,6 +19,7 @@ export type AnalyticsEvent =
   | 'reminder_permission_denied'
   | 'weekly_summary_viewed'
   | 'standup_history_viewed'
+  | 'standup_history_filtered'
   | 'upgrade_prompt_viewed';
 
 export type AnalyticsProperties = Record<
