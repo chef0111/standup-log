@@ -1,97 +1,87 @@
-# StandupLog
+# StandupLog • ![License](https://img.shields.io/badge/License-MIT-blue)
 
-Expo (SDK 55) + Expo Router + Supabase. See [CONTEXT.md](CONTEXT.md) and [PRD.md](PRD.md) for product language and scope.
+**Turn GitHub activity and your notes into a standup update you actually want to paste.**
 
-## Prerequisites
+StandupLog is a mobile app for developers who do daily standups. It pulls commit and pull-request metadata from the repositories you choose, lets you add context Git can't see, drafts a structured update with AI, and puts you one copy away from Slack or Teams—without surveillance, without another project-management tool.
 
-- [Node.js](https://nodejs.org/) and [bun](https://bun.sh/)
-- iOS Simulator / Android emulator / device for native runs
+---
 
-## Environment variables
+## The problem
 
-Create **`.env.local`** in the project root (never commit secrets). The app reads these at build time via Expo `EXPO_PUBLIC_*` variables.
+Most developers lose ten minutes every morning reconstructing yesterday. Git history is accurate but unreadable for humans. Jira captures intent, not what actually shipped. Memory is biased toward whatever happened last.
 
-| Variable                        | Required | Description                                          |
-| ------------------------------- | -------- | ---------------------------------------------------- |
-| `EXPO_PUBLIC_SUPABASE_URL`      | Yes      | Supabase project URL (`https://xxx.supabase.co`)     |
-| `EXPO_PUBLIC_SUPABASE_ANON_KEY` | Yes\*    | Supabase anon (publishable) key                      |
-| `EXPO_PUBLIC_SUPABASE_KEY`      | Legacy   | Accepted if `EXPO_PUBLIC_SUPABASE_ANON_KEY` is unset |
-| `EXPO_PUBLIC_POSTHOG_KEY`       | No       | PostHog project key for product analytics (optional) |
-| `EXPO_PUBLIC_POSTHOG_HOST`      | No       | PostHog host (default `https://us.i.posthog.com`)    |
+StandupLog is a **memory aid**, not a tracker. You stay in control of the final message.
 
-\*Use the **anon** key from [Supabase Dashboard → Settings → API](https://supabase.com/dashboard/project/_/settings/api). Do **not** put the **service_role** key in any `EXPO_PUBLIC_*` variable.
+---
 
-If variables are missing, the app opens a **setup** screen with instructions instead of crashing.
+## Features
 
-### GitHub sign-in (Phase 1+)
+### Activity from GitHub
 
-1. Enable the **GitHub** provider under Authentication → Providers in the Supabase dashboard.
-2. Create a GitHub OAuth App; set the callback URL Supabase shows for your project.
-3. Under **Authentication → URL configuration**, add this app’s OAuth redirect to **Redirect URLs** (Expo `makeRedirectUri` — copy the exact string from the **Sign in** screen in dev, typically `standuplog://auth/callback` on device/simulator, or an Expo Go variant).
-4. Apply database migrations to your Supabase project in timestamp order under `supabase/migrations/` (SQL editor, `supabase db push`, or your normal pipeline). The Phase 2 migration adds `selected_repositories`, `is_pro`, and a check constraint enforcing **three repositories max** on the free tier.
-5. Deploy Edge Functions (required for **Delete account** and **AI standup draft**):
+Connect GitHub and pick up to three repositories on the free tier (unlimited on Pro). StandupLog syncs **Activity Signals**—commit messages, timestamps, and PR metadata—for each **Workday**. No code diffs are stored or sent to AI.
 
-   ```bash
-   bunx supabase@latest functions deploy delete-account
-   bunx supabase@latest functions deploy generate-standup-draft
-   ```
+**Shipped** and **In progress** badges distinguish work on your default branch from feature-branch and open-PR work, so a standup can say what landed and what's still in flight.
 
-   - `delete-account` uses `SUPABASE_SERVICE_ROLE_KEY` and `SUPABASE_URL` automatically in hosted Supabase.
-   - `generate-standup-draft` requires the operator Anthropic key (never in the mobile app):
+### AI draft, human approval
 
-     ```bash
-     bunx supabase@latest secrets set ANTHROPIC_API_KEY=sk-ant-...
-     ```
+Tap **Generate** to produce a markdown **Standup Update**: a paste-ready **Standup Summary** plus structured sections (what you did, focusing on, blockers, metrics). Review, edit, save, then **Copy summary** or **Copy full**. Nothing posts automatically.
 
-   Restart the dev server after changing `.env.local`.
+### Notes when commits aren't enough
 
-### Database bootstrap
+Add **Manual Notes** for context commits miss—pairing sessions, reviews, incidents, planning. **Voice Notes** transcribe on-device via OS speech recognition. Mark notes as blockers or carry-forward for the next day.
 
-Apply migrations in timestamp order under `supabase/migrations/`. The earliest migration (`20260518120000_profiles_bootstrap.sql`) creates `public.profiles` and an `on_auth_user_created` trigger so every new GitHub sign-in gets a profile row without a client-side insert race.
+### Built for a daily habit
 
-### Delete account cascade
+- **Morning Reminder** when yesterday's standup wasn't copied yet
+- **Daily Streak** when you copy or share
+- **Weekly Summary** grouped by **Work Type** (feature, bug, refactor, test, chore, style)
+- **Read view** for a clean, read-only presentation before you share
 
-**Delete account** invokes the `delete-account` Edge Function, which removes the auth user. Because `activity_commits`, `manual_notes`, `standup_updates`, and `ai_generation_events` reference `profiles(id) on delete cascade`, all user data is removed with the profile/auth user. No orphaned rows remain after a successful delete.
+### Privacy by design
 
-## Scripts
+Activity metadata only. No source code in the database. No productivity scoring. AI runs server-side; your edit is always the source of truth. See [AI content safety](docs/ai-content-safety.md) and [Analytics & privacy](docs/analytics-privacy.md).
 
-```bash
-bun install
-bun run start          # expo start
-bun run android        # expo start --android
-bun run ios            # expo start --ios
-bun run web            # expo start --web
-bun run lint           # expo lint
-```
+---
 
-## Project layout
+## How it works
 
-- `src/app/` — Expo Router routes (`(public)` pre-auth, `(app)` authed shell)
-- `src/components/ui/` — [React Native Reusables](https://reactnativereusables.com/) primitives
-- `src/utils/supabase.ts` — Supabase client factory (`getSupabase()` returns `null` when env is incomplete)
+1. **Sign in** with GitHub and select repositories during onboarding.
+2. **Open Generate standup** for a Workday (defaults to today; pick any allowed past day from the calendar).
+3. **Review Sources**—synced commits and your notes—then generate or write manually.
+4. **Copy** the summary or full update into your team's channel.
 
-## Troubleshooting (NativeWind / Android)
+---
 
-If Metro fails with `failed to deserialize; expected an object-like struct named Specifier` while bundling CSS:
+## Tech stack
 
-1. `bun install` — runs `postinstall` to remove a nested `lightningcss` copy under `@expo/metro-config` (must stay on **1.30.1**).
-2. Restart with a clean cache: `bun run start:clean`, then open Android again.
+| Layer        | Technology                                                                                                                                                                |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Frontend** | [Expo SDK 55](https://docs.expo.dev/versions/v55.0.0/) + React 19, [NativeWind](https://www.nativewind.dev/), [React Native Reusables](https://reactnativereusables.com/) |
+| **Backend**  | [Supabase](https://supabase.com/) - Postgres, Edge Functions                                                                                                              |
+| **Auth**     | [Supabase Auth](https://supabase.com/docs/guides/auth) - GitHub OAuth                                                                                                     |
+| **AI**       | Anthropic Claude Haiku 4.5                                                                                                                                                |
 
-Smoke-test the CSS pipeline: `node scripts/verify-css-compile.js`.
+Native modules include on-device speech recognition, local notifications, MMKV, FlashList, and Reanimated.
 
-## Beta builds (EAS)
+---
 
-Voice notes and native speech recognition require a **development build** (not Expo Go).
+## Platforms
 
-```bash
-bun install
-bunx eas-cli build --profile development --platform ios
-bunx eas-cli build --profile development --platform android
-```
+iOS and Android via [Expo development builds](https://docs.expo.dev/develop/development-builds/introduction/) (required for voice notes and notifications). Web support is available for development.
 
-After adding `expo-speech-recognition` or `expo-notifications`, rebuild the native client. See [docs/analytics-privacy.md](docs/analytics-privacy.md) and [docs/ai-content-safety.md](docs/ai-content-safety.md).
+---
 
-## Learn more
+## Documentation
 
-- [Expo Router](https://docs.expo.dev/router/introduction/)
-- [Expo SDK 55 docs](https://docs.expo.dev/versions/v55.0.0/)
+| Doc                                        | Purpose                                           |
+| ------------------------------------------ | ------------------------------------------------- |
+| [CONTEXT.md](CONTEXT.md)                   | Product glossary and domain language              |
+| [PRD.md](PRD.md)                           | Product requirements and scope                    |
+| [docs/development.md](docs/development.md) | Local setup, env vars, migrations, Edge Functions |
+| [docs/adr/](docs/adr/)                     | Architecture decisions                            |
+
+---
+
+## License
+
+Licensed under the [MIT license](./LICENSE).
