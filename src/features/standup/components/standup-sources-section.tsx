@@ -5,7 +5,6 @@ import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { StandupActivitySection } from '@/features/standup/components/standup-activity-section';
 import { StandupNotesSection } from '@/features/standup/components/standup-notes-section';
-import { isStandupMarkdownEmpty } from '@/features/standup/lib/compose-standup-markdown';
 import { ChevronDown, RefreshCw } from 'lucide-react-native';
 import * as React from 'react';
 import { Pressable, View } from 'react-native';
@@ -44,11 +43,8 @@ function readLatestSyncedAt(
 
 export function StandupSourcesSection() {
   const {
-    workday,
     commits,
     notes,
-    draftMarkdown,
-    savedMarkdown,
     loading,
     syncing,
     tokenLoading,
@@ -56,13 +52,7 @@ export function StandupSourcesSection() {
     refreshActivity,
   } = useStandup();
 
-  const baseline = draftMarkdown ?? savedMarkdown ?? '';
-  const emptyDraft = isStandupMarkdownEmpty(baseline);
-  const [open, setOpen] = React.useState(emptyDraft);
-
-  React.useEffect(() => {
-    setOpen(emptyDraft);
-  }, [workday, emptyDraft]);
+  const [open, setOpen] = React.useState(true);
 
   const sourceCount = commits.length + notes.length;
   const lastSyncedLabel = formatLastSynced(readLatestSyncedAt(commits));
