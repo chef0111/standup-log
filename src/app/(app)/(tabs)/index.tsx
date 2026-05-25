@@ -4,6 +4,7 @@ import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { useAuth } from '@/context/auth';
 import { HomeActivitySection } from '@/features/home/components/home-activity-section';
+import { HomeStandupHistoryLink } from '@/features/home/components/home-standup-history-link';
 import { HomeWeekSnapshotCard } from '@/features/home/components/home-week-snapshot-card';
 import { StandupWidget } from '@/features/home/components/standup-widget';
 import { ProfileAvatar } from '@/features/profile/components/profile-avatar';
@@ -162,6 +163,8 @@ export default function AppHomeScreen() {
         }
       >
         <StandupWidget />
+
+        <HomeStandupHistoryLink />
 
         <View className="flex-row gap-3">
           <Pressable

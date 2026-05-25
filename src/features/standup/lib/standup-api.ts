@@ -15,6 +15,24 @@ export type StandupUpdateRow = {
 export const STANDUP_UPDATE_COLUMNS =
   'id, user_id, workday, draft_markdown, copied_at, format_used, created_at, updated_at' as const;
 
+export async function fetchStandupsInHistory(
+  supabase: SupabaseClient,
+  minimumWorkday: Workday,
+  maximumWorkday: Workday
+): Promise<{ standups: StandupUpdateRow[]; error: string | null }> {
+  const { data, error } = await supabase
+    .from('standup_updates')
+    .select(STANDUP_UPDATE_COLUMNS)
+    .gte('workday', minimumWorkday)
+    .lte('workday', maximumWorkday)
+    .order('workday', { ascending: false });
+
+  if (error) {
+    return { standups: [], error: error.message };
+  }
+  return { standups: (data as StandupUpdateRow[]) ?? [], error: null };
+}
+
 export async function fetchStandupUpdate(
   supabase: SupabaseClient,
   workday: Workday

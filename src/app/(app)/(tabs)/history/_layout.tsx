@@ -1,6 +1,6 @@
 import { Stack } from 'expo-router';
 
-export default function WeeklyLayout() {
+export default function HistoryLayout() {
   return (
     <Stack
       screenOptions={{

@@ -18,6 +18,7 @@ export type AnalyticsEvent =
   | 'reminder_permission_accepted'
   | 'reminder_permission_denied'
   | 'weekly_summary_viewed'
+  | 'standup_history_viewed'
   | 'upgrade_prompt_viewed';
 
 export type AnalyticsProperties = Record<
@@ -26,8 +27,7 @@ export type AnalyticsProperties = Record<
 >;
 
 const apiKey = process.env.EXPO_PUBLIC_POSTHOG_KEY;
-const host =
-  process.env.EXPO_PUBLIC_POSTHOG_HOST ?? 'https://us.i.posthog.com';
+const host = process.env.EXPO_PUBLIC_POSTHOG_HOST ?? 'https://us.i.posthog.com';
 
 const client = apiKey
   ? new PostHog(apiKey, {
@@ -55,9 +55,7 @@ export function track(
     return;
   }
   const payload = Object.fromEntries(
-    Object.entries(properties ?? {}).filter(
-      ([, value]) => value !== undefined
-    )
+    Object.entries(properties ?? {}).filter(([, value]) => value !== undefined)
   ) as Record<string, string | number | boolean>;
   client.capture(event, payload);
 }

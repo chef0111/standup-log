@@ -9,8 +9,12 @@ A concise daily status message for one **Workday**, stored as a single markdown 
 _Avoid_: Report, timesheet, task log
 
 **Workday**:
-A user-local calendar day used as the boundary for collecting activity into a **Standup Update**. On **Generate standup**, the default target is the previous local calendar day; the developer may choose another allowed day (today or a past day) from a calendar date picker.
+A user-local calendar day used as the boundary for collecting activity into a **Standup Update**. On **Generate standup**, the default target is the current local calendar day; the developer may choose another allowed day (today or a past day) from a calendar date picker.
 _Avoid_: Shift, rolling window, repo day
+
+**Standup history**:
+A chronological list of saved **Standup Updates** by **Workday**, within the user's allowed history window. Opening a row shows the **Read view** for that **Workday**.
+_Avoid_: Draft list, archive, log browser
 
 **Generate standup**:
 The primary workflow where a developer selects a **Workday**, edits the **Standup Update** markdown, reviews **Sources**, saves, and runs **Generate** or **Regenerate** for an **AI Draft**.
@@ -37,7 +41,7 @@ A **Manual Note** the developer marks as preventing or slowing progress.
 _Avoid_: Risk, issue, bug
 
 **Weekly Summary**:
-A week-level view of a developer's **Activity Signals** and copied **Standup Updates**, grouped by **Work Type** for the current calendar week.
+A week-level view of a developer's **Activity Signals** and copied **Standup Updates**, grouped by **Work Type** for the current calendar week. Opened from Home's week snapshot—not a primary tab.
 On the free tier, the preview shows the top **two Work Types** by commit count; remaining types require Pro.
 _Avoid_: Timesheet, productivity report, performance review
 
@@ -101,7 +105,8 @@ _Avoid_: Inputs panel, evidence drawer, sync log
 - A **Standup Update** for a **Workday** describes work on that calendar day—not "yesterday" relative to when the developer opens the app later.
 - The focusing-on portion of a **Standup Update** (**Focusing on** section) may include **Unfinished Notes** carried forward by the developer.
 - The blockers portion includes **Blocker Notes** from that **Workday** or an editable empty default.
-- A **Weekly Summary** summarizes **Activity Signals** and copied **Standup Updates** for the current calendar week, not raw work time.
+- A **Weekly Summary** summarizes **Activity Signals** and copied **Standup Updates** for the current calendar week, not raw work time. It is reached from Home, not the tab bar.
+- **Standup history** lists saved **Standup Updates** by **Workday** within the entitlement history window; each row opens **Read view** for that **Workday**.
 - A **Weekly Summary** groups **Activity Signals** by **Work Type**; free tier shows the top two Work Types by commit count.
 - A **Morning Reminder** fires only when the prior **Workday**'s **Standup Update** has no copy timestamp.
 - A **Daily Streak** advances only when the developer copies or shares a **Standup Update**.
@@ -114,7 +119,7 @@ _Avoid_: Inputs panel, evidence drawer, sync log
 - **Activity Metadata** may be retained to regenerate and audit **AI Drafts**, but code diffs are not retained.
 - Each **Activity Signal** has a disposition: **Shipped signal** or **In progress signal**, derived from branch/PR state at sync time. In promotion workflows (e.g. feature → staging → main), work stays **In progress signal** until it reaches the default branch.
 - A developer may choose one or more **Selected Repositories** as sources of **Activity Signals**.
-- Opening **Generate standup** defaults to the previous local **Workday**; the developer may pick another allowed day via the calendar. The chosen **Workday** persists while **Generate standup** remains mounted and can be opened via deep link (e.g. from **Read view** or Home).
+- Opening **Generate standup** defaults to the current local **Workday**; the developer may pick another allowed day via the calendar. The chosen **Workday** persists while **Generate standup** remains mounted and can be opened via deep link (e.g. from **Read view** or Home).
 - When a **Workday** has no **Activity Signals** and no **Manual Notes**, a guided flow can produce an explicit no-update **Standup Update** the developer edits before copying.
 - **Read view** is read-only; changing a **Standup Update** always happens on **Generate standup** for the same **Workday**.
 - When **Sources** span more than one **Selected Repository**, **Activity Signals** are grouped by repository in the activity display.

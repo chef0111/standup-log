@@ -22,7 +22,7 @@ function formatWeekHeroLabel(weekStart: string, weekEnd: string): string {
   return `${fmt(weekStart)} – ${fmt(weekEnd)}`;
 }
 
-export default function WeeklyScreen() {
+export default function WeeklySummaryScreen() {
   const [upgradeOpen, setUpgradeOpen] = React.useState(false);
   const { displayName, avatarUrl } = useProfileHeader();
   const bounds = React.useMemo(() => getCurrentWeekBounds(), []);
@@ -35,7 +35,7 @@ export default function WeeklyScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Weekly', headerShown: false }} />
+      <Stack.Screen options={{ title: 'Weekly summary', headerShown: false }} />
       <AppScreenShell
         header={
           <ScreenHeader
