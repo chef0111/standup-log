@@ -38,9 +38,7 @@ export const StandupHistoryRow = React.memo(function StandupHistoryRow({
         style={{ width: DELETE_ACTION_WIDTH }}
       >
         <Icon as={Trash2} size={20} className="text-white" />
-        <Text className="text-xs font-medium text-white">
-          Delete
-        </Text>
+        <Text className="text-xs font-medium text-white">Delete</Text>
       </Pressable>
     );
   }, [heading, item.workday, onDeleteRequest]);
@@ -65,15 +63,15 @@ export const StandupHistoryRow = React.memo(function StandupHistoryRow({
               <Text className="text-foreground text-base font-semibold">
                 {heading}
               </Text>
-              {item.copied ? (
+              {item.copied && (
                 <Badge variant="secondary">
                   <Text>Copied</Text>
                 </Badge>
-              ) : null}
+              )}
             </View>
             <Text
               selectable
-              className="text-muted-foreground text-sm leading-relaxed"
+              className="text-muted-foreground select-none! text-sm leading-relaxed"
               numberOfLines={2}
             >
               {subtitle}

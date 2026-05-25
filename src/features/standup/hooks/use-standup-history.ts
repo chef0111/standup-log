@@ -5,7 +5,10 @@ import {
   mapStandupUpdateToHistoryItem,
   type StandupHistoryItem,
 } from '@/features/standup/lib/history/standup-history-item';
-import { fetchStandupsInHistory, deleteStandupUpdate } from '@/features/standup/lib/standup-api';
+import {
+  deleteStandupUpdate,
+  fetchStandupsInHistory,
+} from '@/features/standup/lib/standup-api';
 import type { WorkdayPickerBounds } from '@/features/standup/lib/workday/workday';
 import type { Workday } from '@/features/standup/types/workday';
 import { categorizeError, userFacingMessage } from '@/lib/errors';
