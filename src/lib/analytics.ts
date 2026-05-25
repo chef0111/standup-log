@@ -20,6 +20,7 @@ export type AnalyticsEvent =
   | 'weekly_summary_viewed'
   | 'standup_history_viewed'
   | 'standup_history_filtered'
+  | 'standup_deleted'
   | 'upgrade_prompt_viewed';
 
 export type AnalyticsProperties = Record<

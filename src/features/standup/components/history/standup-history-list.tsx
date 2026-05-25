@@ -12,6 +12,7 @@ type StandupHistoryListProps = {
   items: StandupHistoryItem[];
   totalCount: number;
   onItemPress: (workday: Workday) => void;
+  onDeleteRequest: (workday: Workday) => void;
   onClearFilters?: () => void;
 };
 
@@ -19,15 +20,20 @@ export function StandupHistoryList({
   items,
   totalCount,
   onItemPress,
+  onDeleteRequest,
   onClearFilters,
 }: StandupHistoryListProps) {
   const router = useRouter();
 
   const renderItem = React.useCallback(
     ({ item }: { item: StandupHistoryItem }) => (
-      <StandupHistoryRow item={item} onPress={onItemPress} />
+      <StandupHistoryRow
+        item={item}
+        onPress={onItemPress}
+        onDeleteRequest={onDeleteRequest}
+      />
     ),
-    [onItemPress]
+    [onDeleteRequest, onItemPress]
   );
 
   const ItemSeparator = React.useCallback(() => <View className="h-3" />, []);

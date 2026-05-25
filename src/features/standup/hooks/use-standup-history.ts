@@ -5,11 +5,16 @@ import {
   mapStandupUpdateToHistoryItem,
   type StandupHistoryItem,
 } from '@/features/standup/lib/history/standup-history-item';
-import { fetchStandupsInHistory } from '@/features/standup/lib/standup-api';
+import { fetchStandupsInHistory, deleteStandupUpdate } from '@/features/standup/lib/standup-api';
 import type { WorkdayPickerBounds } from '@/features/standup/lib/workday/workday';
+import type { Workday } from '@/features/standup/types/workday';
 import { categorizeError, userFacingMessage } from '@/lib/errors';
 import { useFocusEffect } from '@react-navigation/native';
 import * as React from 'react';
+
+export type DeleteStandupHistoryItem = (
+  workday: Workday
+) => Promise<string | null>;
 
 export type StandupHistoryData = {
   items: StandupHistoryItem[];
@@ -17,6 +22,7 @@ export type StandupHistoryData = {
   isPro: boolean;
   loading: boolean;
   error: string | null;
+  deleteItem: DeleteStandupHistoryItem;
 };
 
 export function useStandupHistory(): StandupHistoryData {
@@ -73,5 +79,24 @@ export function useStandupHistory(): StandupHistoryData {
     }, [load])
   );
 
-  return { items, pickerBounds, isPro, loading, error };
+  const deleteItem = React.useCallback<DeleteStandupHistoryItem>(
+    async (workday) => {
+      if (!supabase || !session) {
+        return userFacingMessage(categorizeError('Not signed in'));
+      }
+
+      setItems((prev) => prev.filter((item) => item.workday !== workday));
+
+      const { error } = await deleteStandupUpdate(supabase, workday);
+      if (error) {
+        await load();
+        return userFacingMessage(categorizeError(error));
+      }
+
+      return null;
+    },
+    [load, session, supabase]
+  );
+
+  return { items, pickerBounds, isPro, loading, error, deleteItem };
 }

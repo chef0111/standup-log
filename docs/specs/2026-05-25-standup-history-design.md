@@ -24,3 +24,10 @@ Replace the Weekly tab with **Standup history**: a list of saved **Standup Updat
 - [ ] Text search filters by summary text and Workday label
 - [ ] Clear filters resets to All + empty query
 - [ ] Filtered empty state shows when items exist but none match
+
+## Delete QA (2026-05-25)
+
+- [ ] Swipe → Delete → Cancel leaves row intact
+- [ ] Swipe → Delete → Confirm removes row; reopening History stays deleted
+- [ ] Deleted standup: Generate standup for same Workday starts fresh (no row)
+- [ ] Notes/activity for deleted Workday still visible on Generate standup Sources

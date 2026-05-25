@@ -19,12 +19,13 @@ import { useThemeColor } from '@/hooks/use-theme-color';
 import { track } from '@/lib/analytics';
 import { Stack, useFocusEffect, useRouter } from 'expo-router';
 import * as React from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, Alert, View } from 'react-native';
 
 export default function StandupHistoryScreen() {
   const router = useRouter();
   const { displayName, avatarUrl } = useProfileHeader();
-  const { items, pickerBounds, isPro, loading, error } = useStandupHistory();
+  const { items, pickerBounds, isPro, loading, error, deleteItem } =
+    useStandupHistory();
   const primary = useThemeColor('--color-primary');
   const [filter, setFilter] = React.useState<StandupHistoryFilterState | null>(
     null
@@ -79,6 +80,33 @@ export default function StandupHistoryScreen() {
     setFilter(createDefaultHistoryFilter(pickerBounds));
   }, [pickerBounds]);
 
+  const onDeleteRequest = React.useCallback(
+    (workday: Workday) => {
+      Alert.alert(
+        'Delete standup?',
+        'This removes the saved standup for this workday. Notes and activity for this day are not deleted.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Delete',
+            style: 'destructive',
+            onPress: () => {
+              void (async () => {
+                const deleteError = await deleteItem(workday);
+                if (deleteError) {
+                  Alert.alert('Delete failed', deleteError);
+                  return;
+                }
+                track('standup_deleted', { workday });
+              })();
+            },
+          },
+        ]
+      );
+    },
+    [deleteItem]
+  );
+
   const historySubtitle = isPro
     ? 'Full history of saved standups, newest first.'
     : 'Last 30 days of saved standups, newest first.';
@@ -132,6 +160,7 @@ export default function StandupHistoryScreen() {
                 items={filteredItems}
                 totalCount={items.length}
                 onItemPress={onItemPress}
+                onDeleteRequest={onDeleteRequest}
                 onClearFilters={onClearFilters}
               />
             </View>

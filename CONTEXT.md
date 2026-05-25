@@ -13,7 +13,7 @@ A user-local calendar day used as the boundary for collecting activity into a **
 _Avoid_: Shift, rolling window, repo day
 
 **Standup history**:
-A chronological list of saved **Standup Updates** by **Workday**, within the user's allowed history window. Opening a row shows the **Read view** for that **Workday**.
+A chronological list of saved **Standup Updates** by **Workday**, within the user's allowed history window. Opening a row shows the **Read view** for that **Workday**. Deleting from **Standup history** removes the saved **Standup Update** for that **Workday** only—**Manual Notes** and **Activity Signals** for that day remain.
 _Avoid_: Draft list, archive, log browser
 
 **Generate standup**:
