@@ -16,7 +16,7 @@ import { saveStandupUpdate } from '@/features/standup/lib/standup-api';
 import { categorizeError, userFacingMessage } from '@/lib/errors';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { useRouter } from 'expo-router';
-import { SaveIcon } from 'lucide-react-native';
+import { Eye, SaveIcon } from 'lucide-react-native';
 import * as React from 'react';
 import { View } from 'react-native';
 import { useStandup } from '../context/standup';
@@ -114,9 +114,13 @@ export function StandupDraftPanel() {
 
   return (
     <View className="relative gap-4">
-      <View className="flex-row items-center justify-end">
-        <Button variant="secondary" size="sm" onPress={onViewStandup}>
-          <Text>View standup</Text>
+      <View className="flex-row items-center justify-between">
+        <Text className="text-foreground text-lg font-bold">Standup draft</Text>
+        <Button variant="outline" size="sm" onPress={onViewStandup}>
+          <Icon as={Eye} />
+          <Text className="text-foreground text-sm font-medium">
+            View standup
+          </Text>
         </Button>
       </View>
 

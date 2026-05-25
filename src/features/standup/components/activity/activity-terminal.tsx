@@ -161,16 +161,15 @@ const ActivityLogLine = React.memo(function ActivityLogLine({
         ) : null}
         <SignalDispositionBadge disposition={item.signal_disposition} />
       </View>
-      {item.pr_number != null ? (
+      {item.pr_number != null && (
         <Text
           selectable
-          className="text-terminal-muted pl-14 font-mono text-xs leading-snug"
-          numberOfLines={1}
+          className="text-terminal-muted line-clamp-2 text-ellipsis pl-14 font-mono text-xs leading-snug"
         >
           PR #{item.pr_number}
           {item.pr_title ? `: ${item.pr_title}` : ''}
         </Text>
-      ) : null}
+      )}
     </View>
   );
 });
@@ -238,7 +237,7 @@ function RepoSectionHeader({
       >
         {shortName}
       </Text>
-      {shortName !== repositoryFullName ? (
+      {shortName !== repositoryFullName && (
         <Text
           selectable
           className="text-terminal-muted font-mono text-[10px]"
@@ -246,7 +245,7 @@ function RepoSectionHeader({
         >
           {repositoryFullName}
         </Text>
-      ) : null}
+      )}
     </View>
   );
 }

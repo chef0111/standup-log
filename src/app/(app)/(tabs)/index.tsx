@@ -1,5 +1,5 @@
 import { GithubIcon, RepositoryIcon } from '@/components/icons';
-import { Card } from '@/components/ui/card';
+import { Card, CardDescription, CardTitle } from '@/components/ui/card';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { useAuth } from '@/context/auth';
@@ -19,10 +19,10 @@ import {
 } from '@/features/shell/components/app-screen-shell';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { useFocusEffect } from '@react-navigation/native';
-import { Redirect, Stack } from 'expo-router';
+import { Redirect, router, Stack } from 'expo-router';
 import { Flame } from 'lucide-react-native';
 import * as React from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, Pressable, View } from 'react-native';
 
 function StreakPill({ streak }: { streak: number }) {
   return (
@@ -164,28 +164,36 @@ export default function AppHomeScreen() {
         <StandupWidget />
 
         <View className="flex-row gap-3">
-          <Card variant="elevated" className="flex-1 gap-2 p-5">
-            <View className="flex-row items-center gap-2">
-              <View className="bg-muted/80 size-8 items-center justify-center rounded-md">
-                <RepositoryIcon size={16} color={foreground} />
+          <Pressable
+            className="max-w-1/2 flex-1"
+            onPress={() => router.push('/(app)/(tabs)/settings/repositories')}
+          >
+            <Card className="flex-1 gap-2 p-5">
+              <View className="flex-row items-center gap-2">
+                <View className="bg-muted/80 size-8 items-center justify-center rounded-md">
+                  <RepositoryIcon size={16} color={foreground} />
+                </View>
+                <CardTitle className="text-foreground text-2xl font-semibold tracking-tight">
+                  {selectedCount}
+                </CardTitle>
               </View>
-              <Text className="text-foreground text-2xl font-semibold tracking-tight">
-                {selectedCount}
-              </Text>
-            </View>
-            <Text className="text-muted-foreground text-sm">
-              {selectedCount === 1 ? 'Repository' : 'Repositories'}
-            </Text>
-          </Card>
-          <Card variant="elevated" className="flex-1 gap-2 p-5">
+              <CardDescription className="text-muted-foreground text-sm">
+                {selectedCount === 1 ? 'Repository' : 'Repositories'}
+              </CardDescription>
+            </Card>
+          </Pressable>
+          <Card
+            variant="elevated"
+            className="max-w-1/2 bg-success/10 flex-1 gap-2 p-5"
+          >
             <Icon as={Flame} size={22} className="text-success" />
-            <Text className="text-foreground text-sm font-medium">
+            <CardTitle className="text-foreground text-sm font-medium">
               Best streak
-            </Text>
-            <Text className="text-muted-foreground text-xs">
+            </CardTitle>
+            <CardDescription className="text-muted-foreground text-xs">
               {profile.longest_streak} day
               {profile.longest_streak === 1 ? '' : 's'}
-            </Text>
+            </CardDescription>
           </Card>
         </View>
 
