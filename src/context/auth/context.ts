@@ -6,6 +6,8 @@ export type AuthContextValue = {
   session: Session | null;
   loading: boolean;
   configured: boolean;
+  authError: string | null;
+  clearAuthError: () => void;
 };
 
 export const AuthContext = React.createContext<AuthContextValue | undefined>(

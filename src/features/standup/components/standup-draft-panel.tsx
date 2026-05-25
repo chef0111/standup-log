@@ -13,6 +13,7 @@ import {
   isStandupMarkdownEmpty,
 } from '@/features/standup/lib/compose-standup-markdown';
 import { saveStandupUpdate } from '@/features/standup/lib/standup-api';
+import { categorizeError, userFacingMessage } from '@/lib/errors';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { useRouter } from 'expo-router';
 import { SaveIcon } from 'lucide-react-native';
@@ -100,7 +101,7 @@ export function StandupDraftPanel() {
     );
     setSaving(false);
     if (error) {
-      setStatus(error);
+      setStatus(userFacingMessage(categorizeError(error)));
       return;
     }
     onSaved?.(markdown);

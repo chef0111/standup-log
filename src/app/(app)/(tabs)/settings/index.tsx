@@ -69,9 +69,11 @@ export default function SettingsScreen() {
     setBusy(true);
     const { error } = await supabase.auth.signOut();
     setBusy(false);
-    if (!error) {
-      router.replace('/(public)/sign-in');
+    if (error) {
+      Alert.alert('Sign out failed', error.message);
+      return;
     }
+    router.replace('/(public)/sign-in');
   }, [router, supabase]);
 
   const onDisconnectGitHub = React.useCallback(() => {

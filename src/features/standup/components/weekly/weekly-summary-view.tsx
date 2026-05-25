@@ -20,6 +20,7 @@ import {
   fetchStandupsForWeek,
 } from '@/features/standup/lib/weekly/fetch-standups-for-week';
 import { getCurrentWeekBounds } from '@/features/standup/lib/weekly/week-bounds';
+import { categorizeError, userFacingMessage } from '@/lib/errors';
 import { Lock } from 'lucide-react-native';
 import * as React from 'react';
 import { ActivityIndicator, View } from 'react-native';
@@ -74,7 +75,7 @@ export function WeeklySummaryView({ onUpgrade }: WeeklySummaryViewProps) {
 
       const loadError = commitsError ?? standupsError;
       if (loadError) {
-        setError(loadError);
+        setError(userFacingMessage(categorizeError(loadError)));
         setLoading(false);
         return;
       }
