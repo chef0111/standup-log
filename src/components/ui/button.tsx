@@ -36,7 +36,7 @@ const buttonVariants = cva(
           })
         ),
         outline: cn(
-          'border-border bg-background dark:bg-input/30 dark:bg-background border',
+          'border-border bg-card dark:bg-input/30 dark:bg-background border',
           Platform.select({
             web: 'active:bg-accent dark:active:bg-muted shadow-sm shadow-black/5 hover:bg-muted dark:hover:bg-muted dark:hover:bg-input/50 transition-colors',
           })

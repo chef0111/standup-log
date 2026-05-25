@@ -1,6 +1,6 @@
 import {
-  Calendar,
   ClipboardList,
+  History,
   Home,
   Settings,
   type LucideIcon,
@@ -8,8 +8,8 @@ import {
 import type { SFSymbol } from 'sf-symbols-typescript';
 
 export type AppTabItem = {
-  name: 'index' | 'standup' | 'weekly' | 'settings';
-  href: '/' | '/standup' | '/weekly' | '/settings';
+  name: 'index' | 'standup' | 'history' | 'settings';
+  href: '/' | '/standup' | '/history' | '/settings';
   label: string;
   sf: SFSymbol;
   md: string;
@@ -34,12 +34,12 @@ export const APP_TAB_ITEMS: AppTabItem[] = [
     icon: ClipboardList,
   },
   {
-    name: 'weekly',
-    href: '/weekly',
-    label: 'Weekly',
-    sf: 'calendar',
-    md: 'calendar_month',
-    icon: Calendar,
+    name: 'history',
+    href: '/history',
+    label: 'History',
+    sf: 'clock.arrow.circlepath',
+    md: 'history',
+    icon: History,
   },
   {
     name: 'settings',

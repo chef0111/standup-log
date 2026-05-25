@@ -17,11 +17,9 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as React from 'react';
 import { ActivityIndicator, View } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
-export {
-  // Catch any errors thrown by the Layout component.
-  ErrorBoundary,
-} from 'expo-router';
+export { ErrorBoundary } from 'expo-router';
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
@@ -52,19 +50,21 @@ function RootLayoutInner() {
   const scheme = colorScheme === 'dark' ? 'dark' : 'light';
 
   return (
-    <View
-      className={cn(
-        'bg-background flex-1 will-change-auto',
-        scheme === 'dark' && 'dark'
-      )}
-    >
-      <ThemeProvider value={NAV_THEME[scheme]}>
-        <AuthProvider>
-          <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
-          <Stack screenOptions={{ headerShown: false }} />
-          <PortalHost />
-        </AuthProvider>
-      </ThemeProvider>
-    </View>
+    <GestureHandlerRootView className="flex-1">
+      <View
+        className={cn(
+          'bg-background flex-1 will-change-auto',
+          scheme === 'dark' && 'dark'
+        )}
+      >
+        <ThemeProvider value={NAV_THEME[scheme]}>
+          <AuthProvider>
+            <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
+            <Stack screenOptions={{ headerShown: false }} />
+            <PortalHost />
+          </AuthProvider>
+        </ThemeProvider>
+      </View>
+    </GestureHandlerRootView>
   );
 }

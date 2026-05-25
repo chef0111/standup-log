@@ -20,10 +20,11 @@ import {
 } from '@/features/standup/lib/format-standup';
 import { recordStandupCopy } from '@/features/standup/lib/record-standup-copy';
 import { fetchStandupUpdate } from '@/features/standup/lib/standup-api';
+import { useThemeColor } from '@/hooks/use-theme-color';
 import { cn } from '@/lib/utils';
 import * as Clipboard from 'expo-clipboard';
 import { useRouter } from 'expo-router';
-import { CopyIcon } from 'lucide-react-native';
+import { CopyIcon, Edit, Eye, Stars } from 'lucide-react-native';
 import * as React from 'react';
 import { ActivityIndicator, View } from 'react-native';
 
@@ -42,6 +43,7 @@ export function StandupWidget() {
   } = useStandupWidgetData();
   const [copying, setCopying] = React.useState(false);
   const [toast, setToast] = React.useState<string | null>(null);
+  const foreground = useThemeColor('--color-foreground');
 
   const onGenerate = () => {
     router.push({ pathname: '/standup', params: { workday } });
@@ -109,7 +111,7 @@ export function StandupWidget() {
       </CardHeader>
       <CardContent className="gap-2 pb-3">
         {loading ? (
-          <ActivityIndicator />
+          <ActivityIndicator color={foreground} />
         ) : error ? (
           <Text selectable className="text-destructive text-sm">
             {error}
@@ -140,6 +142,7 @@ export function StandupWidget() {
             onPress={onView}
             className="min-w-[40%] flex-1"
           >
+            <Icon as={Eye} />
             <Text>View</Text>
           </Button>
         )}
@@ -149,6 +152,7 @@ export function StandupWidget() {
           onPress={onGenerate}
           className={cn('min-w-[40%] flex-1', !hasStandup && 'h-14')}
         >
+          {hasStandup ? <Icon as={Edit} /> : <Icon as={Stars} />}
           <Text>{hasStandup ? 'Edit' : 'Generate'}</Text>
         </Button>
         {summaryReady && (

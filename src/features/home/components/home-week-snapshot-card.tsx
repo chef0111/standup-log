@@ -15,7 +15,7 @@ export function HomeWeekSnapshotCard() {
   return (
     <Pressable
       accessibilityRole="button"
-      onPress={() => router.push('/weekly')}
+      onPress={() => router.push('/history/summary')}
     >
       <Card variant="elevated" className="gap-3 p-5">
         <View className="flex-row items-center justify-between gap-2">

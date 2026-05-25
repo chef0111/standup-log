@@ -1,6 +1,7 @@
 import { RepositoryPickerScreen } from '@/features/repositories/components/repository-picker-screen';
 import { RepositoryPickerProvider } from '@/features/repositories/context/repository-picker';
 import { Stack, useRouter } from 'expo-router';
+import * as React from 'react';
 
 export default function OnboardingRepositoriesScreen() {
   const router = useRouter();
