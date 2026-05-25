@@ -23,7 +23,7 @@ import {
 import type { Workday } from '@/features/standup/types/workday';
 import { track } from '@/lib/analytics';
 import { markFirstEvent } from '@/lib/analytics-flags';
-import { userFacingMessage, categorizeError } from '@/lib/errors';
+import { categorizeError, userFacingMessage } from '@/lib/errors';
 import { useFocusEffect } from '@react-navigation/native';
 import * as React from 'react';
 import { StandupContext, type StandupContextValue } from './context';
@@ -99,6 +99,7 @@ export function StandupProvider({
     token,
     tokenLoading,
     refresh,
+    updateCommitWorkType,
   } = useActivitySync(workday, isPro);
 
   const {
@@ -357,6 +358,7 @@ export function StandupProvider({
       token,
       tokenLoading,
       refreshActivity,
+      updateCommitWorkType,
       notes,
       carryForwardNotes,
       loadingNotes,
@@ -397,6 +399,7 @@ export function StandupProvider({
       token,
       tokenLoading,
       refreshActivity,
+      updateCommitWorkType,
       notes,
       carryForwardNotes,
       loadingNotes,

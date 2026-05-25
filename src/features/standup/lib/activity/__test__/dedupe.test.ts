@@ -1,5 +1,5 @@
-import { dedupeCommitsBySha } from '@/features/standup/lib/activity/github-commits';
 import { describe, expect, it } from 'vitest';
+import { dedupeCommitsBySha } from '../github-commits';
 
 describe('dedupeCommitsBySha', () => {
   it('keeps first occurrence per sha', () => {

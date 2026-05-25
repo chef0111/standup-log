@@ -6,6 +6,7 @@ import {
   assignSignalDisposition,
   type CommitSource,
 } from '@/features/standup/lib/activity/signal-disposition';
+import { addCalendarDays } from '@/features/standup/lib/workday/workday';
 import type { ActivityCommitInsert } from '@/features/standup/types/activity-commit';
 import type { Workday } from '@/features/standup/types/workday';
 import { AppError } from '@/lib/errors';
@@ -15,7 +16,26 @@ const GITHUB_HEADERS = {
   'X-GitHub-Api-Version': '2022-11-28',
 } as const;
 
-const SEARCH_COMMITS_ACCEPT = 'application/vnd.github.cloak-preview+json';
+const SEARCH_COMMITS_ACCEPT = GITHUB_HEADERS.Accept;
+
+export function buildCommitSearchQuery(input: {
+  repositoryFullName: string;
+  authorLogin: string;
+  workday: Workday;
+}): string {
+  const [owner, repo] = input.repositoryFullName.split('/');
+  if (!owner || !repo) {
+    return '';
+  }
+
+  const endDay = addCalendarDays(input.workday, 1);
+
+  return [
+    `repo:${owner}/${repo}`,
+    `author:${input.authorLogin}`,
+    `committer-date:${input.workday}..${endDay}`,
+  ].join('+');
+}
 
 type GithubCommitApi = {
   sha?: string;
@@ -139,7 +159,9 @@ async function fetchPullDetail(
     const pr = (await res.json()) as GithubPullApi;
     return {
       pr_merged_at:
-        typeof pr.merged_at === 'string' ? pr.merged_at : pr.merged_at ?? null,
+        typeof pr.merged_at === 'string'
+          ? pr.merged_at
+          : (pr.merged_at ?? null),
       pr_state: typeof pr.state === 'string' ? pr.state : null,
     };
   } catch {
@@ -188,7 +210,9 @@ async function fetchCommitPullMetadata(
       pr_number: first.number,
       pr_title: typeof first.title === 'string' ? first.title : null,
       pr_url: typeof first.html_url === 'string' ? first.html_url : null,
-      pr_state: detail.pr_state ?? (typeof first.state === 'string' ? first.state : null),
+      pr_state:
+        detail.pr_state ??
+        (typeof first.state === 'string' ? first.state : null),
       pr_merged_at: detail.pr_merged_at,
     };
   } catch {
@@ -246,11 +270,14 @@ async function fetchSearchCommitsForWorkday(input: {
     return [];
   }
 
-  const q = [
-    `repo:${owner}/${repo}`,
-    `author:${input.authorLogin}`,
-    `committer-date:${input.workday}..${input.workday}`,
-  ].join('+');
+  const q = buildCommitSearchQuery({
+    repositoryFullName: input.repositoryFullName,
+    authorLogin: input.authorLogin,
+    workday: input.workday,
+  });
+  if (!q) {
+    return [];
+  }
 
   const url = new URL('https://api.github.com/search/commits');
   url.searchParams.set('q', q);
@@ -266,6 +293,10 @@ async function fetchSearchCommitsForWorkday(input: {
 
   if (res.status === 401 || res.status === 403) {
     throw new AppError('github', githubHttpErrorMessage(res.status));
+  }
+  if (res.status === 422) {
+    // Invalid query or repo not visible to this token — keep default-branch results.
+    return [];
   }
   if (!res.ok) {
     throw new AppError('github', githubHttpErrorMessage(res.status));

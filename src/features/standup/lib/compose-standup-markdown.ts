@@ -2,10 +2,10 @@ import {
   isMergedPullRequest,
   isOpenPullRequest,
 } from '@/features/standup/lib/activity/signal-disposition';
-import type { ActivityCommitRow } from '@/features/standup/types/activity-commit';
-import type { ManualNoteRow } from '@/features/standup/types/manual-note';
 import { extractStandupSummary } from '@/features/standup/lib/parse-standup-markdown';
 import { workdayToLocalDate } from '@/features/standup/lib/workday/workday';
+import type { ActivityCommitRow } from '@/features/standup/types/activity-commit';
+import type { ManualNoteRow } from '@/features/standup/types/manual-note';
 import type { Workday } from '@/features/standup/types/workday';
 
 export const MAX_ACTIVITY_BULLETS = 15;

@@ -10,11 +10,11 @@ StandupLog scopes **Activity Signals** to a user-local **Workday**. Sync used `G
 
 Alternatives considered:
 
-| Approach | Rejected because |
-| -------- | ---------------- |
-| PR-centric fetch only | Misses branch work without an open PR |
-| Events API (PushEvents) | Noisy, harder Workday filtering, more pagination |
-| Default branch only + manual notes only | Does not fix the core signal gap |
+| Approach                                | Rejected because                                 |
+| --------------------------------------- | ------------------------------------------------ |
+| PR-centric fetch only                   | Misses branch work without an open PR            |
+| Events API (PushEvents)                 | Noisy, harder Workday filtering, more pagination |
+| Default branch only + manual notes only | Does not fix the core signal gap                 |
 
 ## Decision
 

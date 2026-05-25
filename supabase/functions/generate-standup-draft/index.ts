@@ -351,7 +351,8 @@ Deno.serve(async (req) => {
   if (!rateLimit.allowed) {
     return jsonResponse(
       {
-        error: rateLimit.reason === 'daily_limit' ? 'daily_limit' : 'rate_limited',
+        error:
+          rateLimit.reason === 'daily_limit' ? 'daily_limit' : 'rate_limited',
         retry_after_seconds: rateLimit.retryAfterSeconds,
         remaining: 0,
       },

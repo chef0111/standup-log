@@ -1,14 +1,14 @@
+import type { SelectedRepository } from '@/features/repositories/types/repository';
 import {
   fetchAllRepoCommitsForWorkday,
   type ParsedCommit,
 } from '@/features/standup/lib/activity/github-commits';
 import { isGithubRateLimitError } from '@/features/standup/lib/activity/github-rate-limit';
+import { workdayUtcBounds } from '@/features/standup/lib/workday/workday';
 import {
   ACTIVITY_COMMIT_COLUMNS,
   type ActivityCommitRow,
 } from '@/features/standup/types/activity-commit';
-import type { SelectedRepository } from '@/features/repositories/types/repository';
-import { workdayUtcBounds } from '@/features/standup/lib/workday/workday';
 import type { Workday } from '@/features/standup/types/workday';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
@@ -47,7 +47,7 @@ async function replaceWorkdayCommits(
 
   const { data: existing, error: selectError } = await supabase
     .from('activity_commits')
-    .select('sha')
+    .select('sha, work_type')
     .eq('user_id', userId)
     .eq('workday', workday);
 
@@ -72,6 +72,13 @@ async function replaceWorkdayCommits(
     }
   }
 
+  const storedWorkTypeBySha = new Map(
+    (existing ?? []).map((row) => [
+      row.sha as string,
+      row.work_type as string | null,
+    ])
+  );
+
   const now = new Date().toISOString();
   const upsertRows = rows.map((c) => ({
     user_id: userId,
@@ -88,7 +95,7 @@ async function replaceWorkdayCommits(
     pr_state: c.pr_state,
     pr_merged_at: c.pr_merged_at,
     signal_disposition: c.signal_disposition,
-    work_type: c.work_type,
+    work_type: c.work_type ?? storedWorkTypeBySha.get(c.sha) ?? null,
     synced_at: now,
   }));
 

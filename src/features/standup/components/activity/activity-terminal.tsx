@@ -219,7 +219,7 @@ function TerminalTitleBar({
 }
 
 function TerminalBody({ children }: { children: React.ReactNode }) {
-  return <View className="bg-terminal px-3 py-2">{children}</View>;
+  return <View className="bg-terminal rounded-b-xl px-3 py-2">{children}</View>;
 }
 
 function RepoSectionHeader({
@@ -368,7 +368,7 @@ export function ActivityTerminal({
         ) : (
           <ScrollView
             nestedScrollEnabled
-            style={{ maxHeight: 256 }}
+            className="max-h-102"
             showsVerticalScrollIndicator={false}
           >
             <View>

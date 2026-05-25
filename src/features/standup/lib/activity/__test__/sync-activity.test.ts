@@ -1,6 +1,6 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest';
-import type { ParsedCommit } from '@/features/standup/lib/activity/github-commits';
-import { syncActivityForWorkday } from '@/features/standup/lib/activity/sync-activity';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { ParsedCommit } from '../github-commits';
+import { syncActivityForWorkday } from '../sync-activity';
 
 const { fetchAllRepoCommitsForWorkdayMock } = vi.hoisted(() => ({
   fetchAllRepoCommitsForWorkdayMock: vi.fn(),
@@ -78,9 +78,7 @@ function createSupabaseMock() {
                   );
                   return Promise.resolve({ error: null });
                 }),
-                then: (
-                  resolve: (value: { error: null }) => void
-                ) => {
+                then: (resolve: (value: { error: null }) => void) => {
                   state.deleted.push({ workday: filters.workday as string });
                   state.rows = state.rows.filter(
                     (row) =>
@@ -118,7 +116,10 @@ function createSupabaseMock() {
         })
       ),
       then: (
-        resolve: (value: { data: Record<string, unknown>[]; error: null }) => void
+        resolve: (value: {
+          data: Record<string, unknown>[];
+          error: null;
+        }) => void
       ) => {
         let data = applyFilters(state.rows, filters);
         if (inValues) {
@@ -172,7 +173,7 @@ describe('syncActivityForWorkday', () => {
       token: 'token',
       userId: 'user-1',
       workday: '2026-05-24',
-      repos: [{ full_name: 'org/repo', id: 1 }],
+      repos: [{ full_name: 'org/repo', id: 1, private: false }],
       githubUserId: 1,
       githubLogin: 'dev',
     });
@@ -196,7 +197,7 @@ describe('syncActivityForWorkday', () => {
       token: 'token',
       userId: 'user-1',
       workday: '2026-05-24',
-      repos: [{ full_name: 'org/repo', id: 1 }],
+      repos: [{ full_name: 'org/repo', id: 1, private: false }],
       githubUserId: 1,
       githubLogin: 'dev',
     });
@@ -205,5 +206,52 @@ describe('syncActivityForWorkday', () => {
     expect(result.commits).toHaveLength(1);
     expect(result.commits[0]?.sha).toBe('new-sha');
     expect(result.commits[0]?.signal_disposition).toBe('in_progress');
+  });
+
+  it('preserves manually assigned work_type when re-syncing', async () => {
+    const supabase = createSupabaseMock();
+    supabase.state.rows.push({
+      id: 'existing',
+      user_id: 'user-1',
+      workday: '2026-05-24',
+      sha: 'merge-sha',
+      message: 'Merge pull request #8',
+      committed_at: '2026-05-24T23:54:00Z',
+      html_url: 'https://github.com/org/repo/commit/merge-sha',
+      author_login: 'dev',
+      pr_number: 8,
+      pr_title: null,
+      pr_url: null,
+      pr_state: null,
+      pr_merged_at: null,
+      signal_disposition: 'shipped',
+      work_type: 'feature',
+      synced_at: '2026-05-24T10:01:00Z',
+      created_at: '2026-05-24T10:01:00Z',
+      repository_full_name: 'org/repo',
+    });
+
+    vi.mocked(fetchAllRepoCommitsForWorkdayMock).mockResolvedValue([
+      {
+        ...parsedCommit('merge-sha'),
+        message: 'Merge pull request #8',
+        work_type: null,
+        signal_disposition: 'shipped',
+      },
+    ]);
+
+    const result = await syncActivityForWorkday({
+      supabase: supabase as never,
+      token: 'token',
+      userId: 'user-1',
+      workday: '2026-05-24',
+      repos: [{ full_name: 'org/repo', id: 1, private: false }],
+      githubUserId: 1,
+      githubLogin: 'dev',
+    });
+
+    expect(result.error).toBeNull();
+    expect(result.commits).toHaveLength(1);
+    expect(result.commits[0]?.work_type).toBe('feature');
   });
 });

@@ -1,10 +1,10 @@
-import { useAuth } from '@/context/auth';
 import { Text } from '@/components/ui/text';
+import { useAuth } from '@/context/auth';
 import { fetchUserProfile } from '@/features/profile/lib/profile';
+import { useThemeColor } from '@/hooks/use-theme-color';
 import { Redirect, usePathname } from 'expo-router';
 import * as React from 'react';
 import { ActivityIndicator, View } from 'react-native';
-import { useThemeColor } from '@/hooks/use-theme-color';
 
 type OnboardingGuardProps = {
   children: React.ReactNode;

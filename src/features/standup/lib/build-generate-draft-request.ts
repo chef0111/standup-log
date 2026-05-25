@@ -1,5 +1,5 @@
-import type { ActivityCommitRow } from '@/features/standup/types/activity-commit';
 import type { GenerateDraftRequest } from '@/features/standup/lib/ai-draft-types';
+import type { ActivityCommitRow } from '@/features/standup/types/activity-commit';
 import type { ManualNoteRow } from '@/features/standup/types/manual-note';
 import type { Workday } from '@/features/standup/types/workday';
 

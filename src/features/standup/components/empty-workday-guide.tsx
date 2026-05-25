@@ -35,9 +35,7 @@ export function EmptyWorkdayGuide({
 
   return (
     <View className="border-border bg-muted/30 gap-3 rounded-lg border p-4">
-      <Text className="text-foreground text-sm font-medium">
-        Empty Workday
-      </Text>
+      <Text className="text-foreground text-sm font-medium">Empty Workday</Text>
       <Text className="text-muted-foreground text-xs leading-relaxed">
         No commits or notes for {formatWorkdayHeading(workday)}. Work on a
         feature branch may not appear until you refresh Sources — try that

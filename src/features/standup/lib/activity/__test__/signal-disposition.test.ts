@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { mergeHybridCommits } from '@/features/standup/lib/activity/github-commits';
+import type { ParsedCommit } from '../github-commits';
+import { mergeHybridCommits } from '../github-commits';
 import {
   assignSignalDisposition,
   isMergedPullRequest,
   isOpenPullRequest,
-} from '@/features/standup/lib/activity/signal-disposition';
-import type { ParsedCommit } from '@/features/standup/lib/activity/github-commits';
+} from '../signal-disposition';
 
 function baseCommit(overrides: Partial<ParsedCommit> = {}): ParsedCommit {
   return {
@@ -70,7 +70,9 @@ describe('assignSignalDisposition', () => {
 
 describe('mergeHybridCommits', () => {
   it('merges default and search sources with disposition', () => {
-    const defaultBranch = [baseCommit({ sha: 'a', pr_state: 'open', pr_number: 1 })];
+    const defaultBranch = [
+      baseCommit({ sha: 'a', pr_state: 'open', pr_number: 1 }),
+    ];
     const searchOnly = [baseCommit({ sha: 'b' })];
 
     const merged = mergeHybridCommits(defaultBranch, searchOnly);
@@ -103,7 +105,10 @@ describe('mergeHybridCommits', () => {
 describe('pull request helpers', () => {
   it('detects merged PR via merged_at', () => {
     expect(
-      isMergedPullRequest({ pr_merged_at: '2026-05-24T12:00:00Z', pr_state: 'closed' })
+      isMergedPullRequest({
+        pr_merged_at: '2026-05-24T12:00:00Z',
+        pr_state: 'closed',
+      })
     ).toBe(true);
   });
 

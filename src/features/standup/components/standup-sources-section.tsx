@@ -98,7 +98,11 @@ export function StandupSourcesSection() {
             {syncing ? (
               <ButtonSpinner />
             ) : (
-              <Icon as={RefreshCw} size={16} className="text-muted-foreground" />
+              <Icon
+                as={RefreshCw}
+                size={16}
+                className="text-muted-foreground"
+              />
             )}
           </Button>
           <Pressable
@@ -108,7 +112,11 @@ export function StandupSourcesSection() {
             className="h-9 w-9 items-center justify-center"
           >
             <View style={{ transform: [{ rotate: open ? '180deg' : '0deg' }] }}>
-              <Icon as={ChevronDown} size={18} className="text-muted-foreground" />
+              <Icon
+                as={ChevronDown}
+                size={18}
+                className="text-muted-foreground"
+              />
             </View>
           </Pressable>
         </View>

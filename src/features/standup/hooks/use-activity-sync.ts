@@ -10,14 +10,17 @@ import {
   setActivityWorkdayCache,
 } from '@/features/standup/lib/activity/activity-workday-cache';
 import { isGithubRateLimitError } from '@/features/standup/lib/activity/github-rate-limit';
+import { patchCommitWorkTypeInList } from '@/features/standup/lib/activity/patch-commit-work-type';
+import type { StoredWorkType } from '@/features/standup/lib/activity/stored-work-type';
 import {
   fetchActivityCommits,
   syncActivityForWorkday,
 } from '@/features/standup/lib/activity/sync-activity';
+import { updateActivityCommitWorkType } from '@/features/standup/lib/activity/update-activity-commit-work-type';
 import type { ActivityCommitRow } from '@/features/standup/types/activity-commit';
 import type { Workday } from '@/features/standup/types/workday';
-import { categorizeError, userFacingMessage } from '@/lib/errors';
 import { useGitHubAccessToken } from '@/hooks/use-github-access-token';
+import { categorizeError, userFacingMessage } from '@/lib/errors';
 import * as React from 'react';
 
 function readCachedCommits(workday: Workday): ActivityCommitRow[] {
@@ -26,6 +29,15 @@ function readCachedCommits(workday: Workday): ActivityCommitRow[] {
 
 function readCachedError(workday: Workday): string | null {
   return getActivityWorkdayCache(workday)?.error ?? null;
+}
+
+function writeCommitsToCache(workday: Workday, commits: ActivityCommitRow[]) {
+  const cached = getActivityWorkdayCache(workday);
+  setActivityWorkdayCache(workday, {
+    commits,
+    error: cached?.error ?? null,
+    githubSynced: cached?.githubSynced ?? false,
+  });
 }
 
 function syncErrorMessage(error: unknown): string {
@@ -51,6 +63,10 @@ export function useActivitySync(workday: Workday, isPro: boolean) {
   const [rateLimitResetAt, setRateLimitResetAt] = React.useState<number | null>(
     null
   );
+  const commitsRef = React.useRef(commits);
+  React.useEffect(() => {
+    commitsRef.current = commits;
+  }, [commits]);
 
   const syncFromGitHub = React.useCallback(
     async (targetWorkday: Workday) => {
@@ -190,10 +206,8 @@ export function useActivitySync(workday: Workday, isPro: boolean) {
       }
 
       try {
-        const { commits: stored, error: loadError } = await fetchActivityCommits(
-          supabase,
-          workday
-        );
+        const { commits: stored, error: loadError } =
+          await fetchActivityCommits(supabase, workday);
         if (cancelled) {
           return;
         }
@@ -244,6 +258,40 @@ export function useActivitySync(workday: Workday, isPro: boolean) {
     };
   }, [isPro, session, supabase, syncFromGitHub, token, tokenLoading, workday]);
 
+  const updateCommitWorkType = React.useCallback(
+    async (commitId: string, workType: StoredWorkType) => {
+      if (!supabase || !session) {
+        return { error: 'Sign in to update work types.' };
+      }
+
+      const previousCommits = commitsRef.current;
+      const optimisticCommits = patchCommitWorkTypeInList(
+        previousCommits,
+        commitId,
+        workType
+      );
+
+      setCommits(optimisticCommits);
+      writeCommitsToCache(workday, optimisticCommits);
+
+      const { error } = await updateActivityCommitWorkType(
+        supabase,
+        session.user.id,
+        commitId,
+        workType
+      );
+
+      if (error) {
+        setCommits(previousCommits);
+        writeCommitsToCache(workday, previousCommits);
+        return { error };
+      }
+
+      return { error: null };
+    },
+    [session, supabase, workday]
+  );
+
   const refresh = React.useCallback(async () => {
     setSyncing(true);
     setError(null);
@@ -275,5 +323,6 @@ export function useActivitySync(workday: Workday, isPro: boolean) {
     token,
     tokenLoading,
     refresh,
+    updateCommitWorkType,
   };
 }

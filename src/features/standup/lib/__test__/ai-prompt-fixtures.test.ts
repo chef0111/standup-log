@@ -1,10 +1,8 @@
-import { describe, expect, it } from 'vitest';
 import { buildGenerateDraftRequest } from '@/features/standup/lib/build-generate-draft-request';
 import type { ActivityCommitRow } from '@/features/standup/types/activity-commit';
+import { describe, expect, it } from 'vitest';
 
-function commit(
-  overrides: Partial<ActivityCommitRow> = {}
-): ActivityCommitRow {
+function commit(overrides: Partial<ActivityCommitRow> = {}): ActivityCommitRow {
   return {
     id: 'id-1',
     user_id: 'user-1',
