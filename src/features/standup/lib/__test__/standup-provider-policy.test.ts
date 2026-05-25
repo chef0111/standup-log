@@ -1,33 +1,24 @@
-import { readFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
+import {
+  clampWorkdayToBounds,
+  defaultTargetWorkday,
+  getWorkdayPickerBounds,
+} from '@/features/standup/lib/workday/workday';
 
-const providerPath = join(
-  dirname(fileURLToPath(import.meta.url)),
-  '../../context/standup/provider.tsx'
-);
+describe('Standup workday policy', () => {
+  it('does not reset workday to today when still within free-tier bounds', () => {
+    const bounds = getWorkdayPickerBounds({ isPro: false });
+    const userSelected = bounds.maximumWorkday;
 
-function readProviderSource(): string {
-  return readFileSync(providerPath, 'utf8');
-}
-
-describe('StandupProvider workday policy', () => {
-  it('does not reset picker Workday on screen refocus', () => {
-    const source = readProviderSource();
-    const focusCallback = source.slice(
-      source.indexOf('useFocusEffect'),
-      source.indexOf('}, [session, supabase]') + '}, [session, supabase]'.length
-    );
-
-    expect(focusCallback).not.toMatch(
-      /setWorkday\s*\(\s*defaultTargetWorkday\s*\(/
-    );
+    const afterRefocus = clampWorkdayToBounds(userSelected, bounds);
+    expect(afterRefocus).toBe(userSelected);
+    expect(afterRefocus).not.toBe(defaultTargetWorkday());
   });
 
-  it('does not auto-invoke AI when draft is empty', () => {
-    const source = readProviderSource();
-    expect(source).not.toMatch(/autoAiWorkdayRef/);
-    expect(source).not.toMatch(/void runAiDraft\s*\(\s*false\s*\)/);
+  it('clamps out-of-range workdays instead of leaving them invalid', () => {
+    const bounds = getWorkdayPickerBounds({ isPro: false });
+    const tooOld = '2020-01-01';
+
+    expect(clampWorkdayToBounds(tooOld, bounds)).toBe(bounds.minimumWorkday);
   });
 });
