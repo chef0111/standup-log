@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { ButtonSpinner } from '@/components/ui/button-spinner';
 import { Card } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
 import { useAuth } from '@/context/auth';
@@ -22,6 +23,7 @@ import {
   defaultTargetWorkday,
   parseWorkdayParam,
 } from '@/features/standup/lib/workday/workday';
+import { useThemeColor } from '@/hooks/use-theme-color';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import * as React from 'react';
 import { ActivityIndicator, View } from 'react-native';
@@ -37,6 +39,7 @@ export default function StandupReadScreen() {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const { displayName, avatarUrl } = useProfileHeader();
+  const primary = useThemeColor('--color-primary');
 
   const [sessionCopyFormat, setSessionCopyFormat] =
     React.useState<CopyFormat | null>(null);
@@ -96,8 +99,8 @@ export default function StandupReadScreen() {
           headerShadowVisible: false,
           headerRight: () => (
             <View className="flex-row items-center gap-1">
-              <Button variant="ghost" size="sm" onPress={onEdit}>
-                <Text className="text-sm">Edit</Text>
+              <Button variant="ghost" onPress={onEdit}>
+                <Text>Edit</Text>
               </Button>
             </View>
           ),
@@ -107,6 +110,7 @@ export default function StandupReadScreen() {
         header={
           <ScreenHeader
             eyebrow="Standup"
+            className="-mt-12"
             title={formatWorkdayHeading(workday)}
             subtitle="Read-only view of your saved draft."
             showThemeToggle={false}
@@ -129,6 +133,7 @@ export default function StandupReadScreen() {
                 onPress={() => void copySummary()}
                 className="min-h-12 flex-1"
               >
+                {copying && <ButtonSpinner />}
                 <Text>Copy summary</Text>
               </Button>
               <Button
@@ -138,6 +143,7 @@ export default function StandupReadScreen() {
                 onPress={copyFull}
                 className="min-h-12 flex-1"
               >
+                {copying && <ButtonSpinner />}
                 <Text>Copy full</Text>
               </Button>
             </View>
@@ -154,13 +160,15 @@ export default function StandupReadScreen() {
         }
       >
         {loading ? (
-          <ActivityIndicator />
+          <View className="h-120 flex-1 items-center justify-center">
+            <ActivityIndicator size="large" color={primary} />
+          </View>
         ) : error ? (
           <Text selectable className="text-destructive text-sm">
             {error}
           </Text>
         ) : (
-          <Card variant="elevated" className="p-5">
+          <Card variant="elevated" className="overflow-auto p-5">
             <StandupMarkdownView markdown={markdown} />
           </Card>
         )}

@@ -11,7 +11,15 @@ import type {
   ManualNoteRow,
 } from '@/features/standup/types/manual-note';
 import type { Workday } from '@/features/standup/types/workday';
+import { categorizeError, userFacingMessage } from '@/lib/errors';
 import * as React from 'react';
+
+function formatNotesError(error: string | null): string | null {
+  if (!error) {
+    return null;
+  }
+  return userFacingMessage(categorizeError(error));
+}
 
 export function useManualNotes(workday: Workday) {
   const { supabase, session } = useAuth();
@@ -34,7 +42,7 @@ export function useManualNotes(workday: Workday) {
     ]);
     setNotes(dayResult.notes);
     setCarryForwardNotes(carryResult.notes);
-    setError(dayResult.error ?? carryResult.error);
+    setError(formatNotesError(dayResult.error ?? carryResult.error));
     setLoading(false);
   }, [supabase, workday]);
 

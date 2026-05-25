@@ -17,6 +17,17 @@ import type {
 import * as React from 'react';
 import { Switch, View } from 'react-native';
 
+const NOTE_TEMPLATES = [
+  { label: 'Feature branch', body: 'Worked on feature branch — see open PR.' },
+  { label: 'Pairing', body: 'Paired on implementation and review.' },
+  { label: 'Meetings', body: 'Meetings and planning — limited coding time.' },
+  {
+    label: 'Blocker',
+    body: 'Blocked waiting on review / dependency.',
+    isBlocker: true,
+  },
+] as const;
+
 type NoteEditorSheetProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -64,6 +75,29 @@ export function NoteEditorSheet({
       </DialogHeader>
 
       <View className="gap-4">
+        {!note ? (
+          <View className="gap-2">
+            <Label>Quick add</Label>
+            <View className="flex-row flex-wrap gap-2">
+              {NOTE_TEMPLATES.map((template) => (
+                <Button
+                  key={template.label}
+                  size="sm"
+                  variant="outline"
+                  onPress={() => {
+                    setBody(template.body);
+                    if ('isBlocker' in template && template.isBlocker) {
+                      setIsBlocker(true);
+                    }
+                  }}
+                >
+                  <Text>{template.label}</Text>
+                </Button>
+              ))}
+            </View>
+          </View>
+        ) : null}
+
         <View className="gap-2">
           <Label>Note</Label>
           <Textarea

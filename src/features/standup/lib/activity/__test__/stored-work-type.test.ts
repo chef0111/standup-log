@@ -1,6 +1,6 @@
-import { resolveCommitWorkType } from '@/features/standup/lib/activity/stored-work-type';
 import type { ActivityCommitRow } from '@/features/standup/types/activity-commit';
 import { describe, expect, it } from 'vitest';
+import { resolveCommitWorkType } from '../stored-work-type';
 
 const base: ActivityCommitRow = {
   id: '1',
@@ -16,6 +16,8 @@ const base: ActivityCommitRow = {
   pr_title: null,
   pr_url: null,
   pr_state: null,
+  pr_merged_at: null,
+  signal_disposition: 'shipped',
   work_type: null,
   synced_at: '2026-05-19T12:00:00Z',
   created_at: '2026-05-19T12:00:00Z',

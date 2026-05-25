@@ -1,4 +1,5 @@
 import { useActivitySync } from '@/features/standup/hooks/use-activity-sync';
+import type { StoredWorkType } from '@/features/standup/lib/activity/stored-work-type';
 import type { ManualNoteRow } from '@/features/standup/types/manual-note';
 import type {
   Workday,
@@ -20,6 +21,10 @@ export type StandupContextValue = {
   token: ReturnType<typeof useActivitySync>['token'];
   tokenLoading: boolean;
   refreshActivity: () => void;
+  updateCommitWorkType: (
+    commitId: string,
+    workType: StoredWorkType
+  ) => Promise<{ error: string | null }>;
   notes: ManualNoteRow[];
   carryForwardNotes: ManualNoteRow[];
   loadingNotes: boolean;

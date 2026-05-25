@@ -82,10 +82,13 @@ export function useStandupCopy(
     }
     setCopying(true);
     try {
-      await Clipboard.setStringAsync(
-        formatStandupSummaryForCopy(markdown, copyFormat)
-      );
-      await recordCopy('Summary copied');
+      const formatted = formatStandupSummaryForCopy(markdown, copyFormat);
+      const { error } = await recordCopy('Summary copied');
+      if (error) {
+        setToastMessage('Saved copy failed. Try again.');
+        return;
+      }
+      await Clipboard.setStringAsync(formatted);
     } catch {
       setToastMessage('Could not copy. Try again.');
     } finally {
@@ -99,10 +102,13 @@ export function useStandupCopy(
     }
     setCopying(true);
     try {
-      await Clipboard.setStringAsync(
-        formatStandupForCopy(markdown, copyFormat)
-      );
-      await recordCopy('Full standup copied');
+      const formatted = formatStandupForCopy(markdown, copyFormat);
+      const { error } = await recordCopy('Full standup copied');
+      if (error) {
+        setToastMessage('Saved copy failed. Try again.');
+        return;
+      }
+      await Clipboard.setStringAsync(formatted);
     } catch {
       setToastMessage('Could not copy. Try again.');
     } finally {

@@ -1,7 +1,11 @@
-import type { ActivityCommitRow } from '@/features/standup/types/activity-commit';
-import type { ManualNoteRow } from '@/features/standup/types/manual-note';
+import {
+  isMergedPullRequest,
+  isOpenPullRequest,
+} from '@/features/standup/lib/activity/signal-disposition';
 import { extractStandupSummary } from '@/features/standup/lib/parse-standup-markdown';
 import { workdayToLocalDate } from '@/features/standup/lib/workday/workday';
+import type { ActivityCommitRow } from '@/features/standup/types/activity-commit';
+import type { ManualNoteRow } from '@/features/standup/types/manual-note';
 import type { Workday } from '@/features/standup/types/workday';
 
 export const MAX_ACTIVITY_BULLETS = 15;
@@ -93,11 +97,18 @@ export function composeManualMarkdown(
       ? blockerNotes.map((n) => `- ${n.body.trim()}`).join('\n')
       : '-';
 
-  const mergedCount = input.commits.filter(
-    (c) => c.pr_state?.toLowerCase() === 'merged'
+  const mergedCount = input.commits.filter((c) =>
+    isMergedPullRequest({
+      pr_merged_at: c.pr_merged_at,
+      pr_state: c.pr_state,
+    })
   ).length;
-  const openPrCount = input.commits.filter(
-    (c) => c.pr_number != null && c.pr_state?.toLowerCase() !== 'merged'
+  const openPrCount = input.commits.filter((c) =>
+    isOpenPullRequest({
+      pr_number: c.pr_number,
+      pr_merged_at: c.pr_merged_at,
+      pr_state: c.pr_state,
+    })
   ).length;
 
   const dateLabel = formatWorkdayHeading(input.workday);

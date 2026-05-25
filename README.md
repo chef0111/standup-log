@@ -45,6 +45,14 @@ If variables are missing, the app opens a **setup** screen with instructions ins
 
    Restart the dev server after changing `.env.local`.
 
+### Database bootstrap
+
+Apply migrations in timestamp order under `supabase/migrations/`. The earliest migration (`20260518120000_profiles_bootstrap.sql`) creates `public.profiles` and an `on_auth_user_created` trigger so every new GitHub sign-in gets a profile row without a client-side insert race.
+
+### Delete account cascade
+
+**Delete account** invokes the `delete-account` Edge Function, which removes the auth user. Because `activity_commits`, `manual_notes`, `standup_updates`, and `ai_generation_events` reference `profiles(id) on delete cascade`, all user data is removed with the profile/auth user. No orphaned rows remain after a successful delete.
+
 ## Scripts
 
 ```bash

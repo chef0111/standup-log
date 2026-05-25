@@ -60,15 +60,19 @@ export function StandupWidget() {
     const markdown = standup?.draft_markdown ?? '';
     try {
       const format = normalizeCopyFormat(profile?.default_copy_format);
-      await Clipboard.setStringAsync(
-        formatStandupSummaryForCopy(markdown, format)
-      );
-      const { streakIncremented } = await recordStandupCopy(
+      const { streakIncremented, error } = await recordStandupCopy(
         supabase,
         session.user.id,
         workday,
         markdown,
         format
+      );
+      if (error) {
+        setToast('Saved copy failed. Try again.');
+        return;
+      }
+      await Clipboard.setStringAsync(
+        formatStandupSummaryForCopy(markdown, format)
       );
       setToast(
         streakIncremented ? 'Summary copied · Streak +1' : 'Summary copied'

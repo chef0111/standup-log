@@ -1,6 +1,5 @@
 import {
   getReminderPriorWorkday,
-  nextReminderDate,
   shouldScheduleReminder,
 } from '@/features/settings/lib/reminder-eligibility';
 import { fetchStandupUpdate } from '@/features/standup/lib/standup-api';
@@ -66,7 +65,7 @@ export async function scheduleStandupReminder(input: {
     return { scheduled: false, reason: 'already_copied' };
   }
 
-  const triggerDate = nextReminderDate(input.reminderTimeLocal);
+  const [hour, minute] = input.reminderTimeLocal.split(':').map(Number);
 
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync('standup-reminders', {
@@ -78,11 +77,12 @@ export async function scheduleStandupReminder(input: {
   await Notifications.scheduleNotificationAsync({
     content: {
       title: 'Standup reminder',
-      body: "You haven't copied yesterday's standup yet.",
+      body: "Copy yesterday's standup when you're ready.",
     },
     trigger: {
-      type: Notifications.SchedulableTriggerInputTypes.DATE,
-      date: triggerDate,
+      type: Notifications.SchedulableTriggerInputTypes.DAILY,
+      hour: hour ?? 9,
+      minute: minute ?? 0,
       channelId: Platform.OS === 'android' ? 'standup-reminders' : undefined,
     },
   });

@@ -34,6 +34,16 @@ function githubLoginFromSession(session: Session): string | null {
   return null;
 }
 
+export function resolveGithubLogin(
+  profileLogin: string | null | undefined,
+  session: Session
+): string | null {
+  if (typeof profileLogin === 'string' && profileLogin.length > 0) {
+    return profileLogin;
+  }
+  return githubLoginFromSession(session);
+}
+
 function avatarUrlFromSession(session: Session): string | null {
   const meta = session.user.user_metadata;
   return typeof meta?.avatar_url === 'string' && meta.avatar_url.length > 0

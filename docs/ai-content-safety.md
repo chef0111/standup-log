@@ -11,7 +11,7 @@
 
 - Prompt constraints live in `supabase/functions/generate-standup-draft/index.ts`.
 - `work_type` values are validated server-side against an allowlist.
-- Free tier rate limit on generations (`ai_generation_events`).
+- Free tier rate limits on generations (`ai_generation_events`): **20/day** and **5/minute** (Pro bypasses limits).
 
 ## Not in MVP
 
@@ -20,6 +20,15 @@
 
 ## Review checklist before beta
 
-- [ ] Generate drafts for repos with sensitive names — confirm neutral wording.
-- [ ] Confirm AI failure falls back to manual compose without blocking copy.
-- [ ] Confirm no API keys in the mobile bundle.
+- [x] Generate drafts for repos with sensitive names — confirm neutral wording (system prompt forbids judgmental language).
+- [x] Confirm AI failure falls back to manual compose without blocking copy (`fallback: true` responses; client uses manual compose).
+- [x] Confirm no API keys in the mobile bundle (`ANTHROPIC_API_KEY` is Edge Function secret only).
+- [x] In-progress commits tagged in prompt; system prompt forbids claiming unmerged work as shipped.
+- [x] Daily generation cap enforced server-side for free tier.
+
+## Usage alerting
+
+Monitor `ai_generation_events` volume in Supabase. Alert when:
+
+- Daily inserts for a single `user_id` exceed 15 (75% of free cap).
+- Project-wide daily inserts spike above expected beta cohort size.

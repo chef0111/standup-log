@@ -1,6 +1,6 @@
-import { groupCommitsByRepo } from '@/features/standup/lib/activity/group-commits-by-repo';
 import type { ActivityCommitRow } from '@/features/standup/types/activity-commit';
 import { describe, expect, it } from 'vitest';
+import { groupCommitsByRepo } from '../group-commits-by-repo';
 
 function commit(sha: string, repository_full_name: string): ActivityCommitRow {
   return {
@@ -18,7 +18,9 @@ function commit(sha: string, repository_full_name: string): ActivityCommitRow {
     pr_url: null,
     pr_state: null,
     work_type: null,
-    synced_at: null,
+    synced_at: '',
+    pr_merged_at: null,
+    signal_disposition: 'shipped',
     created_at: '2026-05-23T12:00:00Z',
   };
 }

@@ -1,19 +1,14 @@
-import { useAuth } from '@/context/auth';
 import { signInWithGitHub } from '@/features/auth/lib/oauth';
 import { ActivityTerminal } from '@/features/standup/components/activity/activity-terminal';
 import { WorkTypePickerSheet } from '@/features/standup/components/activity/work-type-picker-sheet';
-import { updateActivityCommitWorkType } from '@/features/standup/lib/activity/update-activity-commit-work-type';
-import type {
-  ActivityCommitRow,
-  StoredWorkType,
-} from '@/features/standup/types/activity-commit';
+import type { StoredWorkType } from '@/features/standup/lib/activity/stored-work-type';
+import type { ActivityCommitRow } from '@/features/standup/types/activity-commit';
 import { useRouter } from 'expo-router';
 import * as React from 'react';
 import { useStandup } from '../context/standup';
 
 export function StandupActivitySection() {
   const router = useRouter();
-  const { supabase, session } = useAuth();
   const {
     workday,
     commits,
@@ -24,6 +19,7 @@ export function StandupActivitySection() {
     activityError,
     rateLimitResetAt,
     refreshActivity,
+    updateCommitWorkType,
   } = useStandup();
 
   const [editingCommit, setEditingCommit] =
@@ -32,24 +28,22 @@ export function StandupActivitySection() {
   const [workTypeError, setWorkTypeError] = React.useState<string | null>(null);
 
   const handleSaveWorkType = async (workType: StoredWorkType) => {
-    if (!supabase || !session || !editingCommit) {
+    const commit = editingCommit;
+    if (!commit) {
       return;
     }
+
     setWorkTypeSaving(true);
     setWorkTypeError(null);
-    const { error } = await updateActivityCommitWorkType(
-      supabase,
-      session.user.id,
-      editingCommit.id,
-      workType
-    );
-    setWorkTypeSaving(false);
-    if (error) {
-      setWorkTypeError(error);
-      return;
-    }
     setEditingCommit(null);
-    refreshActivity();
+
+    const { error } = await updateCommitWorkType(commit.id, workType);
+    setWorkTypeSaving(false);
+
+    if (error) {
+      setEditingCommit(commit);
+      setWorkTypeError(error);
+    }
   };
 
   return (
@@ -63,6 +57,7 @@ export function StandupActivitySection() {
         hasToken={Boolean(token)}
         error={activityError}
         rateLimitResetAt={rateLimitResetAt}
+        emptyMessage="No commits for this Workday yet. Refresh to pull feature-branch work, or add a manual note."
         onRefresh={refreshActivity}
         onReconnect={() => void signInWithGitHub()}
         onManageRepos={() => router.push('/settings/repositories')}

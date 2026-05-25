@@ -1,8 +1,8 @@
+import { describe, expect, it } from 'vitest';
 import {
   commitFirstLine,
   parseCommitWorkType,
-} from '@/features/standup/lib/activity/parse-commit-work-type';
-import { describe, expect, it } from 'vitest';
+} from '../parse-commit-work-type';
 
 describe('parseCommitWorkType', () => {
   it('maps conventional commit prefixes to work types', () => {
