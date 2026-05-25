@@ -48,6 +48,8 @@ export function StandupDraftPanel() {
     setEditorMarkdown,
     onStandupSaved: onSaved,
     openAddNote,
+    refreshActivity,
+    syncing,
   } = useStandup();
 
   const [guideDismissed, setGuideDismissed] = React.useState(false);
@@ -120,6 +122,8 @@ export function StandupDraftPanel() {
       {showEmptyGuide ? (
         <EmptyWorkdayGuide
           workday={workday}
+          onRefreshActivity={refreshActivity}
+          refreshing={syncing}
           onHadWork={() => {
             setGuideDismissed(true);
             openAddNote();

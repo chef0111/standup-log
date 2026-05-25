@@ -63,6 +63,7 @@ export function StandupActivitySection() {
         hasToken={Boolean(token)}
         error={activityError}
         rateLimitResetAt={rateLimitResetAt}
+        emptyMessage="No commits for this Workday yet. Refresh to pull feature-branch work, or add a manual note."
         onRefresh={refreshActivity}
         onReconnect={() => void signInWithGitHub()}
         onManageRepos={() => router.push('/settings/repositories')}
