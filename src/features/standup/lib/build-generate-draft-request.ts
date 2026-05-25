@@ -1,5 +1,5 @@
-import type { ActivityCommitRow } from '@/features/standup/types/activity-commit';
 import type { GenerateDraftRequest } from '@/features/standup/lib/ai-draft-types';
+import type { ActivityCommitRow } from '@/features/standup/types/activity-commit';
 import type { ManualNoteRow } from '@/features/standup/types/manual-note';
 import type { Workday } from '@/features/standup/types/workday';
 
@@ -17,6 +17,8 @@ export function buildGenerateDraftRequest(
       pr_number: commit.pr_number,
       pr_title: commit.pr_title,
       pr_state: commit.pr_state,
+      pr_merged_at: commit.pr_merged_at,
+      signal_disposition: commit.signal_disposition,
     })),
     notes: notes.map((note) => ({
       body: note.body,

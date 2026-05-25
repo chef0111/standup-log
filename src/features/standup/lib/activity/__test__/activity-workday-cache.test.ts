@@ -1,10 +1,10 @@
+import { beforeEach, describe, expect, it } from 'vitest';
 import {
   clearActivityWorkdayCache,
   getActivityWorkdayCache,
   hasActivityWorkdayCache,
   setActivityWorkdayCache,
-} from '@/features/standup/lib/activity/activity-workday-cache';
-import { beforeEach, describe, expect, it } from 'vitest';
+} from '../activity-workday-cache';
 
 describe('activity-workday-cache', () => {
   beforeEach(() => {
@@ -25,6 +25,9 @@ describe('activity-workday-cache', () => {
           pr_title: null,
           pr_url: null,
           pr_state: null,
+          pr_merged_at: null,
+          signal_disposition: 'shipped',
+          work_type: 'feature',
           synced_at: '2026-05-18T10:01:00.000Z',
           created_at: '2026-05-18T10:01:00.000Z',
         },

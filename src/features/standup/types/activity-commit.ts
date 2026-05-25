@@ -8,6 +8,8 @@ export type StoredWorkType =
   | 'chore'
   | 'style';
 
+export type SignalDisposition = 'shipped' | 'in_progress';
+
 export type ActivityCommitRow = {
   id: string;
   user_id: string;
@@ -22,6 +24,8 @@ export type ActivityCommitRow = {
   pr_title: string | null;
   pr_url: string | null;
   pr_state: string | null;
+  pr_merged_at: string | null;
+  signal_disposition: SignalDisposition;
   work_type: StoredWorkType | null;
   synced_at: string;
   created_at: string;
@@ -33,4 +37,4 @@ export type ActivityCommitInsert = Omit<
 >;
 
 export const ACTIVITY_COMMIT_COLUMNS =
-  'id, user_id, workday, repository_full_name, sha, message, committed_at, html_url, author_login, pr_number, pr_title, pr_url, pr_state, work_type, synced_at, created_at' as const;
+  'id, user_id, workday, repository_full_name, sha, message, committed_at, html_url, author_login, pr_number, pr_title, pr_url, pr_state, pr_merged_at, signal_disposition, work_type, synced_at, created_at' as const;

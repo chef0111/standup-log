@@ -8,8 +8,6 @@ import { ScrollView, View, type ScrollViewProps } from 'react-native';
 
 type AppScreenShellProps = {
   header?: React.ReactNode;
-  /** @deprecated Use `header` */
-  hero?: React.ReactNode;
   footer?: React.ReactNode;
   children: React.ReactNode;
   scroll?: boolean;
@@ -22,7 +20,6 @@ type AppScreenShellProps = {
 /** Light canvas layout: optional header + scrollable content + optional footer. */
 export function AppScreenShell({
   header,
-  hero,
   footer,
   children,
   scroll = true,
@@ -32,7 +29,7 @@ export function AppScreenShell({
 }: AppScreenShellProps) {
   const tabBarPadding = useTabBarScrollPadding();
   const bottomPad = footer ? footerScrollPadding : tabBarPadding;
-  const screenHeader = header ?? hero;
+  const screenHeader = header;
 
   const {
     contentContainerClassName: scrollContentClassName,

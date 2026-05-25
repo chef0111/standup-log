@@ -67,14 +67,13 @@ export function workdayUtcBounds(
   return { since: since.toISOString(), until: until.toISOString() };
 }
 
-/** Previous local calendar day (default standup target when opened in the morning). */
+/** Current local calendar day (default standup / activity target). */
 export function defaultTargetWorkday(
   now: Date = new Date(),
   timeZone?: string
 ): Workday {
   const tz = timeZone ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const today = formatWorkdayLocal(now, tz);
-  return addCalendarDays(today, -1);
+  return formatWorkdayLocal(now, tz);
 }
 
 export function getWorkdayPickerBounds(input: {

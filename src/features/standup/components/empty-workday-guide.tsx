@@ -12,6 +12,8 @@ type EmptyWorkdayGuideProps = {
   onAddBlockerNote: () => void;
   onApplyDraft: (markdown: string) => void;
   onDismiss: () => void;
+  onRefreshActivity?: () => void;
+  refreshing?: boolean;
 };
 
 type GuideStep = 'any_work' | 'blockers' | 'preview';
@@ -22,6 +24,8 @@ export function EmptyWorkdayGuide({
   onAddBlockerNote,
   onApplyDraft,
   onDismiss,
+  onRefreshActivity,
+  refreshing = false,
 }: EmptyWorkdayGuideProps) {
   const [step, setStep] = React.useState<GuideStep>('any_work');
   const preview = React.useMemo(
@@ -31,13 +35,23 @@ export function EmptyWorkdayGuide({
 
   return (
     <View className="border-border bg-muted/30 gap-3 rounded-lg border p-4">
-      <Text className="text-foreground text-sm font-medium">
-        Empty Workday
-      </Text>
+      <Text className="text-foreground text-sm font-medium">Empty Workday</Text>
       <Text className="text-muted-foreground text-xs leading-relaxed">
-        No commits or notes for {formatWorkdayHeading(workday)}. A quick guide
-        can help you record a no-update standup.
+        No commits or notes for {formatWorkdayHeading(workday)}. Work on a
+        feature branch may not appear until you refresh Sources — try that
+        first, then add a manual note for anything GitHub still missed.
       </Text>
+
+      {onRefreshActivity ? (
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={refreshing}
+          onPress={onRefreshActivity}
+        >
+          <Text>{refreshing ? 'Refreshing…' : 'Refresh GitHub activity'}</Text>
+        </Button>
+      ) : null}
 
       {step === 'any_work' ? (
         <View className="gap-2">

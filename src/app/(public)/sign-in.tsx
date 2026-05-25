@@ -19,9 +19,16 @@ const BUTTON_ICON_SLOT = 20;
 
 export default function SignInScreen() {
   const router = useRouter();
-  const { configured, session } = useAuth();
+  const { configured, session, authError, clearAuthError } = useAuth();
   const [phase, setPhase] = React.useState<SignInPhase>('idle');
   const [message, setMessage] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (authError) {
+      setMessage(authError);
+      clearAuthError();
+    }
+  }, [authError, clearAuthError]);
 
   const onGitHub = React.useCallback(async () => {
     setMessage(null);

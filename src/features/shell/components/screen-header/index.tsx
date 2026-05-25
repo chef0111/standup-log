@@ -32,7 +32,7 @@ export function ScreenHeader({
   return (
     <View
       className={cn('bg-background pb-5', className)}
-      style={{ paddingTop: insets.top + 12 }}
+      style={{ paddingTop: insets.top + 16 }}
       {...props}
     >
       <View className="gap-4 px-5">

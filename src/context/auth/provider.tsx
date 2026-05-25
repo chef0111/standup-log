@@ -4,6 +4,7 @@ import {
 } from '@/features/auth/lib/github-token';
 import { createSessionFromUrl } from '@/features/auth/lib/oauth';
 import { identifyUser, resetAnalyticsUser, track } from '@/lib/analytics';
+import { AppError, userFacingMessage } from '@/lib/errors';
 import { getSupabase, isSupabaseConfigured } from '@/utils/supabase';
 import type { Session } from '@supabase/supabase-js';
 import * as Linking from 'expo-linking';
@@ -22,6 +23,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const [session, setSession] = React.useState<Session | null>(null);
   const [loading, setLoading] = React.useState(configured);
+  const [authError, setAuthError] = React.useState<string | null>(null);
+
+  const clearAuthError = React.useCallback(() => {
+    setAuthError(null);
+  }, []);
 
   React.useEffect(() => {
     if (!supabase) {
@@ -81,8 +87,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       processedOAuthUrls.current.add(url);
       try {
         await createSessionFromUrl(url);
-      } catch {
+        setAuthError(null);
+      } catch (e) {
         processedOAuthUrls.current.delete(url);
+        const message =
+          e instanceof AppError ? e.message : userFacingMessage('auth');
+        setAuthError(message);
+        track('github_oauth_failure', {
+          error_code: e instanceof AppError ? e.category : 'unknown',
+        });
       }
     };
 
@@ -97,8 +110,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [supabase]);
 
   const value = React.useMemo(
-    () => ({ supabase, session, loading, configured }),
-    [supabase, session, loading, configured]
+    () => ({
+      supabase,
+      session,
+      loading,
+      configured,
+      authError,
+      clearAuthError,
+    }),
+    [supabase, session, loading, configured, authError, clearAuthError]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

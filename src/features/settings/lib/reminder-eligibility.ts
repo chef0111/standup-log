@@ -1,4 +1,7 @@
-import { defaultTargetWorkday } from '@/features/standup/lib/workday/workday';
+import {
+  addCalendarDays,
+  formatWorkdayLocal,
+} from '@/features/standup/lib/workday/workday';
 import type { Workday } from '@/features/standup/types/workday';
 
 export function shouldScheduleReminder(input: {
@@ -9,8 +12,13 @@ export function shouldScheduleReminder(input: {
   return input.reminderEnabled && !input.standupCopiedAt;
 }
 
-export function getReminderPriorWorkday(now: Date = new Date()): Workday {
-  return defaultTargetWorkday(now);
+export function getReminderPriorWorkday(
+  now: Date = new Date(),
+  timeZone?: string
+): Workday {
+  const tz = timeZone ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const today = formatWorkdayLocal(now, tz);
+  return addCalendarDays(today, -1);
 }
 
 export function nextReminderDate(

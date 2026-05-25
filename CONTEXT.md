@@ -73,6 +73,14 @@ _Avoid_: Final update, automated standup, posted status
 Evidence of work that can inform a **Standup Update** but does not define final truth.
 _Avoid_: Proof, audit log, timesheet source
 
+**In progress signal**:
+An **Activity Signal** disposition for work not yet on the repository default branch or tied to an open pull request. Shown with an in-progress badge in **Sources**; the **AI Draft** describes it as work done with PR still open, not as merged or shipped.
+_Avoid_: Planned task, Jira ticket, todo
+
+**Shipped signal**:
+An **Activity Signal** disposition for work on the default branch or merged via pull request. Shown with a shipped badge in **Sources**.
+_Avoid_: Deployed, released, closed ticket
+
 **Activity Metadata**:
 Stored non-code details from GitHub activity, such as commit messages, timestamps, repository names, and PR metadata.
 _Avoid_: Code snapshot, diff, source archive
@@ -104,6 +112,7 @@ _Avoid_: Inputs panel, evidence drawer, sync log
 - An **AI Draft** becomes a **Standup Update** only after developer review and save.
 - A **Standup Update** is composed from one or more **Activity Signals** and **Manual Notes**, then approved by the developer.
 - **Activity Metadata** may be retained to regenerate and audit **AI Drafts**, but code diffs are not retained.
+- Each **Activity Signal** has a disposition: **Shipped signal** or **In progress signal**, derived from branch/PR state at sync time.
 - A developer may choose one or more **Selected Repositories** as sources of **Activity Signals**.
 - Opening **Generate standup** defaults to the previous local **Workday**; the developer may pick another allowed day via the calendar. The chosen **Workday** persists while **Generate standup** remains mounted and can be opened via deep link (e.g. from **Read view** or Home).
 - When a **Workday** has no **Activity Signals** and no **Manual Notes**, a guided flow can produce an explicit no-update **Standup Update** the developer edits before copying.

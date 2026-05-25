@@ -19,10 +19,10 @@ describe('formatWorkdayLocal', () => {
 });
 
 describe('defaultTargetWorkday', () => {
-  it('returns previous local calendar day', () => {
+  it('returns current local calendar day', () => {
     const now = new Date('2026-05-19T10:00:00');
     const target = defaultTargetWorkday(now, 'UTC');
-    expect(target).toBe('2026-05-18');
+    expect(target).toBe('2026-05-19');
   });
 });
 

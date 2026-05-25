@@ -28,7 +28,7 @@ const SectionCard = React.memo(function SectionCard({
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle>{title}</CardTitle>
+        <CardTitle className="text-xl font-bold">{title}</CardTitle>
       </CardHeader>
       <CardContent>
         <Markdown markdown={body} theme={theme} />
@@ -63,9 +63,9 @@ export function StandupMarkdownView({ markdown }: StandupMarkdownViewProps) {
 
   return (
     <View className="flex flex-col gap-4">
-      <Card className="border-primary/20 bg-card">
+      <Card className="border-primary/50 bg-card">
         <CardHeader>
-          <CardTitle>Summary</CardTitle>
+          <CardTitle className="text-xl font-bold">Summary</CardTitle>
         </CardHeader>
         <CardContent>
           {summaryReady ? (
