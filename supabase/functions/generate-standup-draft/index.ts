@@ -236,7 +236,7 @@ function parseDraftResponse(raw: string): GenerateDraftResponse | null {
 async function checkRateLimit(
   admin: ReturnType<typeof createClient>,
   userId: string
-): Promise<{ allowed: boolean; retryAfterSeconds: number }> {
+): Promise<{ allowed: boolean; retryAfterSeconds: number; reason?: string }> {
   const { data: profile } = await admin
     .from('profiles')
     .select('is_pro')
@@ -245,6 +245,25 @@ async function checkRateLimit(
 
   if (profile?.is_pro) {
     return { allowed: true, retryAfterSeconds: 0 };
+  }
+
+  const dayStart = new Date();
+  dayStart.setUTCHours(0, 0, 0, 0);
+
+  const { count: dailyCount, error: dailyError } = await admin
+    .from('ai_generation_events')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .gte('created_at', dayStart.toISOString());
+
+  if (!dailyError && (dailyCount ?? 0) >= FREE_TIER_GENERATIONS_PER_DAY) {
+    const nextDay = new Date(dayStart);
+    nextDay.setUTCDate(nextDay.getUTCDate() + 1);
+    const retryAfterSeconds = Math.max(
+      60,
+      Math.ceil((nextDay.getTime() - Date.now()) / 1000)
+    );
+    return { allowed: false, retryAfterSeconds, reason: 'daily_limit' };
   }
 
   const windowStart = new Date(Date.now() - 60_000).toISOString();
@@ -332,7 +351,7 @@ Deno.serve(async (req) => {
   if (!rateLimit.allowed) {
     return jsonResponse(
       {
-        error: 'rate_limited',
+        error: rateLimit.reason === 'daily_limit' ? 'daily_limit' : 'rate_limited',
         retry_after_seconds: rateLimit.retryAfterSeconds,
         remaining: 0,
       },
