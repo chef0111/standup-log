@@ -1,4 +1,5 @@
 import { useAuth } from '@/context/auth';
+import { OnboardingGuard } from '@/features/profile/components/onboarding-guard';
 import { ScreenHeaderActions } from '@/features/shell/components/screen-header/screen-header-actions';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { Redirect, Stack } from 'expo-router';
@@ -27,23 +28,25 @@ export default function AppGroupLayout() {
   }
 
   return (
-    <Stack
-      screenOptions={{
-        headerShown: true,
-        headerBackTitle: 'Back',
-        headerShadowVisible: false,
-        headerStyle: { backgroundColor: 'transparent' },
-        headerTintColor: undefined,
-        headerTitleStyle: { fontWeight: '600' },
-        contentStyle: { backgroundColor: 'transparent' },
-        headerRight: () => <ScreenHeaderActions />,
-      }}
-    >
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen
-        name="onboarding"
-        options={{ title: 'Select repositories', headerShown: true }}
-      />
-    </Stack>
+    <OnboardingGuard>
+      <Stack
+        screenOptions={{
+          headerShown: true,
+          headerBackTitle: 'Back',
+          headerShadowVisible: false,
+          headerStyle: { backgroundColor: 'transparent' },
+          headerTintColor: undefined,
+          headerTitleStyle: { fontWeight: '600' },
+          contentStyle: { backgroundColor: 'transparent' },
+          headerRight: () => <ScreenHeaderActions />,
+        }}
+      >
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="onboarding"
+          options={{ title: 'Select repositories', headerShown: true }}
+        />
+      </Stack>
+    </OnboardingGuard>
   );
 }
