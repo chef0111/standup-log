@@ -100,6 +100,22 @@ describe('mergeHybridCommits', () => {
     expect(merged[0]?.pr_number).toBe(42);
     expect(merged[0]?.signal_disposition).toBe('in_progress');
   });
+
+  it('marks open PR head commits as in_progress when absent from default branch', () => {
+    const openPullOnly = [
+      baseCommit({
+        sha: 'feature-sha',
+        pr_number: 10,
+        pr_title: 'Feat/post mvp hardening',
+        pr_state: 'open',
+      }),
+    ];
+
+    const merged = mergeHybridCommits([], openPullOnly);
+    expect(merged).toHaveLength(1);
+    expect(merged[0]?.signal_disposition).toBe('in_progress');
+    expect(merged[0]?.pr_number).toBe(10);
+  });
 });
 
 describe('pull request helpers', () => {

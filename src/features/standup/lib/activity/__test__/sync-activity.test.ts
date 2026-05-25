@@ -2,12 +2,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ParsedCommit } from '../github-commits';
 import { syncActivityForWorkday } from '../sync-activity';
 
-const { fetchAllRepoCommitsForWorkdayMock } = vi.hoisted(() => ({
-  fetchAllRepoCommitsForWorkdayMock: vi.fn(),
+const { fetchAllRepoCommitsMock } = vi.hoisted(() => ({
+  fetchAllRepoCommitsMock: vi.fn(),
 }));
 
 vi.mock('@/features/standup/lib/activity/github-commits', () => ({
-  fetchAllRepoCommitsForWorkday: fetchAllRepoCommitsForWorkdayMock,
+  fetchAllRepoCommits: fetchAllRepoCommitsMock,
 }));
 
 function parsedCommit(sha: string): ParsedCommit {
@@ -140,7 +140,7 @@ function createSupabaseMock() {
 
 describe('syncActivityForWorkday', () => {
   beforeEach(() => {
-    vi.mocked(fetchAllRepoCommitsForWorkdayMock).mockReset();
+    vi.mocked(fetchAllRepoCommitsMock).mockReset();
   });
 
   it('deletes stale rows when GitHub returns an empty set', async () => {
@@ -166,7 +166,7 @@ describe('syncActivityForWorkday', () => {
       repository_full_name: 'org/repo',
     });
 
-    vi.mocked(fetchAllRepoCommitsForWorkdayMock).mockResolvedValue([]);
+    vi.mocked(fetchAllRepoCommitsMock).mockResolvedValue([]);
 
     const result = await syncActivityForWorkday({
       supabase: supabase as never,
@@ -188,7 +188,7 @@ describe('syncActivityForWorkday', () => {
   it('replaces workday rows with the latest GitHub sync', async () => {
     const supabase = createSupabaseMock();
 
-    vi.mocked(fetchAllRepoCommitsForWorkdayMock).mockResolvedValue([
+    vi.mocked(fetchAllRepoCommitsMock).mockResolvedValue([
       parsedCommit('new-sha'),
     ]);
 
@@ -231,7 +231,7 @@ describe('syncActivityForWorkday', () => {
       repository_full_name: 'org/repo',
     });
 
-    vi.mocked(fetchAllRepoCommitsForWorkdayMock).mockResolvedValue([
+    vi.mocked(fetchAllRepoCommitsMock).mockResolvedValue([
       {
         ...parsedCommit('merge-sha'),
         message: 'Merge pull request #8',

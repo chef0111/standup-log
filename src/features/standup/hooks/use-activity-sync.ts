@@ -3,7 +3,10 @@ import {
   assertActivitySyncAllowed,
   HISTORY_CAP_MESSAGE,
 } from '@/features/entitlements/lib/entitlements';
-import { fetchUserProfile } from '@/features/profile/lib/profile';
+import {
+  fetchUserProfile,
+  resolveGithubLogin,
+} from '@/features/profile/lib/profile';
 import { parseSelectedRepositories } from '@/features/repositories/types/repository';
 import {
   getActivityWorkdayCache,
@@ -94,6 +97,7 @@ export function useActivitySync(workday: Workday, isPro: boolean) {
         }
 
         const repos = parseSelectedRepositories(profile.selected_repositories);
+        const githubLogin = resolveGithubLogin(profile.github_login, session);
 
         const guard = assertActivitySyncAllowed(
           targetWorkday,
@@ -116,7 +120,7 @@ export function useActivitySync(workday: Workday, isPro: boolean) {
           workday: targetWorkday,
           repos,
           githubUserId: profile.github_user_id ?? null,
-          githubLogin: profile.github_login,
+          githubLogin,
         });
       } catch (e) {
         if (isGithubRateLimitError(e)) {

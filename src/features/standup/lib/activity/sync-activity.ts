@@ -1,6 +1,6 @@
 import type { SelectedRepository } from '@/features/repositories/types/repository';
 import {
-  fetchAllRepoCommitsForWorkday,
+  fetchAllRepoCommits,
   type ParsedCommit,
 } from '@/features/standup/lib/activity/github-commits';
 import { isGithubRateLimitError } from '@/features/standup/lib/activity/github-rate-limit';
@@ -125,7 +125,7 @@ export async function syncActivityForWorkday(input: {
 
   let parsed: ParsedCommit[];
   try {
-    parsed = await fetchAllRepoCommitsForWorkday({
+    parsed = await fetchAllRepoCommits({
       token: input.token,
       repositoryFullNames: repoNames,
       since,

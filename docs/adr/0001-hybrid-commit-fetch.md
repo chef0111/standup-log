@@ -21,7 +21,8 @@ Alternatives considered:
 Use a **hybrid fetch** per selected repository per Workday:
 
 1. **Default-branch list** — existing `since`/`until` commit list (shipped work on main).
-2. **Search Commits API** — `author:{login}+committer-date:{workday}..{workday}+repo:{owner}/{repo}` across all refs.
+2. **Search Commits API** — `author:{login}+repo:{owner}/{repo}` across all refs (workday filtered client-side).
+3. **Open PR head branches** — for each open PR authored by the user, list commits on `head.ref` within the workday (bypasses Search index lag for feature-branch-only work).
 
 Merge by SHA, assign `signal_disposition`:
 
