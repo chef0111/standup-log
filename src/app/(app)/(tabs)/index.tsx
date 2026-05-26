@@ -8,10 +8,6 @@ import { HomeStandupHistoryLink } from '@/features/home/components/home-standup-
 import { HomeWeekSnapshotCard } from '@/features/home/components/home-week-snapshot-card';
 import { StandupWidget } from '@/features/home/components/standup-widget';
 import { ProfileAvatar } from '@/features/profile/components/profile-avatar';
-import {
-  fetchUserProfile,
-  type ProfileHomeRow,
-} from '@/features/profile/lib/profile';
 import { parseSelectedRepositories } from '@/features/repositories/types/repository';
 import { useStandupReminder } from '@/features/settings/hooks/use-standup-reminder';
 import {
@@ -19,7 +15,10 @@ import {
   ScreenHeader,
 } from '@/features/shell/components/app-screen-shell';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { useFocusEffect } from '@react-navigation/native';
+import {
+  useProfileQuery,
+  useProfileQueryErrorMessage,
+} from '@/queries/profile/use-profile-query';
 import { Redirect, router, Stack } from 'expo-router';
 import { Flame } from 'lucide-react-native';
 import * as React from 'react';
@@ -38,42 +37,15 @@ function StreakPill({ streak }: { streak: number }) {
 
 export default function AppHomeScreen() {
   const foreground = useThemeColor('--color-foreground');
-  const { supabase, session } = useAuth();
-  const [profile, setProfile] = React.useState<ProfileHomeRow | null>(null);
-  const [loadingProfile, setLoadingProfile] = React.useState(true);
-  const [status, setStatus] = React.useState<string | null>(null);
-  const initialLoad = React.useRef(true);
+  const { session } = useAuth();
+  const {
+    data: profile,
+    isLoading: loadingProfile,
+    isError,
+  } = useProfileQuery();
+  const status = useProfileQueryErrorMessage();
 
   useStandupReminder();
-
-  const loadProfile = React.useCallback(async () => {
-    if (!supabase || !session) {
-      setLoadingProfile(false);
-      return;
-    }
-
-    if (initialLoad.current) {
-      setLoadingProfile(true);
-    }
-
-    const { profile: row, error } = await fetchUserProfile(supabase, session);
-
-    if (error) {
-      setStatus(error);
-      setProfile(null);
-    } else {
-      setProfile(row);
-      setStatus(null);
-    }
-    setLoadingProfile(false);
-    initialLoad.current = false;
-  }, [session, supabase]);
-
-  useFocusEffect(
-    React.useCallback(() => {
-      void loadProfile();
-    }, [loadProfile])
-  );
 
   const displayName =
     profile?.github_login ??
@@ -109,7 +81,7 @@ export default function AppHomeScreen() {
     );
   }
 
-  if (!profile) {
+  if (!profile && (isError || !loadingProfile)) {
     return (
       <>
         <Stack.Screen options={{ title: 'Home', headerShown: false }} />
@@ -120,18 +92,18 @@ export default function AppHomeScreen() {
               `supabase/migrations` are applied to this project, then sign out
               and sign in again.
             </Text>
-            {status ? (
+            {status && (
               <Text className="text-destructive text-center text-sm">
                 {status}
               </Text>
-            ) : null}
+            )}
           </Card>
         </View>
       </>
     );
   }
 
-  if (!profile.onboarding_completed_at) {
+  if (profile && !profile.onboarding_completed_at) {
     return <Redirect href="/(app)/onboarding" />;
   }
 
@@ -156,7 +128,7 @@ export default function AppHomeScreen() {
                   avatarUrl={avatarUrl}
                   displayName={displayName}
                 />
-                <StreakPill streak={profile.current_streak} />
+                <StreakPill streak={profile?.current_streak ?? 0} />
               </View>
             }
           />
@@ -194,8 +166,8 @@ export default function AppHomeScreen() {
               Best streak
             </CardTitle>
             <CardDescription className="text-muted-foreground text-xs">
-              {profile.longest_streak} day
-              {profile.longest_streak === 1 ? '' : 's'}
+              {profile?.longest_streak} day
+              {profile?.longest_streak === 1 ? '' : 's'}
             </CardDescription>
           </Card>
         </View>
@@ -210,9 +182,9 @@ export default function AppHomeScreen() {
           </Text>
         </View>
 
-        {status ? (
+        {status && (
           <Text className="text-destructive text-center text-sm">{status}</Text>
-        ) : null}
+        )}
       </AppScreenShell>
     </>
   );

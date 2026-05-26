@@ -1,5 +1,4 @@
 import { useAuth } from '@/context/auth';
-import { fetchUserProfile } from '@/features/profile/lib/profile';
 import { isStandupCopyEmpty } from '@/features/standup/lib/build-no-update-standup';
 import {
   formatStandupForCopy,
@@ -7,10 +6,11 @@ import {
   normalizeCopyFormat,
   type CopyFormat,
 } from '@/features/standup/lib/format-standup';
-import { recordStandupCopy } from '@/features/standup/lib/record-standup-copy';
 import type { Workday } from '@/features/standup/types/workday';
 import { track } from '@/lib/analytics';
 import { markFirstEvent } from '@/lib/analytics-flags';
+import { useProfileQuery } from '@/queries/profile/use-profile-query';
+import { useRecordCopyMutation } from '@/queries/standup/use-record-copy-mutation';
 import * as Clipboard from 'expo-clipboard';
 import * as React from 'react';
 import { Alert } from 'react-native';
@@ -25,62 +25,56 @@ export function useStandupCopy(
   markdown: string,
   options?: UseStandupCopyOptions
 ) {
-  const { supabase, session } = useAuth();
-  const [copying, setCopying] = React.useState(false);
+  const { session } = useAuth();
+  const profileQuery = useProfileQuery();
+  const recordCopyMutation = useRecordCopyMutation();
   const [toastMessage, setToastMessage] = React.useState<string | null>(null);
-  const [profileFormat, setProfileFormat] = React.useState<CopyFormat>('plain');
 
-  React.useEffect(() => {
-    if (!supabase || !session) {
-      return;
-    }
-    void fetchUserProfile(supabase, session).then(({ profile }) => {
-      if (profile) {
-        setProfileFormat(normalizeCopyFormat(profile.default_copy_format));
-      }
-    });
-  }, [session, supabase]);
-
+  const profileFormat = normalizeCopyFormat(
+    profileQuery.data?.default_copy_format
+  );
   const copyFormat = options?.formatOverride ?? profileFormat;
 
   const recordCopy = React.useCallback(
     async (toastLabel: string) => {
-      if (!supabase || !session) {
+      if (!session) {
         return { error: 'Not signed in.' };
       }
-      const { streakIncremented, error } = await recordStandupCopy(
-        supabase,
-        session.user.id,
-        workday,
-        markdown,
-        copyFormat
-      );
-      if (error) {
-        return { error };
+      try {
+        const { streakIncremented } = await recordCopyMutation.mutateAsync({
+          workday,
+          draftMarkdown: markdown,
+          formatUsed: copyFormat,
+        });
+        const firstCopy = await markFirstEvent(
+          session.user.id,
+          'first_standup_copied'
+        );
+        track('standup_copied', {
+          workday,
+          format: copyFormat,
+          first_copy: firstCopy,
+        });
+        track('copy_format_selected', { format: copyFormat });
+        setToastMessage(
+          streakIncremented ? `${toastLabel} · Streak +1` : toastLabel
+        );
+        return { error: null };
+      } catch (error) {
+        return {
+          error: error instanceof Error ? error.message : 'Saved copy failed.',
+        };
       }
-      const firstCopy = await markFirstEvent(
-        session.user.id,
-        'first_standup_copied'
-      );
-      track('standup_copied', {
-        workday,
-        format: copyFormat,
-        first_copy: firstCopy,
-      });
-      track('copy_format_selected', { format: copyFormat });
-      setToastMessage(
-        streakIncremented ? `${toastLabel} · Streak +1` : toastLabel
-      );
-      return { error: null };
     },
-    [copyFormat, markdown, session, supabase, workday]
+    [copyFormat, markdown, recordCopyMutation, session, workday]
   );
 
+  const copying = recordCopyMutation.isPending;
+
   const copySummary = React.useCallback(async () => {
-    if (!supabase || !session) {
+    if (!session) {
       return;
     }
-    setCopying(true);
     try {
       const formatted = formatStandupSummaryForCopy(markdown, copyFormat);
       const { error } = await recordCopy('Summary copied');
@@ -91,16 +85,13 @@ export function useStandupCopy(
       await Clipboard.setStringAsync(formatted);
     } catch {
       setToastMessage('Could not copy. Try again.');
-    } finally {
-      setCopying(false);
     }
-  }, [copyFormat, markdown, recordCopy, session, supabase]);
+  }, [copyFormat, markdown, recordCopy, session]);
 
   const copyFull = React.useCallback(async () => {
-    if (!supabase || !session) {
+    if (!session) {
       return;
     }
-    setCopying(true);
     try {
       const formatted = formatStandupForCopy(markdown, copyFormat);
       const { error } = await recordCopy('Full standup copied');
@@ -111,10 +102,8 @@ export function useStandupCopy(
       await Clipboard.setStringAsync(formatted);
     } catch {
       setToastMessage('Could not copy. Try again.');
-    } finally {
-      setCopying(false);
     }
-  }, [copyFormat, markdown, recordCopy, session, supabase]);
+  }, [copyFormat, markdown, recordCopy, session]);
 
   const copyFullWithConfirm = React.useCallback(() => {
     if (isStandupCopyEmpty(markdown)) {

@@ -3,6 +3,7 @@ import { AppThemeProvider, useAppColorScheme } from '@/context/theme';
 import '@/global.css';
 import { NAV_THEME } from '@/lib/theme';
 import { cn } from '@/lib/utils';
+import { QueryProvider } from '@/queries/query-provider';
 import {
   Inter_400Regular,
   Inter_500Medium,
@@ -59,9 +60,11 @@ function RootLayoutInner() {
       >
         <ThemeProvider value={NAV_THEME[scheme]}>
           <AuthProvider>
-            <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
-            <Stack screenOptions={{ headerShown: false }} />
-            <PortalHost />
+            <QueryProvider>
+              <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
+              <Stack screenOptions={{ headerShown: false }} />
+              <PortalHost />
+            </QueryProvider>
           </AuthProvider>
         </ThemeProvider>
       </View>

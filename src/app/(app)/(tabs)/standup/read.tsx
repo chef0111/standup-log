@@ -2,7 +2,6 @@ import { Button } from '@/components/ui/button';
 import { ButtonSpinner } from '@/components/ui/button-spinner';
 import { Card } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
-import { useAuth } from '@/context/auth';
 import { ProfileAvatar } from '@/features/profile/components/profile-avatar';
 import { useProfileHeader } from '@/features/profile/hooks/use-profile-header';
 import {
@@ -18,7 +17,7 @@ import {
   isStandupSummaryReady,
 } from '@/features/standup/lib/compose-standup-markdown';
 import type { CopyFormat } from '@/features/standup/lib/format-standup';
-import { fetchStandupUpdate } from '@/features/standup/lib/standup-api';
+import { useStandupUpdateQuery } from '@/queries/standup/use-standup-update-query';
 import {
   defaultTargetWorkday,
   parseWorkdayParam,
@@ -34,10 +33,14 @@ export default function StandupReadScreen() {
     workday?: string;
   }>();
   const workday = parseWorkdayParam(workdayParam) ?? defaultTargetWorkday();
-  const { supabase } = useAuth();
-  const [markdown, setMarkdown] = React.useState('');
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
+  const {
+    data: standup,
+    isLoading: loading,
+    error: queryError,
+  } = useStandupUpdateQuery(workday);
+  const markdown = standup?.draft_markdown ?? '';
+  const error =
+    queryError instanceof Error ? queryError.message : queryError ? 'Something went wrong.' : null;
   const { displayName, avatarUrl } = useProfileHeader();
   const primary = useThemeColor('--color-primary');
 
@@ -48,25 +51,6 @@ export default function StandupReadScreen() {
     useStandupCopy(workday ?? '', markdown, {
       formatOverride: sessionCopyFormat,
     });
-
-  const load = React.useCallback(async () => {
-    if (!supabase || !workday) {
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    const { standup, error: loadError } = await fetchStandupUpdate(
-      supabase,
-      workday
-    );
-    setMarkdown(standup?.draft_markdown ?? '');
-    setError(loadError);
-    setLoading(false);
-  }, [supabase, workday]);
-
-  React.useEffect(() => {
-    void load();
-  }, [load]);
 
   const onEdit = React.useCallback(() => {
     router.navigate({

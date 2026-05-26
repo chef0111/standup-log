@@ -1,4 +1,4 @@
-import { useActivitySync } from '@/features/standup/hooks/use-activity-sync';
+import { useActivitySync } from '@/queries/activity/use-activity-sync';
 import type { StoredWorkType } from '@/features/standup/lib/activity/stored-work-type';
 import type { ManualNoteRow } from '@/features/standup/types/manual-note';
 import type {

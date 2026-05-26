@@ -1,10 +1,10 @@
 import { useAuth } from '@/context/auth';
-import { fetchUserProfile } from '@/features/profile/lib/profile';
-import { useActivitySync } from '@/features/standup/hooks/use-activity-sync';
-import {
-  useManualNotes,
-  type ManualNoteRow,
-} from '@/features/standup/hooks/use-manual-notes';
+import { useActivitySync } from '@/queries/activity/use-activity-sync';
+import type { ManualNoteRow } from '@/features/standup/types/manual-note';
+import { useManualNoteMutations } from '@/queries/notes/use-manual-note-mutations';
+import { useManualNotesQuery } from '@/queries/notes/use-manual-notes-query';
+import { useProfileQuery } from '@/queries/profile/use-profile-query';
+import { useStandupUpdateQuery } from '@/queries/standup/use-standup-update-query';
 import { buildGenerateDraftRequest } from '@/features/standup/lib/build-generate-draft-request';
 import { composeManualMarkdown } from '@/features/standup/lib/compose-standup-markdown';
 import { generateAiDraft } from '@/features/standup/lib/generate-ai-draft';
@@ -13,7 +13,6 @@ import {
   readWorkdaySnapshot,
   writeWorkdaySnapshot,
 } from '@/features/standup/lib/offline-cache';
-import { fetchStandupUpdate } from '@/features/standup/lib/standup-api';
 import { updateCommitWorkTypes } from '@/features/standup/lib/update-commit-work-types';
 import {
   clampWorkdayToBounds,
@@ -24,7 +23,6 @@ import type { Workday } from '@/features/standup/types/workday';
 import { track } from '@/lib/analytics';
 import { markFirstEvent } from '@/lib/analytics-flags';
 import { categorizeError, userFacingMessage } from '@/lib/errors';
-import { useFocusEffect } from '@react-navigation/native';
 import * as React from 'react';
 import { StandupContext, type StandupContextValue } from './context';
 
@@ -38,7 +36,8 @@ export function StandupProvider({
   initialWorkday,
 }: StandupProviderProps) {
   const { supabase, session } = useAuth();
-  const [isPro, setIsPro] = React.useState(false);
+  const profileQuery = useProfileQuery();
+  const isPro = Boolean(profileQuery.data?.is_pro);
   const [workday, setWorkday] = React.useState(
     () => initialWorkday ?? defaultTargetWorkday()
   );
@@ -57,26 +56,15 @@ export function StandupProvider({
   const [aiRetryAfterSeconds, setAiRetryAfterSeconds] = React.useState<
     number | null
   >(null);
-  const [loadingStandup, setLoadingStandup] = React.useState(true);
   const [offlineBanner, setOfflineBanner] = React.useState<string | null>(null);
+  const standupQuery = useStandupUpdateQuery(workday);
+  const loadingStandup = isLikelyOffline()
+    ? false
+    : standupQuery.isLoading;
 
   const pickerBounds = React.useMemo(
     () => getWorkdayPickerBounds({ isPro }),
     [isPro]
-  );
-
-  useFocusEffect(
-    React.useCallback(() => {
-      if (!supabase || !session) {
-        return;
-      }
-
-      void fetchUserProfile(supabase, session).then(({ profile }) => {
-        if (profile) {
-          setIsPro(Boolean(profile.is_pro));
-        }
-      });
-    }, [session, supabase])
   );
 
   React.useEffect(() => {
@@ -107,10 +95,9 @@ export function StandupProvider({
     carryForwardNotes,
     loading: loadingNotes,
     error: notesError,
-    addNote,
-    editNote,
-    removeNote,
-  } = useManualNotes(workday);
+  } = useManualNotesQuery(workday);
+
+  const { addNote, editNote, removeNote } = useManualNoteMutations(workday);
 
   const composeInput = React.useMemo(
     () => ({ workday, commits, notes, carryForwardNotes }),
@@ -123,53 +110,43 @@ export function StandupProvider({
   );
 
   React.useEffect(() => {
-    let cancelled = false;
-
-    async function loadStandup() {
-      if (!supabase) {
-        setLoadingStandup(false);
-        return;
-      }
-
-      setLoadingStandup(true);
-
-      if (isLikelyOffline()) {
-        const cached = readWorkdaySnapshot(workday);
-        if (cached?.draftMarkdown) {
-          setSavedMarkdown(cached.draftMarkdown);
-          setOfflineBanner('Offline — showing cached standup.');
-        } else {
-          setSavedMarkdown(null);
-        }
-        setLoadingStandup(false);
-        return;
-      }
-
-      const { standup, error } = await fetchStandupUpdate(supabase, workday);
-      if (cancelled) {
-        return;
-      }
-      if (error) {
-        const cached = readWorkdaySnapshot(workday);
-        if (cached?.draftMarkdown) {
-          setSavedMarkdown(cached.draftMarkdown);
-          setOfflineBanner('Could not reach server — using cached standup.');
-        } else {
-          setSavedMarkdown(null);
-        }
-      } else if (standup?.draft_markdown?.trim()) {
-        setSavedMarkdown(standup.draft_markdown);
+    if (isLikelyOffline()) {
+      const cached = readWorkdaySnapshot(workday);
+      if (cached?.draftMarkdown) {
+        setSavedMarkdown(cached.draftMarkdown);
+        setOfflineBanner('Offline — showing cached standup.');
       } else {
         setSavedMarkdown(null);
+        setOfflineBanner(null);
       }
-      setLoadingStandup(false);
+      return;
     }
 
-    void loadStandup();
-    return () => {
-      cancelled = true;
-    };
-  }, [supabase, workday]);
+    if (standupQuery.isLoading) {
+      return;
+    }
+
+    if (standupQuery.isError) {
+      const cached = readWorkdaySnapshot(workday);
+      if (cached?.draftMarkdown) {
+        setSavedMarkdown(cached.draftMarkdown);
+        setOfflineBanner('Could not reach server — using cached standup.');
+      } else {
+        setSavedMarkdown(null);
+        setOfflineBanner(null);
+      }
+      return;
+    }
+
+    const standup = standupQuery.data;
+    if (standup?.draft_markdown?.trim()) {
+      setSavedMarkdown(standup.draft_markdown);
+      setOfflineBanner(null);
+    } else {
+      setSavedMarkdown(null);
+      setOfflineBanner(null);
+    }
+  }, [standupQuery.data, standupQuery.isError, standupQuery.isLoading, workday]);
 
   React.useEffect(() => {
     setDraftMarkdown(null);

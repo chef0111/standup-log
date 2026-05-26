@@ -2,8 +2,6 @@ import { useAuth } from '@/context/auth';
 import { UpgradeSheet } from '@/features/entitlements/components/upgrade-sheet';
 import { ProfileAvatar } from '@/features/profile/components/profile-avatar';
 import { useProfileHeader } from '@/features/profile/hooks/use-profile-header';
-import { fetchUserProfile } from '@/features/profile/lib/profile';
-import { updateDefaultCopyFormat } from '@/features/profile/lib/update-default-copy-format';
 import { AccountActionsSection } from '@/features/settings/components/account-actions-section';
 import { CopyFormatSection } from '@/features/settings/components/copy-format-section';
 import { ReminderSection } from '@/features/settings/components/reminder-section';
@@ -19,6 +17,8 @@ import {
   normalizeCopyFormat,
   type CopyFormat,
 } from '@/features/standup/lib/format-standup';
+import { updateDefaultCopyFormat } from '@/queries/lib/profile/update-default-copy-format';
+import { useProfileQuery } from '@/queries/profile/use-profile-query';
 import { Stack, useRouter } from 'expo-router';
 import * as React from 'react';
 import { Alert } from 'react-native';
@@ -26,33 +26,30 @@ import { Alert } from 'react-native';
 export default function SettingsScreen() {
   const router = useRouter();
   const { supabase, session } = useAuth();
+  const { data: profile } = useProfileQuery();
   const [upgradeOpen, setUpgradeOpen] = React.useState(false);
   const [busy, setBusy] = React.useState(false);
-  const [accountLabel, setAccountLabel] = React.useState('Account');
-  const [reminderEnabled, setReminderEnabled] = React.useState(true);
-  const [reminderTime, setReminderTime] = React.useState(() =>
-    parseReminderTime('09:00:00')
+  const [reminderEnabled, setReminderEnabled] = React.useState<boolean | undefined>(
+    undefined
   );
-  const [defaultCopyFormat, setDefaultCopyFormat] =
-    React.useState<CopyFormat>('plain');
+  const [reminderTime, setReminderTime] = React.useState<Date | undefined>(
+    undefined
+  );
+  const [defaultCopyFormat, setDefaultCopyFormat] = React.useState<
+    CopyFormat | undefined
+  >(undefined);
   const { displayName: profileName, avatarUrl } = useProfileHeader();
 
-  React.useEffect(() => {
-    if (!supabase || !session) {
-      return;
-    }
-    void fetchUserProfile(supabase, session).then(({ profile }) => {
-      if (!profile) {
-        return;
-      }
-      setAccountLabel(profile.github_login ?? session.user.email ?? 'Account');
-      setReminderEnabled(profile.reminder_enabled ?? true);
-      setReminderTime(
-        parseReminderTime(profile.reminder_time_local ?? '09:00:00')
-      );
-      setDefaultCopyFormat(normalizeCopyFormat(profile.default_copy_format));
-    });
-  }, [session, supabase]);
+  const accountLabel =
+    profile?.github_login ?? session?.user.email ?? 'Account';
+  const resolvedReminderEnabled =
+    reminderEnabled ?? profile?.reminder_enabled ?? true;
+  const resolvedReminderTime =
+    reminderTime ??
+    parseReminderTime(profile?.reminder_time_local ?? '09:00:00');
+  const resolvedCopyFormat = normalizeCopyFormat(
+    defaultCopyFormat ?? profile?.default_copy_format
+  );
 
   const onCopyFormatChange = (format: CopyFormat) => {
     if (!supabase || !session) {
@@ -159,17 +156,17 @@ export default function SettingsScreen() {
   const onReminderEnabledChange = React.useCallback(
     (enabled: boolean) => {
       setReminderEnabled(enabled);
-      void persistReminder(enabled, reminderTime);
+      void persistReminder(enabled, resolvedReminderTime);
     },
-    [persistReminder, reminderTime]
+    [persistReminder, resolvedReminderTime]
   );
 
   const onReminderTimeChange = React.useCallback(
     (time: Date) => {
       setReminderTime(time);
-      void persistReminder(reminderEnabled, time);
+      void persistReminder(resolvedReminderEnabled, time);
     },
-    [persistReminder, reminderEnabled]
+    [persistReminder, resolvedReminderEnabled]
   );
 
   return (
@@ -199,12 +196,12 @@ export default function SettingsScreen() {
       >
         <SettingsLinksSection onUpgradePress={() => setUpgradeOpen(true)} />
         <CopyFormatSection
-          value={defaultCopyFormat}
+          value={resolvedCopyFormat}
           onChange={onCopyFormatChange}
         />
         <ReminderSection
-          enabled={reminderEnabled}
-          time={reminderTime}
+          enabled={resolvedReminderEnabled}
+          time={resolvedReminderTime}
           onEnabledChange={onReminderEnabledChange}
           onTimeChange={onReminderTimeChange}
         />
