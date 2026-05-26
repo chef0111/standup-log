@@ -1,26 +1,11 @@
-import { useAuth } from '@/context/auth';
-import { fetchUserProfile } from '@/queries/lib/profile/fetch-user-profile';
-import { useActivitySync } from '@/features/standup/hooks/use-activity-sync';
+import { useActivitySync } from '@/queries/activity/use-activity-sync';
 import { defaultTargetWorkday } from '@/features/standup/lib/workday/workday';
-import { useFocusEffect } from '@react-navigation/native';
-import * as React from 'react';
+import { useProfileQuery } from '@/queries/profile/use-profile-query';
 
 export function useHomeActivity() {
-  const { supabase, session } = useAuth();
   const workday = defaultTargetWorkday();
-  const [isPro, setIsPro] = React.useState(false);
-
-  useFocusEffect(
-    React.useCallback(() => {
-      if (!supabase || !session) {
-        return;
-      }
-      void fetchUserProfile(supabase, session).then(({ profile }) => {
-        setIsPro(Boolean(profile?.is_pro));
-      });
-    }, [session, supabase])
-  );
-
+  const profileQuery = useProfileQuery();
+  const isPro = Boolean(profileQuery.data?.is_pro);
   const activity = useActivitySync(workday, isPro);
 
   return { workday, ...activity };
