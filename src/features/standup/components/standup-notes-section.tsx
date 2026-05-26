@@ -14,7 +14,9 @@ type StandupNotesSectionProps = {
   embedded?: boolean;
 };
 
-export function StandupNotesSection({ embedded = false }: StandupNotesSectionProps) {
+export function StandupNotesSection({
+  embedded = false,
+}: StandupNotesSectionProps) {
   const {
     loading,
     notesError,
@@ -52,9 +54,9 @@ export function StandupNotesSection({ embedded = false }: StandupNotesSectionPro
         <ActivityIndicator color={foreground} />
       ) : (
         <>
-          {notesError ? (
+          {notesError && (
             <Text className="text-destructive text-sm">{notesError}</Text>
-          ) : null}
+          )}
           <ScrollView
             nestedScrollEnabled
             style={{ maxHeight: 256 }}
@@ -84,9 +86,5 @@ export function StandupNotesSection({ embedded = false }: StandupNotesSectionPro
     return <View className="gap-3">{content}</View>;
   }
 
-  return (
-    <Card className={cn('gap-3 p-4')}>
-      {content}
-    </Card>
-  );
+  return <Card className={cn('gap-3 p-4')}>{content}</Card>;
 }

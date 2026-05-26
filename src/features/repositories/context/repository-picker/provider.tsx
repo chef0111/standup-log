@@ -3,17 +3,12 @@ import { signInWithGitHub } from '@/features/auth/lib/oauth';
 import { UpgradeSheet } from '@/features/entitlements/components/upgrade-sheet';
 import {
   canSelectRepository,
-  formatRepoLimitError,
 } from '@/features/entitlements/lib/entitlements';
-import { fetchUserProfile } from '@/features/profile/lib/profile';
 import {
   RepositoryPickerContext,
   type RepositoryPickerContextValue,
 } from '@/features/repositories/context/repository-picker/context';
-import {
-  fetchUserRepos,
-  type GithubRepoRow,
-} from '@/features/repositories/lib/github-repos';
+import type { GithubRepoRow } from '@/features/repositories/lib/github-repos';
 import {
   getRepositoryPickerCopy,
   type RepositoryPickerMode,
@@ -25,6 +20,9 @@ import {
 import { useGitHubAccessToken } from '@/hooks/use-github-access-token';
 import { track } from '@/lib/analytics';
 import { AppError, userFacingMessage } from '@/lib/errors';
+import { useProfileQuery } from '@/queries/profile/use-profile-query';
+import { useGithubReposQuery } from '@/queries/repositories/use-github-repos-query';
+import { useSaveSelectedRepositoriesMutation } from '@/queries/repositories/use-save-selected-repositories-mutation';
 import * as React from 'react';
 import { Alert } from 'react-native';
 
@@ -41,21 +39,27 @@ export function RepositoryPickerProvider({
   onDismiss,
   children,
 }: RepositoryPickerProviderProps) {
-  const { supabase, session } = useAuth();
+  const { session } = useAuth();
+  const { data: profile, error: profileError } = useProfileQuery();
   const {
     token,
     loading: tokenLoading,
     refresh: refreshToken,
   } = useGitHubAccessToken();
+  const reposQuery = useGithubReposQuery({
+    token,
+    enabled: !tokenLoading,
+  });
+  const saveMutation = useSaveSelectedRepositoriesMutation();
 
-  const [repos, setRepos] = React.useState<GithubRepoRow[]>([]);
-  const [loadingRepos, setLoadingRepos] = React.useState(true);
-  const [loadError, setLoadError] = React.useState<string | null>(null);
-  const [reloadKey, setReloadKey] = React.useState(0);
-  const [isPro, setIsPro] = React.useState(false);
+  const isPro = Boolean(profile?.is_pro);
   const [query, setQuery] = React.useState('');
-  const [selected, setSelected] = React.useState<SelectedRepository[]>([]);
-  const [saving, setSaving] = React.useState(false);
+  const [_selected, setSelected] = React.useState<
+    SelectedRepository[] | undefined
+  >(undefined);
+  const selected =
+    _selected ??
+    parseSelectedRepositories(profile?.selected_repositories ?? []);
   const [saveError, setSaveError] = React.useState<string | null>(null);
   const [upgradeOpen, setUpgradeOpen] = React.useState(false);
 
@@ -65,80 +69,24 @@ export function RepositoryPickerProvider({
     }
   }, [mode]);
 
-  React.useEffect(() => {
-    if (!supabase || !session) {
-      return;
-    }
-
-    let cancelled = false;
-
-    void fetchUserProfile(supabase, session).then(({ profile, error }) => {
-      if (cancelled) {
-        return;
-      }
-      if (error) {
-        setLoadError(error);
-        return;
-      }
-      if (profile) {
-        setIsPro(Boolean(profile.is_pro));
-        setSelected(parseSelectedRepositories(profile.selected_repositories));
-      }
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [session, supabase]);
-
-  React.useEffect(() => {
-    if (tokenLoading) {
-      return;
-    }
-
-    if (!token) {
-      setLoadingRepos(false);
-      setLoadError(
-        'GitHub access is not available for this session. Reconnect GitHub to grant repository access (required on web after sign-in).'
-      );
-      return;
-    }
-
-    let cancelled = false;
-    setLoadingRepos(true);
-    setLoadError(null);
-
-    void fetchUserRepos(token)
-      .then((rows) => {
-        if (!cancelled) {
-          setRepos(rows);
-        }
-      })
-      .catch((e: unknown) => {
-        if (!cancelled) {
-          const msg =
-            e instanceof AppError ? e.message : userFacingMessage('github');
-          setLoadError(msg);
-        }
-      })
-      .finally(() => {
-        if (!cancelled) {
-          setLoadingRepos(false);
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [token, tokenLoading, reloadKey]);
+  const loadError = profileError?.message
+    ? profileError.message
+    : !tokenLoading && !token
+      ? 'GitHub access is not available for this session. Reconnect GitHub to grant repository access (required on web after sign-in).'
+      : reposQuery.error
+        ? reposQuery.error instanceof Error
+          ? reposQuery.error.message
+          : userFacingMessage('github')
+        : null;
 
   const filtered = React.useMemo(() => {
+    const repos = reposQuery.data ?? [];
     const q = query.trim().toLowerCase();
     if (!q) {
       return repos;
     }
     return repos.filter((r) => r.full_name.toLowerCase().includes(q));
-  }, [query, repos]);
+  }, [query, reposQuery.data]);
 
   const selectedIds = React.useMemo(
     () => new Set(selected.map((s) => s.id)),
@@ -149,71 +97,53 @@ export function RepositoryPickerProvider({
     (repo: GithubRepoRow) => {
       setSaveError(null);
       setSelected((prev) => {
-        const exists = prev.some((p) => p.id === repo.id);
+        const current = prev ?? selected;
+        const exists = current.some((p) => p.id === repo.id);
         if (exists) {
-          return prev.filter((p) => p.id !== repo.id);
+          return current.filter((p) => p.id !== repo.id);
         }
-        if (!canSelectRepository(prev.length, isPro)) {
+        if (!canSelectRepository(current.length, isPro)) {
           setUpgradeOpen(true);
-          return prev;
+          return current;
         }
         return [
-          ...prev,
+          ...current,
           { id: repo.id, full_name: repo.full_name, private: repo.private },
         ];
       });
     },
-    [isPro]
+    [isPro, selected]
   );
 
   const persistSelection = React.useCallback(
     async (reposPayload: SelectedRepository[]) => {
-      if (!supabase || !session) {
+      if (!session) {
         return;
       }
-      setSaving(true);
       setSaveError(null);
-
-      const payload =
-        mode === 'onboarding'
-          ? {
-              selected_repositories: reposPayload,
-              onboarding_completed_at: new Date().toISOString(),
-            }
-          : { selected_repositories: reposPayload };
-
-      const { error } = await supabase
-        .from('profiles')
-        .update(payload)
-        .eq('id', session.user.id);
-
-      setSaving(false);
-
-      if (error) {
-        setSaveError(formatRepoLimitError(error.message));
-        return;
+      try {
+        await saveMutation.mutateAsync({ repos: reposPayload, mode });
+        onComplete();
+      } catch (error) {
+        setSaveError(
+          error instanceof Error ? error.message : userFacingMessage('unknown')
+        );
       }
-
-      if (mode === 'onboarding') {
-        track('onboarding_completed');
-      }
-      track('repository_selection_completed', { count: reposPayload.length });
-      onComplete();
     },
-    [mode, onComplete, session, supabase]
+    [mode, onComplete, saveMutation, session]
   );
 
   const onReconnectGitHub = React.useCallback(async () => {
     try {
       await signInWithGitHub();
       refreshToken();
-      setReloadKey((k) => k + 1);
+      void reposQuery.refetch();
     } catch (e) {
       const text =
         e instanceof AppError ? e.message : userFacingMessage('auth');
       Alert.alert('GitHub sign-in', text);
     }
-  }, [refreshToken]);
+  }, [refreshToken, reposQuery]);
 
   const copy = React.useMemo(
     () => getRepositoryPickerCopy(mode, isPro),
@@ -230,12 +160,12 @@ export function RepositoryPickerProvider({
       selected,
       selectedIds,
       onToggle,
-      loadingRepos: tokenLoading || loadingRepos,
+      loadingRepos: tokenLoading || reposQuery.isLoading,
       loadError,
-      onRetryLoad: () => setReloadKey((k) => k + 1),
+      onRetryLoad: () => void reposQuery.refetch(),
       onReconnectGitHub: () => void onReconnectGitHub(),
       saveError,
-      saving,
+      saving: saveMutation.isPending,
       onPrimary: () => void persistSelection(selected),
       onSecondary:
         mode === 'onboarding' ? () => void persistSelection([]) : undefined,
@@ -246,15 +176,15 @@ export function RepositoryPickerProvider({
       filtered,
       isPro,
       loadError,
-      loadingRepos,
       onDismiss,
       onReconnectGitHub,
       onToggle,
       mode,
       persistSelection,
       query,
+      reposQuery,
       saveError,
-      saving,
+      saveMutation.isPending,
       selected,
       selectedIds,
       tokenLoading,

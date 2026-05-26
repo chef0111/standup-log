@@ -2,10 +2,11 @@ import {
   PLAIN_COPY_FORMAT,
   type CopyFormat,
 } from '@/features/standup/lib/format-standup';
-import { STANDUP_UPDATE_COLUMNS } from '@/features/standup/lib/standup-api';
 import { nextStreakState } from '@/features/standup/lib/streak';
 import type { Workday } from '@/features/standup/types/workday';
 import type { SupabaseClient } from '@supabase/supabase-js';
+
+import { STANDUP_UPDATE_COLUMNS } from './types';
 
 const PROFILE_STREAK_COLUMNS =
   'current_streak, longest_streak, last_streak_workday' as const;

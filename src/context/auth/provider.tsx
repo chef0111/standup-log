@@ -5,6 +5,7 @@ import {
 import { createSessionFromUrl } from '@/features/auth/lib/oauth';
 import { identifyUser, resetAnalyticsUser, track } from '@/lib/analytics';
 import { AppError, userFacingMessage } from '@/lib/errors';
+import { clearQueryClient } from '@/queries/query-client';
 import { getSupabase, isSupabaseConfigured } from '@/utils/supabase';
 import type { Session } from '@supabase/supabase-js';
 import * as Linking from 'expo-linking';
@@ -59,6 +60,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         track('github_oauth_success');
       }
       if (_event === 'SIGNED_OUT') {
+        clearQueryClient();
         void clearGitHubProviderToken();
         resetAnalyticsUser();
       }
