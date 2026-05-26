@@ -1,10 +1,9 @@
 import { useAuth } from '@/context/auth';
 import { fetchUserProfile } from '@/queries/lib/profile/fetch-user-profile';
 import { useActivitySync } from '@/features/standup/hooks/use-activity-sync';
-import {
-  useManualNotes,
-  type ManualNoteRow,
-} from '@/features/standup/hooks/use-manual-notes';
+import type { ManualNoteRow } from '@/features/standup/types/manual-note';
+import { useManualNoteMutations } from '@/queries/notes/use-manual-note-mutations';
+import { useManualNotesQuery } from '@/queries/notes/use-manual-notes-query';
 import { buildGenerateDraftRequest } from '@/features/standup/lib/build-generate-draft-request';
 import { composeManualMarkdown } from '@/features/standup/lib/compose-standup-markdown';
 import { generateAiDraft } from '@/features/standup/lib/generate-ai-draft';
@@ -107,10 +106,9 @@ export function StandupProvider({
     carryForwardNotes,
     loading: loadingNotes,
     error: notesError,
-    addNote,
-    editNote,
-    removeNote,
-  } = useManualNotes(workday);
+  } = useManualNotesQuery(workday);
+
+  const { addNote, editNote, removeNote } = useManualNoteMutations(workday);
 
   const composeInput = React.useMemo(
     () => ({ workday, commits, notes, carryForwardNotes }),
