@@ -18,7 +18,7 @@ import {
   formatStandupSummaryForCopy,
   normalizeCopyFormat,
 } from '@/features/standup/lib/format-standup';
-import { recordStandupCopy } from '@/features/standup/lib/record-standup-copy';
+import { useRecordCopyMutation } from '@/queries/standup/use-record-copy-mutation';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { cn } from '@/lib/utils';
 import * as Clipboard from 'expo-clipboard';
@@ -29,7 +29,7 @@ import { ActivityIndicator, View } from 'react-native';
 
 export function StandupWidget() {
   const router = useRouter();
-  const { supabase, session } = useAuth();
+  const { session } = useAuth();
   const {
     workday,
     profile,
@@ -41,7 +41,7 @@ export function StandupWidget() {
     loading,
     error,
   } = useStandupWidgetData();
-  const [copying, setCopying] = React.useState(false);
+  const recordCopyMutation = useRecordCopyMutation();
   const [toast, setToast] = React.useState<string | null>(null);
   const foreground = useThemeColor('--color-foreground');
 
@@ -54,24 +54,17 @@ export function StandupWidget() {
   };
 
   const onCopySummary = async () => {
-    if (!supabase || !session) {
+    if (!session) {
       return;
     }
-    setCopying(true);
     const markdown = draftMarkdown;
     try {
       const format = normalizeCopyFormat(profile?.default_copy_format);
-      const { streakIncremented, error } = await recordStandupCopy(
-        supabase,
-        session.user.id,
+      const { streakIncremented } = await recordCopyMutation.mutateAsync({
         workday,
-        markdown,
-        format
-      );
-      if (error) {
-        setToast('Saved copy failed. Try again.');
-        return;
-      }
+        draftMarkdown: markdown,
+        formatUsed: format,
+      });
       await Clipboard.setStringAsync(
         formatStandupSummaryForCopy(markdown, format)
       );
@@ -80,8 +73,6 @@ export function StandupWidget() {
       );
     } catch {
       setToast('Could not copy. Try again.');
-    } finally {
-      setCopying(false);
     }
   };
 
@@ -158,11 +149,11 @@ export function StandupWidget() {
           <Button
             variant="outline"
             size="pill"
-            disabled={copying}
+            disabled={recordCopyMutation.isPending}
             onPress={() => void onCopySummary()}
             className="w-full"
           >
-            {copying ? <ButtonSpinner /> : <Icon as={CopyIcon} />}
+            {recordCopyMutation.isPending ? <ButtonSpinner /> : <Icon as={CopyIcon} />}
             <Text>Copy summary</Text>
           </Button>
         )}

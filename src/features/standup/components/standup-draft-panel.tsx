@@ -2,7 +2,6 @@ import { Button } from '@/components/ui/button';
 import { ButtonSpinner } from '@/components/ui/button-spinner';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
-import { useAuth } from '@/context/auth';
 import { AiGenerationQuota } from '@/features/standup/components/ai-generation-quota';
 import { EmptyWorkdayGuide } from '@/features/standup/components/empty-workday-guide';
 import { StandupMarkdownEditor } from '@/features/standup/components/standup-markdown-editor';
@@ -12,33 +11,17 @@ import {
   composeManualMarkdown,
   isStandupMarkdownEmpty,
 } from '@/features/standup/lib/compose-standup-markdown';
-import { saveStandupUpdate } from '@/features/standup/lib/standup-api';
 import { categorizeError, userFacingMessage } from '@/lib/errors';
-import type { SupabaseClient } from '@supabase/supabase-js';
+import { useSaveStandupMutation } from '@/queries/standup/use-save-standup-mutation';
 import { useRouter } from 'expo-router';
 import { Eye, SaveIcon } from 'lucide-react-native';
 import * as React from 'react';
 import { View } from 'react-native';
 import { useStandup } from '../context/standup';
 
-async function persistStandup(
-  supabase: SupabaseClient,
-  userId: string,
-  workday: string,
-  draftMarkdown: string
-): Promise<string | null> {
-  const { error } = await saveStandupUpdate(
-    supabase,
-    userId,
-    workday,
-    draftMarkdown
-  );
-  return error;
-}
-
 export function StandupDraftPanel() {
   const router = useRouter();
-  const { supabase, session } = useAuth();
+  const saveMutation = useSaveStandupMutation();
   const {
     workday,
     commits,
@@ -75,7 +58,6 @@ export function StandupDraftPanel() {
     isStandupMarkdownEmpty(baselineMarkdown);
 
   const [markdown, setMarkdown] = React.useState(baselineMarkdown);
-  const [saving, setSaving] = React.useState(false);
   const [status, setStatus] = React.useState<string | null>(null);
 
   React.useEffect(() => {
@@ -88,24 +70,14 @@ export function StandupDraftPanel() {
   }, [markdown, setEditorMarkdown]);
 
   const handleSave = async () => {
-    if (!supabase || !session) {
-      return;
-    }
-    setSaving(true);
     setStatus(null);
-    const error = await persistStandup(
-      supabase,
-      session.user.id,
-      workday,
-      markdown
-    );
-    setSaving(false);
-    if (error) {
+    try {
+      await saveMutation.mutateAsync({ workday, draftMarkdown: markdown });
+      onSaved?.(markdown);
+      setStatus('Standup saved.');
+    } catch (error) {
       setStatus(userFacingMessage(categorizeError(error)));
-      return;
     }
-    onSaved?.(markdown);
-    setStatus('Standup saved.');
   };
 
   const onViewStandup = () => {
@@ -155,12 +127,12 @@ export function StandupDraftPanel() {
       <AiGenerationQuota />
 
       <Button
-        disabled={saving}
+        disabled={saveMutation.isPending}
         variant="charcoal"
         size="pill"
         onPress={() => void handleSave()}
       >
-        {saving ? <ButtonSpinner /> : <Icon as={SaveIcon} />}
+        {saveMutation.isPending ? <ButtonSpinner /> : <Icon as={SaveIcon} />}
         <Text>Save</Text>
       </Button>
 
