@@ -1,86 +1,20 @@
 import { useAuth } from '@/context/auth';
-import { getWorkdayHistoryBounds } from '@/features/entitlements/lib/entitlements';
-import { fetchUserProfile } from '@/queries/lib/profile/fetch-user-profile';
-import {
-  mapStandupUpdateToHistoryItem,
-  type StandupHistoryItem,
-} from '@/features/standup/lib/history/standup-history-item';
-import {
-  deleteStandupUpdate,
-  fetchStandupsInHistory,
-} from '@/features/standup/lib/standup-api';
-import type { WorkdayPickerBounds } from '@/features/standup/lib/workday/workday';
-import type { Workday } from '@/features/standup/types/workday';
 import { categorizeError, userFacingMessage } from '@/lib/errors';
-import { useFocusEffect } from '@react-navigation/native';
+import { deleteStandupUpdate } from '@/queries/lib/standup/delete-standup-update';
+import { useStandupHistoryQuery } from '@/queries/standup/use-standup-history-query';
+import type { Workday } from '@/features/standup/types/workday';
+import { useQueryClient } from '@tanstack/react-query';
+import { standupKeys } from '@/queries/keys';
 import * as React from 'react';
 
 export type DeleteStandupHistoryItem = (
   workday: Workday
 ) => Promise<string | null>;
 
-export type StandupHistoryData = {
-  items: StandupHistoryItem[];
-  pickerBounds: WorkdayPickerBounds | null;
-  isPro: boolean;
-  loading: boolean;
-  error: string | null;
-  deleteItem: DeleteStandupHistoryItem;
-};
-
-export function useStandupHistory(): StandupHistoryData {
+export function useStandupHistory() {
   const { supabase, session } = useAuth();
-  const [isPro, setIsPro] = React.useState(false);
-  const [pickerBounds, setPickerBounds] =
-    React.useState<WorkdayPickerBounds | null>(null);
-  const [items, setItems] = React.useState<StandupHistoryItem[]>([]);
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
-
-  const load = React.useCallback(async () => {
-    if (!supabase || !session) {
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    const { profile, error: profileError } = await fetchUserProfile(
-      supabase,
-      session
-    );
-    const pro = Boolean(profile?.is_pro);
-    setIsPro(pro);
-
-    const bounds = getWorkdayHistoryBounds({ isPro: pro });
-    setPickerBounds(bounds);
-    const { standups, error: standupsError } = await fetchStandupsInHistory(
-      supabase,
-      bounds.minimumWorkday,
-      bounds.maximumWorkday
-    );
-
-    if (profileError || standupsError) {
-      setError(
-        userFacingMessage(
-          categorizeError(profileError ?? standupsError ?? 'Unknown error')
-        )
-      );
-      setItems([]);
-      setLoading(false);
-      return;
-    }
-
-    setItems(standups.map(mapStandupUpdateToHistoryItem));
-    setLoading(false);
-  }, [session, supabase]);
-
-  useFocusEffect(
-    React.useCallback(() => {
-      void load();
-    }, [load])
-  );
+  const queryClient = useQueryClient();
+  const historyQuery = useStandupHistoryQuery();
 
   const deleteItem = React.useCallback<DeleteStandupHistoryItem>(
     async (workday) => {
@@ -88,18 +22,41 @@ export function useStandupHistory(): StandupHistoryData {
         return userFacingMessage(categorizeError('Not signed in'));
       }
 
-      setItems((prev) => prev.filter((item) => item.workday !== workday));
+      const previous = historyQuery.data;
+      if (previous) {
+        queryClient.setQueryData(
+          standupKeys.history(
+            previous.pickerBounds.minimumWorkday,
+            previous.pickerBounds.maximumWorkday
+          ),
+          {
+            ...previous,
+            items: previous.items.filter((item) => item.workday !== workday),
+          }
+        );
+      }
 
       const { error } = await deleteStandupUpdate(supabase, workday);
       if (error) {
-        await load();
+        void historyQuery.refetch();
         return userFacingMessage(categorizeError(error));
       }
 
       return null;
     },
-    [load, session, supabase]
+    [historyQuery, queryClient, session, supabase]
   );
 
-  return { items, pickerBounds, isPro, loading, error, deleteItem };
+  return {
+    items: historyQuery.data?.items ?? [],
+    pickerBounds: historyQuery.data?.pickerBounds ?? null,
+    isPro: historyQuery.data?.isPro ?? false,
+    loading: historyQuery.isLoading,
+    error: historyQuery.error
+      ? historyQuery.error instanceof Error
+        ? historyQuery.error.message
+        : userFacingMessage(categorizeError(historyQuery.error))
+      : null,
+    deleteItem,
+  };
 }

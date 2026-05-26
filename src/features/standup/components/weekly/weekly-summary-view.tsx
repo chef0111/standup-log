@@ -9,18 +9,16 @@ import {
 } from '@/components/ui/card';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
-import { useAuth } from '@/context/auth';
-import { fetchUserProfile } from '@/queries/lib/profile/fetch-user-profile';
 import {
   aggregateWeeklySummary,
   applyWeeklyPreviewGate,
 } from '@/features/standup/lib/weekly/aggregate-weekly-summary';
-import {
-  fetchActivityCommitsForWeek,
-  fetchStandupsForWeek,
-} from '@/features/standup/lib/weekly/fetch-standups-for-week';
 import { getCurrentWeekBounds } from '@/features/standup/lib/weekly/week-bounds';
-import { categorizeError, userFacingMessage } from '@/lib/errors';
+import { useProfileQuery } from '@/queries/profile/use-profile-query';
+import {
+  useWeekCommitsQuery,
+  useWeekStandupsQuery,
+} from '@/queries/weekly/use-week-queries';
 import { Lock } from 'lucide-react-native';
 import * as React from 'react';
 import { ActivityIndicator, View } from 'react-native';
@@ -34,65 +32,40 @@ type WeeklySummaryViewProps = {
 };
 
 export function WeeklySummaryView({ onUpgrade }: WeeklySummaryViewProps) {
-  const { supabase, session } = useAuth();
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
-  const [isPro, setIsPro] = React.useState(false);
-  const [summary, setSummary] = React.useState<ReturnType<
-    typeof applyWeeklyPreviewGate
-  > | null>(null);
   const bounds = React.useMemo(() => getCurrentWeekBounds(), []);
+  const profileQuery = useProfileQuery();
+  const commitsQuery = useWeekCommitsQuery(bounds.weekStart, bounds.weekEnd);
+  const standupsQuery = useWeekStandupsQuery(bounds.weekStart, bounds.weekEnd);
 
-  React.useEffect(() => {
-    if (!supabase || !session) {
-      setLoading(false);
-      return;
-    }
+  const loading =
+    profileQuery.isLoading ||
+    commitsQuery.isLoading ||
+    standupsQuery.isLoading;
 
-    let cancelled = false;
-
-    async function load() {
-      setLoading(true);
-      setError(null);
-
-      const [
-        { profile },
-        { commits, error: commitsError },
-        { standups, error: standupsError },
-      ] = await Promise.all([
-        fetchUserProfile(supabase!, session!),
-        fetchActivityCommitsForWeek(
-          supabase!,
-          bounds.weekStart,
-          bounds.weekEnd
-        ),
-        fetchStandupsForWeek(supabase!, bounds.weekStart, bounds.weekEnd),
-      ]);
-
-      if (cancelled) {
-        return;
+  const error = React.useMemo(() => {
+    for (const queryError of [
+      profileQuery.error,
+      commitsQuery.error,
+      standupsQuery.error,
+    ]) {
+      if (queryError instanceof Error) {
+        return queryError.message;
       }
-
-      const loadError = commitsError ?? standupsError;
-      if (loadError) {
-        setError(userFacingMessage(categorizeError(loadError)));
-        setLoading(false);
-        return;
-      }
-
-      const pro = Boolean(profile?.is_pro);
-      setIsPro(pro);
-      const aggregated = aggregateWeeklySummary({ commits, standups });
-      setSummary(applyWeeklyPreviewGate(aggregated, pro));
-      setLoading(false);
     }
+    return null;
+  }, [commitsQuery.error, profileQuery.error, standupsQuery.error]);
 
-    void load();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [bounds.weekEnd, bounds.weekStart, session, supabase]);
+  const isPro = Boolean(profileQuery.data?.is_pro);
+  const summary = React.useMemo(() => {
+    if (!commitsQuery.data || !standupsQuery.data) {
+      return null;
+    }
+    const aggregated = aggregateWeeklySummary({
+      commits: commitsQuery.data,
+      standups: standupsQuery.data,
+    });
+    return applyWeeklyPreviewGate(aggregated, isPro);
+  }, [commitsQuery.data, isPro, standupsQuery.data]);
 
   if (loading) {
     return <ActivityIndicator />;

@@ -12,14 +12,13 @@ import {
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { useAuth } from '@/context/auth';
-import { useStandupWidgetData } from '@/features/home/hooks/use-standup-widget-data';
+import { useStandupWidgetData } from '@/queries/standup/use-standup-widget-data';
 import { formatWorkdayHeading } from '@/features/standup/lib/compose-standup-markdown';
 import {
   formatStandupSummaryForCopy,
   normalizeCopyFormat,
 } from '@/features/standup/lib/format-standup';
 import { recordStandupCopy } from '@/features/standup/lib/record-standup-copy';
-import { fetchStandupUpdate } from '@/features/standup/lib/standup-api';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { cn } from '@/lib/utils';
 import * as Clipboard from 'expo-clipboard';
@@ -34,6 +33,7 @@ export function StandupWidget() {
   const {
     workday,
     profile,
+    draftMarkdown,
     hasStandup,
     copied,
     summaryExcerpt,
@@ -58,8 +58,7 @@ export function StandupWidget() {
       return;
     }
     setCopying(true);
-    const { standup } = await fetchStandupUpdate(supabase, workday);
-    const markdown = standup?.draft_markdown ?? '';
+    const markdown = draftMarkdown;
     try {
       const format = normalizeCopyFormat(profile?.default_copy_format);
       const { streakIncremented, error } = await recordStandupCopy(

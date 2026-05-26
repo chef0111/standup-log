@@ -21,6 +21,7 @@ import {
 } from '@/queries/profile/use-profile-query';
 import { Redirect, router, Stack } from 'expo-router';
 import { Flame } from 'lucide-react-native';
+import * as React from 'react';
 import { ActivityIndicator, Pressable, View } from 'react-native';
 
 function StreakPill({ streak }: { streak: number }) {
@@ -102,7 +103,7 @@ export default function AppHomeScreen() {
     );
   }
 
-  if (!profile.onboarding_completed_at) {
+  if (profile && !profile.onboarding_completed_at) {
     return <Redirect href="/(app)/onboarding" />;
   }
 
@@ -127,7 +128,7 @@ export default function AppHomeScreen() {
                   avatarUrl={avatarUrl}
                   displayName={displayName}
                 />
-                <StreakPill streak={profile.current_streak} />
+                <StreakPill streak={profile?.current_streak ?? 0} />
               </View>
             }
           />
@@ -165,8 +166,8 @@ export default function AppHomeScreen() {
               Best streak
             </CardTitle>
             <CardDescription className="text-muted-foreground text-xs">
-              {profile.longest_streak} day
-              {profile.longest_streak === 1 ? '' : 's'}
+              {profile?.longest_streak} day
+              {profile?.longest_streak === 1 ? '' : 's'}
             </CardDescription>
           </Card>
         </View>
