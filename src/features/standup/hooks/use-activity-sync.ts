@@ -3,10 +3,8 @@ import {
   assertActivitySyncAllowed,
   HISTORY_CAP_MESSAGE,
 } from '@/features/entitlements/lib/entitlements';
-import {
-  fetchUserProfile,
-  resolveGithubLogin,
-} from '@/features/profile/lib/profile';
+import { resolveGithubLogin } from '@/features/profile/lib/profile';
+import { fetchUserProfile } from '@/queries/lib/profile/fetch-user-profile';
 import { parseSelectedRepositories } from '@/features/repositories/types/repository';
 import {
   getActivityWorkdayCache,

@@ -1,33 +1,25 @@
 import { useAuth } from '@/context/auth';
-import { fetchUserProfile } from '@/features/profile/lib/profile';
-import { useFocusEffect } from '@react-navigation/native';
+import { useProfileQuery } from '@/queries/profile/use-profile-query';
 import * as React from 'react';
 
 export function useProfileHeader() {
-  const { supabase, session } = useAuth();
-  const [displayName, setDisplayName] = React.useState('Account');
-  const [avatarUrl, setAvatarUrl] = React.useState<string | null>(null);
+  const { session } = useAuth();
+  const { data: profile } = useProfileQuery();
 
-  useFocusEffect(
-    React.useCallback(() => {
-      if (!supabase || !session) {
-        return;
-      }
+  const displayName = React.useMemo(() => {
+    if (profile?.github_login) {
+      return profile.github_login;
+    }
+    return session?.user.email ?? 'Account';
+  }, [profile?.github_login, session?.user.email]);
 
-      void fetchUserProfile(supabase, session).then(({ profile }) => {
-        if (!profile) {
-          return;
-        }
-        setDisplayName(profile.github_login ?? session.user.email ?? 'Account');
-        setAvatarUrl(
-          profile.avatar_url ??
-            (typeof session.user.user_metadata?.avatar_url === 'string'
-              ? session.user.user_metadata.avatar_url
-              : null)
-        );
-      });
-    }, [session, supabase])
-  );
+  const avatarUrl = React.useMemo(() => {
+    if (profile?.avatar_url) {
+      return profile.avatar_url;
+    }
+    const meta = session?.user.user_metadata?.avatar_url;
+    return typeof meta === 'string' ? meta : null;
+  }, [profile?.avatar_url, session?.user.user_metadata?.avatar_url]);
 
   return { displayName, avatarUrl };
 }

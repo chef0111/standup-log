@@ -10,7 +10,7 @@ import {
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { useAuth } from '@/context/auth';
-import { fetchUserProfile } from '@/features/profile/lib/profile';
+import { fetchUserProfile } from '@/queries/lib/profile/fetch-user-profile';
 import {
   aggregateWeeklySummary,
   applyWeeklyPreviewGate,

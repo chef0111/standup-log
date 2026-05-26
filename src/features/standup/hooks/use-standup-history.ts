@@ -1,6 +1,6 @@
 import { useAuth } from '@/context/auth';
 import { getWorkdayHistoryBounds } from '@/features/entitlements/lib/entitlements';
-import { fetchUserProfile } from '@/features/profile/lib/profile';
+import { fetchUserProfile } from '@/queries/lib/profile/fetch-user-profile';
 import {
   mapStandupUpdateToHistoryItem,
   type StandupHistoryItem,

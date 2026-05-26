@@ -1,5 +1,5 @@
 import { useAuth } from '@/context/auth';
-import { fetchUserProfile } from '@/features/profile/lib/profile';
+import { fetchUserProfile } from '@/queries/lib/profile/fetch-user-profile';
 import { isStandupCopyEmpty } from '@/features/standup/lib/build-no-update-standup';
 import {
   formatStandupForCopy,

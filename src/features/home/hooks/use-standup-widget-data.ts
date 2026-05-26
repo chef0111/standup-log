@@ -1,8 +1,6 @@
 import { useAuth } from '@/context/auth';
-import {
-  fetchUserProfile,
-  type ProfileHomeRow,
-} from '@/features/profile/lib/profile';
+import type { ProfileHomeRow } from '@/features/profile/lib/profile';
+import { fetchUserProfile } from '@/queries/lib/profile/fetch-user-profile';
 import { isStandupSummaryReady } from '@/features/standup/lib/compose-standup-markdown';
 import { extractStandupSummary } from '@/features/standup/lib/parse-standup-markdown';
 import { fetchStandupUpdate } from '@/features/standup/lib/standup-api';

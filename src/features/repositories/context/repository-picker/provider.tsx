@@ -5,7 +5,6 @@ import {
   canSelectRepository,
   formatRepoLimitError,
 } from '@/features/entitlements/lib/entitlements';
-import { fetchUserProfile } from '@/features/profile/lib/profile';
 import {
   RepositoryPickerContext,
   type RepositoryPickerContextValue,
@@ -25,6 +24,7 @@ import {
 import { useGitHubAccessToken } from '@/hooks/use-github-access-token';
 import { track } from '@/lib/analytics';
 import { AppError, userFacingMessage } from '@/lib/errors';
+import { useProfileQuery } from '@/queries/profile/use-profile-query';
 import * as React from 'react';
 import { Alert } from 'react-native';
 
@@ -42,6 +42,7 @@ export function RepositoryPickerProvider({
   children,
 }: RepositoryPickerProviderProps) {
   const { supabase, session } = useAuth();
+  const { data: profile, error: profileError } = useProfileQuery();
   const {
     token,
     loading: tokenLoading,
@@ -52,9 +53,14 @@ export function RepositoryPickerProvider({
   const [loadingRepos, setLoadingRepos] = React.useState(true);
   const [loadError, setLoadError] = React.useState<string | null>(null);
   const [reloadKey, setReloadKey] = React.useState(0);
-  const [isPro, setIsPro] = React.useState(false);
+  const isPro = Boolean(profile?.is_pro);
   const [query, setQuery] = React.useState('');
-  const [selected, setSelected] = React.useState<SelectedRepository[]>([]);
+  const [_selected, setSelected] = React.useState<
+    SelectedRepository[] | undefined
+  >(undefined);
+  const selected =
+    _selected ??
+    parseSelectedRepositories(profile?.selected_repositories ?? []);
   const [saving, setSaving] = React.useState(false);
   const [saveError, setSaveError] = React.useState<string | null>(null);
   const [upgradeOpen, setUpgradeOpen] = React.useState(false);
@@ -66,30 +72,10 @@ export function RepositoryPickerProvider({
   }, [mode]);
 
   React.useEffect(() => {
-    if (!supabase || !session) {
-      return;
+    if (profileError) {
+      setLoadError(profileError.message);
     }
-
-    let cancelled = false;
-
-    void fetchUserProfile(supabase, session).then(({ profile, error }) => {
-      if (cancelled) {
-        return;
-      }
-      if (error) {
-        setLoadError(error);
-        return;
-      }
-      if (profile) {
-        setIsPro(Boolean(profile.is_pro));
-        setSelected(parseSelectedRepositories(profile.selected_repositories));
-      }
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [session, supabase]);
+  }, [profileError]);
 
   React.useEffect(() => {
     if (tokenLoading) {

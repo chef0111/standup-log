@@ -1,9 +1,8 @@
 import { Text } from '@/components/ui/text';
 import { useAuth } from '@/context/auth';
-import { fetchUserProfile } from '@/features/profile/lib/profile';
+import { useProfileQuery } from '@/queries/profile/use-profile-query';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { Redirect, usePathname } from 'expo-router';
-import * as React from 'react';
 import { ActivityIndicator, View } from 'react-native';
 
 type OnboardingGuardProps = {
@@ -11,41 +10,21 @@ type OnboardingGuardProps = {
 };
 
 export function OnboardingGuard({ children }: OnboardingGuardProps) {
-  const { supabase, session } = useAuth();
+  const { session } = useAuth();
   const pathname = usePathname();
   const foreground = useThemeColor('--color-foreground');
-  const [loading, setLoading] = React.useState(true);
-  const [needsOnboarding, setNeedsOnboarding] = React.useState(false);
-
   const onOnboardingRoute = pathname.includes('/onboarding');
 
-  React.useEffect(() => {
-    if (!supabase || !session || onOnboardingRoute) {
-      setLoading(false);
-      setNeedsOnboarding(false);
-      return;
-    }
-
-    let cancelled = false;
-
-    void fetchUserProfile(supabase, session).then(({ profile }) => {
-      if (cancelled) {
-        return;
-      }
-      setNeedsOnboarding(Boolean(profile && !profile.onboarding_completed_at));
-      setLoading(false);
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [onOnboardingRoute, session, supabase]);
+  const { data: profile, isLoading, isFetching } = useProfileQuery({
+    enabled: !onOnboardingRoute && Boolean(session),
+    refreshOnFocus: false,
+  });
 
   if (onOnboardingRoute) {
     return <>{children}</>;
   }
 
-  if (loading) {
+  if (isLoading || isFetching) {
     return (
       <View className="bg-background flex-1 items-center justify-center">
         <ActivityIndicator size="large" color={foreground} />
@@ -54,7 +33,7 @@ export function OnboardingGuard({ children }: OnboardingGuardProps) {
     );
   }
 
-  if (needsOnboarding) {
+  if (profile && !profile.onboarding_completed_at) {
     return <Redirect href="/(app)/onboarding" />;
   }
 
