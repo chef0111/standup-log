@@ -1,8 +1,9 @@
 import { Text } from '@/components/ui/text';
 import { useAuth } from '@/context/auth';
-import { useProfileQuery } from '@/queries/profile/use-profile-query';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { useProfileQuery } from '@/queries/profile/use-profile-query';
 import { Redirect, usePathname } from 'expo-router';
+import * as React from 'react';
 import { ActivityIndicator, View } from 'react-native';
 
 type OnboardingGuardProps = {
@@ -15,7 +16,7 @@ export function OnboardingGuard({ children }: OnboardingGuardProps) {
   const foreground = useThemeColor('--color-foreground');
   const onOnboardingRoute = pathname.includes('/onboarding');
 
-  const { data: profile, isLoading, isFetching } = useProfileQuery({
+  const { data: profile, isLoading } = useProfileQuery({
     enabled: !onOnboardingRoute && Boolean(session),
     refreshOnFocus: false,
   });
@@ -24,7 +25,7 @@ export function OnboardingGuard({ children }: OnboardingGuardProps) {
     return <>{children}</>;
   }
 
-  if (isLoading || isFetching) {
+  if (isLoading) {
     return (
       <View className="bg-background flex-1 items-center justify-center">
         <ActivityIndicator size="large" color={foreground} />
