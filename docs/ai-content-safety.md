@@ -11,7 +11,7 @@
 
 - Prompt constraints live in `supabase/functions/generate-standup-draft/index.ts`.
 - `work_type` values are validated server-side against an allowlist.
-- Free tier rate limits on generations (`ai_generation_events`): **20/day** and **5/minute** (Pro bypasses limits).
+- Free tier rate limits on generations (`ai_generation_events`): **50/day** and **5/minute** (Pro bypasses limits).
 
 ## Not in MVP
 

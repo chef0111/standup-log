@@ -39,7 +39,6 @@ export function convertLegacyStandupToMarkdown(
     '## 📊 Metrics / Notes',
     '- PRs open:',
     '- PRs merged:',
-    '- Tickets in progress:',
     '',
     '---',
     '*Time boxed: 5 min*',

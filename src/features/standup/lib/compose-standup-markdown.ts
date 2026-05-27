@@ -2,14 +2,20 @@ import {
   isMergedPullRequest,
   isOpenPullRequest,
 } from '@/features/standup/lib/activity/signal-disposition';
+import type { GenerateDraftCommitInput } from '@/features/standup/lib/ai-draft-types';
+import {
+  FALLBACK_SUMMARY_PROMPT_SINGLE,
+  formatFallbackSummarySection,
+  formatWhatIDidSection,
+  groupCommitsForDraft,
+} from '@/features/standup/lib/group-commits-for-draft';
 import { extractStandupSummary } from '@/features/standup/lib/parse-standup-markdown';
 import { workdayToLocalDate } from '@/features/standup/lib/workday/workday';
 import type { ActivityCommitRow } from '@/features/standup/types/activity-commit';
 import type { ManualNoteRow } from '@/features/standup/types/manual-note';
 import type { Workday } from '@/features/standup/types/workday';
 
-export const MAX_ACTIVITY_BULLETS = 15;
-
+/** @deprecated Empty-template placeholder only; fallback drafts use per-repo prompts. */
 export const STANDUP_SUMMARY_PLACEHOLDER =
   'Write a short standup message for your team chat…';
 
@@ -20,6 +26,53 @@ export function formatWorkdayHeading(workday: Workday): string {
     day: 'numeric',
     year: 'numeric',
   }).format(workdayToLocalDate(workday));
+}
+
+function toDraftCommit(commit: ActivityCommitRow): GenerateDraftCommitInput {
+  return {
+    sha: commit.sha,
+    message: commit.message,
+    repository_full_name: commit.repository_full_name,
+    pr_number: commit.pr_number,
+    pr_title: commit.pr_title,
+    pr_state: commit.pr_state,
+    pr_merged_at: commit.pr_merged_at,
+    signal_disposition: commit.signal_disposition,
+  };
+}
+
+function countUniqueMergedPrs(commits: ActivityCommitRow[]): number {
+  const merged = new Set<number>();
+  for (const commit of commits) {
+    if (commit.pr_number == null) {
+      continue;
+    }
+    if (
+      isMergedPullRequest({
+        pr_merged_at: commit.pr_merged_at,
+        pr_state: commit.pr_state,
+      })
+    ) {
+      merged.add(commit.pr_number);
+    }
+  }
+  return merged.size;
+}
+
+function countUniqueOpenPrs(commits: ActivityCommitRow[]): number {
+  const open = new Set<number>();
+  for (const commit of commits) {
+    if (
+      isOpenPullRequest({
+        pr_number: commit.pr_number,
+        pr_merged_at: commit.pr_merged_at,
+        pr_state: commit.pr_state,
+      })
+    ) {
+      open.add(commit.pr_number!);
+    }
+  }
+  return open.size;
 }
 
 export function buildEmptyStandupTemplate(workday: Workday): string {
@@ -42,26 +95,10 @@ export function buildEmptyStandupTemplate(workday: Workday): string {
     '## 📊 Metrics / Notes',
     '- PRs open:',
     '- PRs merged:',
-    '- Tickets in progress:',
     '',
     '---',
     '*Time boxed: 5 min*',
   ].join('\n');
-}
-
-function firstLine(message: string): string {
-  const line = message.split('\n')[0]?.trim() ?? message.trim();
-  return line.length > 0 ? line : message.trim();
-}
-
-function formatCommitBullet(commit: ActivityCommitRow): string {
-  const repo =
-    commit.repository_full_name.split('/').pop() ?? commit.repository_full_name;
-  const line = firstLine(commit.message);
-  if (commit.pr_number != null && commit.pr_title) {
-    return `- ${repo}: ${line} (PR #${commit.pr_number}: ${commit.pr_title})`;
-  }
-  return `- ${repo}: ${line}`;
 }
 
 export type ComposeManualMarkdownInput = {
@@ -74,19 +111,10 @@ export type ComposeManualMarkdownInput = {
 export function composeManualMarkdown(
   input: ComposeManualMarkdownInput
 ): string {
-  const sorted = [...input.commits].sort(
-    (a, b) =>
-      new Date(b.committed_at).getTime() - new Date(a.committed_at).getTime()
-  );
-  const visible = sorted.slice(0, MAX_ACTIVITY_BULLETS);
-  const bullets = visible.map(formatCommitBullet);
-  if (sorted.length > MAX_ACTIVITY_BULLETS) {
-    bullets.push(
-      `- …and ${sorted.length - MAX_ACTIVITY_BULLETS} more commit${sorted.length - MAX_ACTIVITY_BULLETS === 1 ? '' : 's'}`
-    );
-  }
-
-  const whatIDid = bullets.length > 0 ? bullets.join('\n') : '-';
+  const draftCommits = input.commits.map(toDraftCommit);
+  const repoGroups = groupCommitsForDraft(draftCommits);
+  const whatIDid = formatWhatIDidSection(repoGroups);
+  const summarySection = formatFallbackSummarySection(repoGroups);
 
   const focusLines = input.carryForwardNotes.map((n) => `- ${n.body.trim()}`);
   const focusingOn = focusLines.length > 0 ? focusLines.join('\n') : '-';
@@ -97,27 +125,15 @@ export function composeManualMarkdown(
       ? blockerNotes.map((n) => `- ${n.body.trim()}`).join('\n')
       : '-';
 
-  const mergedCount = input.commits.filter((c) =>
-    isMergedPullRequest({
-      pr_merged_at: c.pr_merged_at,
-      pr_state: c.pr_state,
-    })
-  ).length;
-  const openPrCount = input.commits.filter((c) =>
-    isOpenPullRequest({
-      pr_number: c.pr_number,
-      pr_merged_at: c.pr_merged_at,
-      pr_state: c.pr_state,
-    })
-  ).length;
-
+  const openPrCount = countUniqueOpenPrs(input.commits);
+  const mergedPrCount = countUniqueMergedPrs(input.commits);
   const dateLabel = formatWorkdayHeading(input.workday);
 
   return [
     `# Daily Standup — ${dateLabel}`,
     '',
     '## Summary',
-    STANDUP_SUMMARY_PLACEHOLDER,
+    summarySection,
     '',
     '## ✅ What I did',
     whatIDid,
@@ -130,12 +146,22 @@ export function composeManualMarkdown(
     '',
     '## 📊 Metrics / Notes',
     `- PRs open: ${openPrCount}`,
-    `- PRs merged: ${mergedCount}`,
-    '- Tickets in progress:',
+    `- PRs merged: ${mergedPrCount}`,
     '',
     '---',
     '*Time boxed: 5 min*',
   ].join('\n');
+}
+
+export function isFallbackSummaryContent(summary: string): boolean {
+  const trimmed = summary.trim();
+  if (trimmed.includes(FALLBACK_SUMMARY_PROMPT_SINGLE)) {
+    return true;
+  }
+  if (/^\*\*[^*]+:\*\*\s*\*\(Write 1–3 outcome sentences/.test(trimmed)) {
+    return true;
+  }
+  return false;
 }
 
 export function isStandupSummaryReady(markdown: string): boolean {
@@ -144,6 +170,9 @@ export function isStandupSummaryReady(markdown: string): boolean {
     return false;
   }
   if (summary === STANDUP_SUMMARY_PLACEHOLDER) {
+    return false;
+  }
+  if (isFallbackSummaryContent(summary)) {
     return false;
   }
   if (summary === '-') {

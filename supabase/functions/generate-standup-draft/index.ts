@@ -2,6 +2,7 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { buildDraftUserPrompt, SYSTEM_PROMPT } from './ai-draft-prompt.ts';
+import { applyMultiRepoStructure } from './enforce-standup-draft-structure.ts';
 
 const corsHeaders: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -10,7 +11,18 @@ const corsHeaders: Record<string, string> = {
 };
 
 const FREE_TIER_GENERATIONS_PER_MINUTE = 5;
-const FREE_TIER_GENERATIONS_PER_DAY = 20;
+const FREE_TIER_GENERATIONS_PER_DAY = 50;
+
+const MAX_TOKENS_DEFAULT = 2048;
+const MAX_TOKENS_LARGE_WORKDAY = 4096;
+/** At or above this commit count, use {@link MAX_TOKENS_LARGE_WORKDAY} (draft + per-sha classifications). */
+const LARGE_WORKDAY_MIN_COMMITS = 25;
+
+function maxTokensForCommitCount(commitCount: number): number {
+  return commitCount >= LARGE_WORKDAY_MIN_COMMITS
+    ? MAX_TOKENS_LARGE_WORKDAY
+    : MAX_TOKENS_DEFAULT;
+}
 
 const WORK_TYPES = [
   'feature',
@@ -54,10 +66,12 @@ function jsonResponse(body: Record<string, unknown>, status = 200): Response {
 
 async function callAnthropic(
   apiKey: string,
-  userPrompt: string
+  userPrompt: string,
+  maxTokens: number
 ): Promise<string> {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 30_000);
+  const timeoutMs = maxTokens > MAX_TOKENS_DEFAULT ? 45_000 : 30_000;
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -69,7 +83,7 @@ async function callAnthropic(
       },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 2048,
+        max_tokens: maxTokens,
         system: SYSTEM_PROMPT,
         messages: [{ role: 'user', content: userPrompt }],
       }),
@@ -249,12 +263,22 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const raw = await callAnthropic(anthropicKey, buildDraftUserPrompt(body));
+    const maxTokens = maxTokensForCommitCount(commits.length);
+    const raw = await callAnthropic(
+      anthropicKey,
+      buildDraftUserPrompt(body),
+      maxTokens
+    );
     const draft = parseDraftResponse(raw);
 
     if (!draft) {
       return jsonResponse({ error: 'malformed', fallback: true }, 502);
     }
+
+    draft.draft_markdown = applyMultiRepoStructure(
+      draft.draft_markdown,
+      commits
+    );
 
     await admin.from('ai_generation_events').insert({
       user_id: user.id,

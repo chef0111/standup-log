@@ -29,6 +29,7 @@ export function StandupDraftPanel() {
     carryForwardNotes,
     savedMarkdown: initialSaved,
     draftMarkdown: providerDraft,
+    draftSource,
     setEditorMarkdown,
     onStandupSaved: onSaved,
     openAddNote,
@@ -96,7 +97,19 @@ export function StandupDraftPanel() {
         </Button>
       </View>
 
-      {showEmptyGuide ? (
+      {draftSource === 'fallback' && (
+        <View className="border-border bg-muted/40 rounded-xl border px-3 py-2">
+          <Text className="text-foreground text-sm font-medium">
+            Activity fallback
+          </Text>
+          <Text className="text-muted-foreground mt-1 text-sm">
+            AI draft unavailable. Commits are grouped below — write per-repo
+            summaries or tap Regenerate.
+          </Text>
+        </View>
+      )}
+
+      {showEmptyGuide && (
         <EmptyWorkdayGuide
           workday={workday}
           onRefreshActivity={refreshActivity}
@@ -115,7 +128,7 @@ export function StandupDraftPanel() {
           }}
           onDismiss={() => setGuideDismissed(true)}
         />
-      ) : null}
+      )}
 
       <StandupMarkdownEditor
         mode="edit"
@@ -136,11 +149,11 @@ export function StandupDraftPanel() {
         <Text>Save</Text>
       </Button>
 
-      {status ? (
+      {status && (
         <Text className="text-muted-foreground text-center text-sm">
           {status}
         </Text>
-      ) : null}
+      )}
     </View>
   );
 }
