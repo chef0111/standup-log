@@ -58,8 +58,16 @@ A count of consecutive **Workdays** where the developer copied or shared a **Sta
 _Avoid_: Login streak, note streak, generation streak
 
 **Standup Summary**:
-The opening section of a **Standup Update**—one or two short paste-ready sentences for chat (roughly 40–60 words), stating the main theme or outcome for that **Workday** and blockers only when relevant. Detailed commit and note evidence lives in the sections below, not repeated line-for-line in the summary.
+The opening section of a **Standup Update**—one or two short paste-ready sentences for chat (roughly 40–60 words), stating the main theme or outcome for that **Workday** and blockers only when relevant. Written for the **Standup audience**—outcomes and product areas, not a commit or PR list. Detailed evidence lives in the sections below, not repeated line-for-line in the summary.
 _Avoid_: Weekly roll-up, executive report, AI title only
+
+**Standup audience**:
+The people who hear or read a shared **Standup Update**—by default a mixed product team (PM, design, engineering lead) who know the product but not the repository. The developer may still edit for a narrower or more technical room.
+_Avoid_: Stakeholders, executives, end users
+
+**Team-facing language**:
+Wording in a **Standup Update** that the **Standup audience** can follow without knowing file names, internal codenames, or package versions—what changed for users or the team’s goals first; repository detail only when needed for traceability.
+_Avoid_: Changelog, executive brief, marketing copy
 
 **Copy summary**:
 Copies only the **Standup Summary** portion of a **Standup Update** in the selected copy format. Available when the summary contains real prose (after **Generate** or manual edit).
@@ -70,7 +78,7 @@ Copies the entire **Standup Update** markdown in the selected copy format.
 _Avoid_: Export, download, copy all sections
 
 **AI Draft**:
-A suggested markdown **Standup Update** for a chosen **Workday**, generated from that day's **Activity Signals** and **Manual Notes** when the developer taps **Generate** or **Regenerate**. It does not run automatically on open. Includes a **Standup Summary** plus the structured sections.
+A suggested markdown **Standup Update** for a chosen **Workday**, generated from that day's **Activity Signals** and **Manual Notes** when the developer taps **Generate** or **Regenerate**. It does not run automatically on open. Includes a **Standup Summary** plus the structured sections. Defaults to **Team-facing language** for the **Standup audience**.
 _Avoid_: Final update, automated standup, posted status
 
 **Activity Signal**:
@@ -112,6 +120,7 @@ _Avoid_: Inputs panel, evidence drawer, sync log
 - A **Daily Streak** advances only when the developer copies or shares a **Standup Update**.
 - A **Standup Update** begins with a **Standup Summary**, then structured sections: what I did, focusing on, blockers, and optional metrics.
 - **Standup Summary** prose is produced by **AI Draft** on Generate; without Generate it shows instructional placeholder copy the developer replaces by hand.
+- **AI Draft** targets the **Standup audience** with **Team-facing language** unless the developer edits the result.
 - **Copy summary** is available only when **Standup Summary** contains real prose; **Copy full** copies the entire document.
 - **Regenerate** replaces the whole **Standup Update**, including **Standup Summary**, from that **Workday**'s current **Sources**.
 - An **AI Draft** becomes a **Standup Update** only after developer review and save.
@@ -149,3 +158,4 @@ _Avoid_: Inputs panel, evidence drawer, sync log
 - "calendar" could imply future planning or custom month UI; resolved: native date picker only; selectable days are today and past; free tier caps how far back the calendar goes.
 - "quick edit" or read-only overlay could imply a separate edit surface; resolved: **Read view** is read-only; edit always routes to **Generate standup**.
 - "copy standup" could mean summary-only or full document; resolved: **Copy summary** and **Copy full** are distinct actions with different availability by screen.
+- "team-readable" could mean peer engineers or a mixed product team; resolved: default **Standup audience** is mixed team (PM, design, eng lead); **Team-facing language** is outcome-first, not implementation-first.

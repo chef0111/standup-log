@@ -1,10 +1,10 @@
-import { useActivitySync } from '@/queries/activity/use-activity-sync';
 import type { StoredWorkType } from '@/features/standup/lib/activity/stored-work-type';
 import type { ManualNoteRow } from '@/features/standup/types/manual-note';
 import type {
   Workday,
   WorkdayPickerBounds,
 } from '@/features/standup/types/workday';
+import { useActivitySync } from '@/queries/activity/use-activity-sync';
 import * as React from 'react';
 
 export type StandupContextValue = {
@@ -44,6 +44,7 @@ export type StandupContextValue = {
   }) => Promise<void>;
   savedMarkdown: string | null;
   draftMarkdown: string | null;
+  draftSource: 'ai' | 'fallback' | 'saved' | null;
   aiLoading: boolean;
   aiError: string | null;
   aiRateLimited: boolean;

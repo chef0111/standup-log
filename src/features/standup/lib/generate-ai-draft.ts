@@ -3,9 +3,10 @@ import type {
   GenerateDraftRequest,
   GenerateDraftResponse,
 } from '@/features/standup/lib/ai-draft-types';
+import { applyMultiRepoStructure } from '@/features/standup/lib/enforce-standup-draft-structure';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
-const INVOKE_TIMEOUT_MS = 35_000;
+const INVOKE_TIMEOUT_MS = 60_000;
 
 export type GenerateAiDraftResult = {
   draft: GenerateDraftResponse | null;
@@ -15,7 +16,9 @@ export type GenerateAiDraftResult = {
   retryAfterSeconds: number | null;
 };
 
-function isGenerateDraftResponse(value: unknown): value is GenerateDraftResponse {
+function isGenerateDraftResponse(
+  value: unknown
+): value is GenerateDraftResponse {
   if (!value || typeof value !== 'object') {
     return false;
   }
@@ -23,7 +26,9 @@ function isGenerateDraftResponse(value: unknown): value is GenerateDraftResponse
   return typeof record.draft_markdown === 'string';
 }
 
-function isRateLimitPayload(value: unknown): value is GenerateDraftRateLimitError {
+function isRateLimitPayload(
+  value: unknown
+): value is GenerateDraftRateLimitError {
   if (!value || typeof value !== 'object') {
     return false;
   }
@@ -77,7 +82,12 @@ export async function generateAiDraft(
       };
     }
 
-    if (data && typeof data === 'object' && 'fallback' in data && data.fallback) {
+    if (
+      data &&
+      typeof data === 'object' &&
+      'fallback' in data &&
+      data.fallback
+    ) {
       const edgeError =
         typeof (data as { error?: string }).error === 'string'
           ? (data as { error: string }).error
@@ -102,7 +112,13 @@ export async function generateAiDraft(
     }
 
     return {
-      draft: data,
+      draft: {
+        ...data,
+        draft_markdown: applyMultiRepoStructure(
+          data.draft_markdown,
+          input.commits
+        ),
+      },
       fallback: false,
       error: null,
       rateLimited: false,

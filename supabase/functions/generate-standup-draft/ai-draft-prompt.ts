@@ -1,15 +1,7 @@
-type SignalDisposition = 'shipped' | 'in_progress';
-
-type GenerateDraftCommitInput = {
-  sha: string;
-  message: string;
-  repository_full_name: string;
-  pr_number: number | null;
-  pr_title: string | null;
-  pr_state?: string | null;
-  pr_merged_at?: string | null;
-  signal_disposition?: SignalDisposition;
-};
+import {
+  groupCommitsForDraft,
+  type GenerateDraftCommitInput,
+} from './group-commits-for-draft.ts';
 
 type GenerateDraftNoteInput = {
   body: string;
@@ -17,7 +9,7 @@ type GenerateDraftNoteInput = {
   is_carry_forward: boolean;
 };
 
-type GenerateDraftRequest = {
+export type GenerateDraftRequest = {
   workday: string;
   commits: GenerateDraftCommitInput[];
   notes: GenerateDraftNoteInput[];
@@ -26,7 +18,7 @@ type GenerateDraftRequest = {
 const STANDUP_TEMPLATE = `# Daily Standup — [Date]
 
 ## Summary
-(1–3 short sentences for team chat — theme only, not a commit list.)
+(Per repository with activity: **repo-name:** 1–3 outcome sentences. Single repository: 1–3 sentences with no repo label.)
 
 ## ✅ What I did
 -
@@ -40,23 +32,38 @@ const STANDUP_TEMPLATE = `# Daily Standup — [Date]
 ## 📊 Metrics / Notes
 - PRs open:
 - PRs merged:
-- Tickets in progress:
 
 ---
 *Time boxed: 5 min*`;
 
 export const SYSTEM_PROMPT = `You help developers draft a daily standup for one Workday from Activity Signals (Git commit metadata) and Manual Notes.
 
+Standup audience (default): a mixed product team — PM, design, and engineering lead — who know the product but not the repository. Write in team-facing language: outcomes and user-visible impact first, not an engineering changelog.
+
 Activity Signals have a disposition:
 - shipped — on the default branch or merged via pull request. You may say merged, shipped, or landed.
-- in_progress — on a feature branch or open pull request, not merged. Describe work done today in past tense; never say merged, shipped, deployed, released, or that a PR merged.
+- in_progress — on a feature branch or open pull request, not merged. Describe work done that day in past tense; never say merged, shipped, deployed, released, or that a PR merged.
 
-Section rules (match the template headings exactly):
-- Summary — 1–3 sentences (~40–60 words), high-level theme for Slack or Teams. When both shipped and in-progress work exist, capture both themes without listing every commit.
-- What I did — synthesize Activity Signals and non-blocker notes. Group related commits by theme or PR. Keep shipped and in-progress work factually separate; do not collapse open-PR work into merged language.
+Translation rules (apply to Summary and What I did):
+- Infer product areas from PR titles, repo names, and commit themes — not file or component names.
+- Each bullet: lead with what changed for users or the team; optional single traceability tail in parentheses — either a product area label OR "PR N", not both, never a commit count.
+- Do NOT include: class/component names, file paths, package versions (e.g. tss@2.1.6), "N commits", or stack implementation detail unless a Manual Note states it plainly for the team.
+- Group related commits into thematic bullets (by PR or outcome). One bullet per distinct theme after grouping — never one bullet per commit when commits share the same PR or theme. No fixed maximum bullet count.
+
+Summary rules:
+- When Activity Signals span 2+ repositories: write **bold repo short name**, colon, then 1–3 team-facing outcome sentences for that repo. Separate each repo with a blank line.
+- When Activity Signals are from only 1 repository: write 1–3 outcome sentences with no repo label prefix.
+- No PR lists, commit lists, or implementation jargon in Summary.
+
+What I did rules:
+- When 2+ repositories: use ### {repo-short-name} subheadings, then team-facing bullets grouped by PR/theme under each.
+- When only 1 repository: flat bullets only — no ### subheading.
+- Separate shipped vs in-progress facts; never imply merge for in-progress work.
+
+Other sections:
 - Focusing on — carry-forward notes only. Do not infer next steps from open PRs unless a carry-forward note says so.
 - Blockers — blocker notes only; use "-" if none.
-- Metrics / Notes — use the suggested PR counts; do not invent ticket IDs or numbers.
+- Metrics / Notes — use only the suggested PR counts provided. Do not add "Tickets in progress" or ticket counts unless explicitly stated in Manual Notes.
 
 Safety:
 - No code diffs, surveillance or productivity scoring, speculation, invented PII, or judgmental language about the developer.
@@ -64,23 +71,72 @@ Safety:
 - Output valid JSON only: {"draft_markdown":"...","classifications":[{"sha":"...","work_type":"..."}]}.
 - work_type must be one of: feature, bug, refactor, test, chore, style.`;
 
+const TEAM_FACING_EXAMPLE = `Example — multi-repo voice:
+
+GOOD Summary (2 repos):
+**tku-sparring:** Released 2.1.5, fixing bracket matches that did not advance after a winner was declared.
+
+**standup-log:** Shipped phase 10–11 hardening including voice notes, empty-workday flow, and multi-format copy.
+
+GOOD What I did (2 repos):
+### tku-sparring
+- Released 2.1.5 with bracket advancement fix (PR 175)
+
+### standup-log
+- Shipped phase 11 features including on-device voice notes and guided empty workday (PR 6)`;
+
 function commitFirstLine(message: string): string {
   return message.split('\n')[0]?.trim() ?? message.trim();
 }
 
 function formatCommitLine(commit: GenerateDraftCommitInput): string {
-  const repo =
-    commit.repository_full_name.split('/').pop() ?? commit.repository_full_name;
   const line = commitFirstLine(commit.message);
   const pr =
     commit.pr_number != null && commit.pr_title
       ? ` (PR #${commit.pr_number}: ${commit.pr_title})`
-      : '';
+      : commit.pr_number != null
+        ? ` (PR #${commit.pr_number})`
+        : '';
   const disposition =
     commit.signal_disposition === 'in_progress'
       ? ' [in progress]'
       : ' [shipped]';
-  return `- sha:${commit.sha} | ${repo}: ${line}${pr}${disposition}`;
+  return `    - sha:${commit.sha} | ${line}${pr}${disposition}`;
+}
+
+function formatRepoActivitySection(
+  repo: ReturnType<typeof groupCommitsForDraft>[number]
+): string[] {
+  const shippedLines: string[] = [];
+  const inProgressLines: string[] = [];
+
+  for (const theme of repo.prThemes) {
+    const header =
+      theme.prNumber != null
+        ? `  PR #${theme.prNumber}${theme.prTitle ? `: ${theme.prTitle}` : ''}`
+        : '  Direct commits';
+    const commitLines = theme.commits.map(formatCommitLine);
+    const block = [header, ...commitLines].join('\n');
+    const isInProgress = theme.commits.every(
+      (c) => c.signal_disposition === 'in_progress'
+    );
+    if (isInProgress && theme.commits.length > 0) {
+      inProgressLines.push(block);
+    } else {
+      shippedLines.push(block);
+    }
+  }
+
+  const lines = [
+    `Repository: ${repo.repositoryShortName} (${repo.repositoryFullName})`,
+  ];
+  lines.push('  Shipped:');
+  lines.push(shippedLines.length > 0 ? shippedLines.join('\n') : '    (none)');
+  lines.push('  In progress:');
+  lines.push(
+    inProgressLines.length > 0 ? inProgressLines.join('\n') : '    (none)'
+  );
+  return lines;
 }
 
 export function countUniqueOpenPrs(
@@ -117,26 +173,12 @@ export function countUniqueMergedPrs(
   return merged.size;
 }
 
-export function partitionCommitsByDisposition(
-  commits: GenerateDraftCommitInput[]
-): {
-  shipped: GenerateDraftCommitInput[];
-  inProgress: GenerateDraftCommitInput[];
-} {
-  const shipped: GenerateDraftCommitInput[] = [];
-  const inProgress: GenerateDraftCommitInput[] = [];
-  for (const commit of commits) {
-    if (commit.signal_disposition === 'in_progress') {
-      inProgress.push(commit);
-    } else {
-      shipped.push(commit);
-    }
-  }
-  return { shipped, inProgress };
-}
-
 export function buildDraftUserPrompt(input: GenerateDraftRequest): string {
-  const { shipped, inProgress } = partitionCommitsByDisposition(input.commits);
+  const repoGroups = groupCommitsForDraft(input.commits);
+  const repoSections = repoGroups.flatMap((repo) => [
+    ...formatRepoActivitySection(repo),
+    '',
+  ]);
 
   const contextNotes = input.notes
     .filter((n) => !n.is_blocker)
@@ -154,19 +196,15 @@ export function buildDraftUserPrompt(input: GenerateDraftRequest): string {
 
   const openPrs = countUniqueOpenPrs(input.commits);
   const mergedPrs = countUniqueMergedPrs(input.commits);
+  const repositoryCount = repoGroups.length;
 
   return [
     `Workday: ${input.workday}`,
     'This standup is FOR this calendar day only — not "yesterday" relative to today.',
+    `Repositories with activity: ${repositoryCount}`,
     '',
-    'Shipped Activity Signals (default branch or merged PR):',
-    shipped.length > 0 ? shipped.map(formatCommitLine).join('\n') : '(none)',
-    '',
-    'In-progress Activity Signals (feature branch / open PR — not merged):',
-    inProgress.length > 0
-      ? inProgress.map(formatCommitLine).join('\n')
-      : '(none)',
-    '',
+    'Activity by repository (group commits by PR/theme — not one bullet per commit):',
+    ...(repoSections.length > 0 ? repoSections : ['(none)']),
     'Manual notes (non-blocker):',
     contextNotes.length > 0 ? contextNotes.join('\n') : '(none)',
     '',
@@ -183,15 +221,16 @@ export function buildDraftUserPrompt(input: GenerateDraftRequest): string {
     'The draft_markdown MUST follow this template exactly (replace [Date] with a friendly date for the Workday):',
     STANDUP_TEMPLATE,
     '',
-    'Write Summary as 1–3 short sentences (about 40–60 words max) suitable for pasting into Slack or Teams.',
-    'If only in-progress work exists, Summary should reflect branch/PR progress without implying merge.',
-    'If only shipped work exists, Summary may reference merges or landings when PR metadata supports it.',
-    'Do NOT enumerate individual commits, file names, or bullet items in Summary.',
-    'Populate What I did from both Activity Signal sections and non-blocker notes.',
-    'In-progress signals: past tense for work done today; never merged/shipped/deployed language.',
-    'Shipped signals: may use merged/shipped language when PR metadata indicates merge.',
+    TEAM_FACING_EXAMPLE,
+    '',
+    `Repository count for this Workday: ${repositoryCount}.`,
+    repositoryCount > 1
+      ? 'Summary: **repo:** 1–3 sentences per repo with activity. What I did: ### repo subheadings with grouped bullets.'
+      : 'Summary: 1–3 sentences, no repo label. What I did: flat bullets, no ### subheading.',
+    'Do NOT copy commit subject lines verbatim when implementation-heavy — translate to team-facing outcomes.',
     'Populate Focusing on from carry-forward notes only (use "-" if none).',
     'Populate Blockers from blocker notes only (use "-" if none).',
+    'Metrics: PRs open and PRs merged only. Do NOT add Tickets in progress unless a Manual Note mentions tickets.',
     'Classify each commit sha by work_type.',
   ].join('\n');
 }

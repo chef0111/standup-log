@@ -1,0 +1,29 @@
+---
+description: Prefer short, clear function and variable names; avoid redundant prefixes
+alwaysApply: true
+---
+
+# Concise naming
+
+Use **short names that read clearly in context**. Prefer one precise word over a stacked phrase.
+
+## Functions
+
+- Name for **what it returns or does**, not every input type: `hasRepoHeadings(workSection)` not `completedWorkHasPerRepoHeadings(completedWorkSection)`.
+- Drop redundant scope when the file/module already provides it (`enforce-standup-draft-structure.ts` → `structureWorkByRepo`, not `structureCompletedWorkByRepoForMultiRepo`).
+- Boolean checks: `hasX`, `isX`, `canX` — not `xHasYAndZ`.
+- Avoid `regroup`, `enforce`, `apply` chains in the same name unless each word adds meaning.
+
+## Variables
+
+- Parameters: `workSection`, `summarySection`, `repoGroups` — not `completedWorkSectionBodyMarkdown`.
+- Locals: `bullets`, `byRepo`, `parsed` — not `whatIDidBulletLinesArray`.
+
+## When longer names are OK
+
+- Public API crossing package boundaries where ambiguity is real.
+- Names that must match an external schema (`whatIDid` on `ParsedStandupMarkdown`).
+
+## Comments
+
+- Put section semantics (`"What I did"`) in a one-line comment when the name stays short.

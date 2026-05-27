@@ -1,4 +1,3 @@
-import type { ActivityCommitRow } from '@/features/standup/types/activity-commit';
 import {
   buildEmptyStandupTemplate,
   composeManualMarkdown,
@@ -6,6 +5,7 @@ import {
   isStandupSummaryReady,
   STANDUP_SUMMARY_PLACEHOLDER,
 } from '@/features/standup/lib/compose-standup-markdown';
+import type { ActivityCommitRow } from '@/features/standup/types/activity-commit';
 import { describe, expect, it } from 'vitest';
 
 const commit: ActivityCommitRow = {
@@ -47,8 +47,10 @@ describe('compose-standup-markdown', () => {
       notes: [],
       carryForwardNotes: [],
     });
-    expect(manual).toContain(STANDUP_SUMMARY_PLACEHOLDER);
-    expect(manual).toContain('- web: Fix login');
+    expect(manual).toContain('1–3 outcome sentences');
+    expect(manual).not.toContain(STANDUP_SUMMARY_PLACEHOLDER);
+    expect(manual).toContain('PR #42');
+    expect(manual).not.toContain('Tickets in progress');
   });
 
   it('isStandupSummaryReady is false for placeholder only', () => {

@@ -1,10 +1,4 @@
 import { useAuth } from '@/context/auth';
-import { useActivitySync } from '@/queries/activity/use-activity-sync';
-import type { ManualNoteRow } from '@/features/standup/types/manual-note';
-import { useManualNoteMutations } from '@/queries/notes/use-manual-note-mutations';
-import { useManualNotesQuery } from '@/queries/notes/use-manual-notes-query';
-import { useProfileQuery } from '@/queries/profile/use-profile-query';
-import { useStandupUpdateQuery } from '@/queries/standup/use-standup-update-query';
 import { buildGenerateDraftRequest } from '@/features/standup/lib/build-generate-draft-request';
 import { composeManualMarkdown } from '@/features/standup/lib/compose-standup-markdown';
 import { generateAiDraft } from '@/features/standup/lib/generate-ai-draft';
@@ -19,10 +13,16 @@ import {
   defaultTargetWorkday,
   getWorkdayPickerBounds,
 } from '@/features/standup/lib/workday/workday';
+import type { ManualNoteRow } from '@/features/standup/types/manual-note';
 import type { Workday } from '@/features/standup/types/workday';
 import { track } from '@/lib/analytics';
 import { markFirstEvent } from '@/lib/analytics-flags';
 import { categorizeError, userFacingMessage } from '@/lib/errors';
+import { useActivitySync } from '@/queries/activity/use-activity-sync';
+import { useManualNoteMutations } from '@/queries/notes/use-manual-note-mutations';
+import { useManualNotesQuery } from '@/queries/notes/use-manual-notes-query';
+import { useProfileQuery } from '@/queries/profile/use-profile-query';
+import { useStandupUpdateQuery } from '@/queries/standup/use-standup-update-query';
 import * as React from 'react';
 import { StandupContext, type StandupContextValue } from './context';
 
@@ -49,6 +49,9 @@ export function StandupProvider({
   const [noteError, setNoteError] = React.useState<string | null>(null);
   const [savedMarkdown, setSavedMarkdown] = React.useState<string | null>(null);
   const [draftMarkdown, setDraftMarkdown] = React.useState<string | null>(null);
+  const [draftSource, setDraftSource] = React.useState<
+    'ai' | 'fallback' | 'saved' | null
+  >(null);
   const [editorMarkdown, setEditorMarkdown] = React.useState('');
   const [aiLoading, setAiLoading] = React.useState(false);
   const [aiError, setAiError] = React.useState<string | null>(null);
@@ -58,9 +61,7 @@ export function StandupProvider({
   >(null);
   const [offlineBanner, setOfflineBanner] = React.useState<string | null>(null);
   const standupQuery = useStandupUpdateQuery(workday);
-  const loadingStandup = isLikelyOffline()
-    ? false
-    : standupQuery.isLoading;
+  const loadingStandup = isLikelyOffline() ? false : standupQuery.isLoading;
 
   const pickerBounds = React.useMemo(
     () => getWorkdayPickerBounds({ isPro }),
@@ -141,15 +142,23 @@ export function StandupProvider({
     const standup = standupQuery.data;
     if (standup?.draft_markdown?.trim()) {
       setSavedMarkdown(standup.draft_markdown);
+      setDraftSource('saved');
       setOfflineBanner(null);
     } else {
       setSavedMarkdown(null);
+      setDraftSource(null);
       setOfflineBanner(null);
     }
-  }, [standupQuery.data, standupQuery.isError, standupQuery.isLoading, workday]);
+  }, [
+    standupQuery.data,
+    standupQuery.isError,
+    standupQuery.isLoading,
+    workday,
+  ]);
 
   React.useEffect(() => {
     setDraftMarkdown(null);
+    setDraftSource(null);
     setAiError(null);
     setAiRateLimited(false);
     setAiRetryAfterSeconds(null);
@@ -171,6 +180,7 @@ export function StandupProvider({
 
     if (isLikelyOffline()) {
       setDraftMarkdown(manualMarkdown);
+      setDraftSource('fallback');
       setAiLoading(false);
       setAiError(userFacingMessage('network'));
       return;
@@ -191,6 +201,7 @@ export function StandupProvider({
 
     if (result.draft && !result.fallback) {
       setDraftMarkdown(result.draft.draft_markdown);
+      setDraftSource('ai');
       if (result.draft.classifications.length > 0) {
         await updateCommitWorkTypes(
           supabase,
@@ -208,6 +219,7 @@ export function StandupProvider({
       });
     } else {
       setDraftMarkdown(manualMarkdown);
+      setDraftSource('fallback');
       track('draft_generation_failed', {
         workday,
         error_code: result.error ?? 'fallback',
@@ -260,6 +272,7 @@ export function StandupProvider({
     setWorkday(next);
     setSavedMarkdown(null);
     setDraftMarkdown(null);
+    setDraftSource(null);
     setAiError(null);
     setAiRateLimited(false);
     setAiRetryAfterSeconds(null);
@@ -307,6 +320,7 @@ export function StandupProvider({
   const onStandupSaved = React.useCallback((markdown: string) => {
     setSavedMarkdown(markdown);
     setDraftMarkdown(null);
+    setDraftSource('saved');
     setOfflineBanner(null);
   }, []);
 
@@ -351,6 +365,7 @@ export function StandupProvider({
       handleSaveNote,
       savedMarkdown,
       draftMarkdown,
+      draftSource,
       aiLoading,
       aiError,
       aiRateLimited,
@@ -391,6 +406,7 @@ export function StandupProvider({
       handleSaveNote,
       savedMarkdown,
       draftMarkdown,
+      draftSource,
       aiLoading,
       aiError,
       aiRateLimited,

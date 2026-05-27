@@ -386,6 +386,7 @@ Acceptance criteria:
 
 - Send only needed activity metadata and note content to AI proxy.
 - Generate concise, non-boastful team-facing language.
+- Default **AI Draft** voice targets the **Standup audience** (mixed product team): outcome-first bullets; optional single PR or product-area traceability tail; no invented ticket metrics.
 - Classify activity by work type.
 - Produce **Standup Summary**, **What I did**, **Focusing on**, **Blockers**, and optional **Metrics / Notes** sections.
 - Avoid hallucinated future plans and blockers.
